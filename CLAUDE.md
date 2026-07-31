@@ -9,6 +9,8 @@
 
 - 저장소: `https://github.com/JuseokOh0907/Pretty_Knights`
 - 로컬 경로: `C:\Git\Pretty_Knights`
+- GitHub 계정: `JuseokOh0907` (팀 프로젝트는 `likelion-ugm-07-final` 조직을 쓰지만 이 프로젝트는 개인 저장소)
+- `C:\Git` 은 사용자의 프로젝트 루트이며 형제 프로젝트(Diggers, Ghost_GomokuKing, HellEscape, PlanetDigger, ToMeetAlice 등)가 함께 있습니다. **이 저장소 밖의 폴더를 건드리지 않습니다.**
 
 ---
 
@@ -136,9 +138,11 @@ Base body → Hair/Head → Top/Armor → Weapon → Secondary → Foreground FX
 
 ## 6. 작업 규칙
 
+- **파일 삭제가 필요한 작업은 반드시 사용자 승인을 먼저 받는다** (2026-08-01 확정). 유일한 예외는 §0 의 `HANDOFF.md` 제거 절차.
 - **`.meta` 파일을 임의로 삭제·생성하지 않는다.** 에셋 이동은 Unity 에디터에서 하거나, 파일과 `.meta` 를 항상 쌍으로 옮긴다.
 - `.unity` 씬 파일과 `.prefab` 을 텍스트로 직접 편집하지 않는다. 필요하면 에디터 스크립트를 통한다.
-- `Library/`, `Temp/`, `Logs/`, `UserSettings/` 는 커밋 대상이 아니다 (`.gitignore` 참조).
+- **커밋 범위는 전체 포함** — `Assets/Art` 전부를 저장소에 넣는다 (2026-08-01 확정). `Library/`, `Temp/`, `Logs/`, `UserSettings/` 만 제외한다.
+- `.gitignore` 는 **GitHub 공식 Unity 템플릿**을 채택했고 에디터·OS 규칙만 덧붙였다. 임의로 재작성하지 않는다.
 - 레거시 Input 매니저 API를 쓰지 않는다. Input System 액션 애셋(`Assets/InputSystem_Actions.inputactions`)을 사용한다.
 - **방향·상태 애니메이션은 블렌드 트리 방식으로 간다** (2026-08-01 확정, `docs/decisions/001-animator-blend-tree.md`).
   현재 Walking은 방향마다 Animator Controller가 따로 있어 `동작 × 8` 로 증가한다. 컨트롤러를 늘리지 말 것.
@@ -155,15 +159,25 @@ Base body → Hair/Head → Top/Armor → Weapon → Secondary → Foreground FX
 - Knights 달리기 8방향 — PNG만 존재 (클립·Animator 미작성)
 - 맵 타일셋 3테마 준비 (Goblin / Orc / Vampire), 각 27파일
 - 포탈·아이템 오브젝트 아트 존재
-- 씬 3개 생성 (내용은 미확인 — 대부분 비어 있을 가능성)
+- 씬 3개 생성 (2026-08-01 실물 확인)
+  - `Title_Scene`, `Ingame_Horizontal` — 기본 빈 씬
+  - `Ingame_Vertical` — Main Camera + Global Light 2D + `Grid` 아래 타일맵 4레이어(`BasePoints` / `Orc` / `Goblin` / `Vampire`) 골격만 존재. **네 레이어 전부 타일 0개(빈 타일맵).**
 
 **미착수**
 
 - 스크립트 전무 (`Assets/Scripts/` 없음)
-- 몬스터 스프라이트 없음
-- 스킬 VFX 없음
-- 타일맵 실제 배치 없음
+- 몬스터 스프라이트 없음 (`Maps/` 의 Goblin·Orc·Vampire 는 **맵 테마**이지 몬스터가 아님)
+- 스킬 VFX 없음, 판정 시스템 없음
+- 타일맵 실제 배치 없음 (레이어 골격만 있음)
 - 세로/가로 씬 스케일링 및 방향 전환 처리
+
+### 남은 잡무 / 기술 부채
+
+- `ProjectSettings` 의 `companyName` 이 `DefaultCompany` — 출시 전 변경 필요
+- 루트에 옛 이름 잔재 `Gamble_Yuusha.slnx` 가 남아 있음 — 삭제/개명은 사용자 승인 후
+- `Assets/Art/Maps/Base` 는 빈 폴더 — 용도 미확인, 사용자 확인 필요
+- Aseprite Importer 가 설치되어 있음 → PNG 수동 슬라이싱 대신 `.aseprite` 원본 직접 임포트로 전환할 여지가 있음. **사용자에게 원본 파일 보유 여부 확인 필요**
+- Walking Animator Controller 8개 → 블렌드 트리 단일 컨트롤러로 통합 대기 (`.anim` 클립 8개는 그대로 재사용)
 
 ---
 
@@ -175,6 +189,7 @@ Base body → Hair/Head → Top/Armor → Weapon → Secondary → Foreground FX
 4. 추격형·원거리형·정예 몬스터 스프라이트 제작
 5. 타일맵 1지역 + 보스 공간 그레이박스 연결
 6. 세로 자동 사냥과 가로 직접 플레이가 **동일한 캐릭터 데이터**를 공유하도록 구성
+   → 아키텍처 제약: 캐릭터 스탯·스킬·장비·인벤토리는 **씬에 종속되지 않는 계층**에 두어야 한다.
 7. 경험치·드랍·보스 보상·세이브 데이터 연결
 8. 반응형 UI와 세로/가로 전환
 
@@ -183,6 +198,14 @@ Base body → Hair/Head → Top/Armor → Weapon → Secondary → Foreground FX
 ## 9. 미결정 사항
 
 `docs/decisions/OPEN_DECISIONS.md` 참조. 총 9건이며, 결정 시 해당 문서를 갱신하고 이 절의 링크를 유지합니다.
+
+그중 **코드 작성을 실제로 막고 있는 3건**은 다음과 같습니다. 첫 구현 착수 전에 사용자와 먼저 정리하십시오.
+
+| # | 항목 | 무엇이 막히는가 |
+|---|---|---|
+| 2 | 카메라·타일 투영·충돌·가림 규칙 | 타일맵 그리드 설정과 Y-소팅 구현 |
+| 8 | 세로/가로 기준 해상도 및 전환 동작 | 씬·캔버스 구조 |
+| 3 | 스탯 목록과 공식 | 캐릭터 데이터 모델 |
 
 ---
 
