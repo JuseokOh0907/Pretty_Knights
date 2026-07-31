@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: DefaultCompany
-  productName: Gamble_Yuusha
+  productName: Pretty_Knights
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -794,14 +794,14 @@ PlayerSettings:
   editorAssembliesCompatibilityLevel: 1
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: Gamble_Yuusha
+  metroPackageName: Pretty_Knights
   metroPackageVersion: 
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
   metroCertificateIssuer: 
   metroCertificateNotAfter: 0000000000000000
-  metroApplicationDescription: Gamble_Yuusha
+  metroApplicationDescription: Pretty_Knights
   wsaImages: {}
   metroTileShortName: 
   metroTileShowName: 0
@@ -875,7 +875,7 @@ PlayerSettings:
   cloudProjectId: 0c96a8c3-f13b-468e-8fe0-5ec9c20fdb91
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: Gamble_Yuusha
+  projectName: Pretty_Knights
   organizationId: juseok_0907
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0

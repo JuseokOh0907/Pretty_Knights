@@ -45,14 +45,21 @@
 
 ---
 
-## 2. 경로에 대한 주의
+## 2. 이름과 경로
 
-사용자가 처음 알려준 경로 `C:\Unity\Gamble_Yuusha` 는 **존재하지 않습니다.**
-실제 경로는 다음과 같습니다.
+**프로젝트명은 `Pretty_Knights` 로 통일되었습니다 (2026-08-01 확정).**
+
+작업 초기에 `Gamble_Yuusha` 라는 이름이 쓰였으나, GitHub 저장소명에 맞춰 정리했습니다.
+**대화 기록이나 오래된 문서에 등장하는 `Gamble_Yuusha` 는 전부 폐기된 이름입니다.**
 
 ```
-C:\Git\Gamble_Yuusha
+저장소     https://github.com/JuseokOh0907/Pretty_Knights
+로컬 경로   C:\Git\Pretty_Knights
+productName Pretty_Knights
 ```
+
+> 로컬 폴더명 변경은 사용자가 Unity를 종료한 상태에서 직접 수행합니다.
+> 인수 시점에 폴더가 아직 `C:\Git\Gamble_Yuusha` 라면 변경 여부를 확인하십시오.
 
 `C:\Git` 은 사용자의 프로젝트 루트 폴더이며, 형제 프로젝트로
 Diggers, Ghost_GomokuKing, HellEscape, PlanetDigger, ToMeetAlice 등이 있습니다.
@@ -81,10 +88,12 @@ GitHub 계정은 **`JuseokOh0907`** 입니다 (팀 프로젝트는 `likelion-ugm
 | Knights 달리기 클립 / Animator | ❌ 없음 |
 | 공격 · 스킬 · 피격 모션 | ❌ 없음 |
 
-**주의 사항:** 걷기 애니메이션이 방향당 하나씩 총 8개의 Animator Controller로 분리되어 있습니다.
-동작이 늘어나면(달리기·공격·스킬·피격) 컨트롤러 수가 `동작 × 8` 로 증가해 관리가 무너집니다.
-`Direction`(int 또는 x/y float) + `State` 파라미터를 쓰는 **단일 컨트롤러 + 블렌드 트리**로
-재구성하는 것을 강하게 권장합니다. 지금이 바꾸기 가장 싼 시점입니다.
+**⚠️ 이미 결정된 사항:** 걷기 애니메이션이 방향당 하나씩 총 8개의 Animator Controller로 분리되어 있습니다.
+동작이 늘어나면 `동작 × 8` 로 증가해(계획된 8개 동작 기준 64개) 관리가 무너집니다.
+
+사용자와 협의하여 **단일 컨트롤러 + 블렌드 트리 방식으로 재구성하기로 확정했습니다.**
+상세는 `docs/decisions/001-animator-blend-tree.md` 를 참조하십시오.
+기존 `.anim` 클립 8개는 그대로 재사용하고, 컨트롤러만 통합합니다.
 
 ### 3.3 몬스터 아트가 없다
 
@@ -101,16 +110,11 @@ GitHub 계정은 **`JuseokOh0907`** 입니다 (팀 프로젝트는 `likelion-ugm
 `Title_Scene` / `Ingame_Vertical` / `Ingame_Horizontal` 세 씬이 생성되어 있으나
 스크립트가 없으므로 실제 로직은 없습니다. 내용 확인이 필요합니다.
 
-### 3.6 폴더명 오타
+### 3.6 폴더명 오타 — 해결됨
 
-```
-Assets/Art/Maps/Vampire/TIles     ← 대문자 I
-Assets/Art/Maps/Goblin/Tiles      ← 정상
-Assets/Art/Maps/Orc/Tiles         ← 정상
-```
-
-경로가 코드에 하드코딩되기 전에 고치는 것이 안전합니다.
-단, **Unity 에디터에서 이름을 변경해야 합니다** (`.meta` 유지). 파일 시스템에서 직접 바꾸면 참조가 깨질 수 있습니다.
+`Assets/Art/Maps/Vampire/TIles` (대문자 I) 오타가 있었으나 사용자가 Unity 에디터에서 수정했습니다.
+현재 Goblin / Orc / Vampire 세 테마 모두 `Tiles` 로 정상이며 원격에도 반영되어 있습니다.
+추가 조치 불필요.
 
 ### 3.7 `Assets/Art/Maps/Base` 는 비어 있음
 
@@ -125,8 +129,8 @@ Unity        6000.3.20f1 (Unity 6)
 렌더 파이프라인  URP 17.3.0 + 2D Renderer
 입력          Input System 1.19.0 (activeInputHandler: 1 — 신규 전용)
 화면 방향      defaultScreenOrientation: 4 (AutoRotation), 4방향 전부 허용
-productName   Gamble_Yuusha
-companyName   DefaultCompany  ← 출시 전 변경 필요
+productName   Pretty_Knights
+companyName   DefaultCompany  ← 출시 전 변경 필요 (미해결)
 ```
 
 2D 관련 패키지가 폭넓게 설치되어 있습니다: Aseprite Importer, PSD Importer,
@@ -141,7 +145,10 @@ companyName   DefaultCompany  ← 출시 전 변경 필요
 - 작업을 Cowork에서 **Claude Code로 이관**한다.
 - 커밋 범위는 **전체 포함** — `Assets/Art` 전부를 저장소에 넣는다.
   (`Library/`, `Temp/`, `Logs/`, `UserSettings/` 만 `.gitignore` 로 제외)
-- GitHub 저장소는 이미 생성되어 있으나, 이 세션 시점까지 로컬과 연결되지 않은 상태였다.
+- `.gitignore` 는 원격에 있던 **GitHub 공식 Unity 템플릿을 채택**하고 에디터·OS 규칙만 추가했다.
+- 프로젝트명은 **`Pretty_Knights` 로 통일**한다 (`Gamble_Yuusha` 폐기).
+- 방향 애니메이션은 **블렌드 트리 방식**으로 간다 (`docs/decisions/001-animator-blend-tree.md`).
+- 파일 삭제가 필요한 작업은 **반드시 사용자 승인을 먼저 받는다.**
 
 ---
 
@@ -165,5 +172,14 @@ Claude Code에서 첫 작업을 시작하기 전에 이 세 가지를 사용자�
 3. `Assets/Scripts/` 아키텍처를 설계한다.
    핵심 제약: **세로 자동 사냥과 가로 직접 플레이가 동일한 캐릭터 데이터를 공유해야 한다** (기획서 §15-6).
    즉 캐릭터 스탯·스킬·장비·인벤토리는 씬에 종속되지 않는 계층에 있어야 합니다.
-4. 방향 애니메이션을 단일 Animator + 블렌드 트리로 재구성할지 결정한다.
+4. 방향 애니메이션을 단일 Animator + 블렌드 트리로 재구성한다 (이미 확정된 방침).
 5. **이 파일을 삭제한다.**
+
+---
+
+## 8. 남은 잡무
+
+- 로컬 폴더명 `C:\Git\Gamble_Yuusha` → `C:\Git\Pretty_Knights` 변경 (Unity 종료 후 사용자가 수행)
+- `companyName` 이 `DefaultCompany` 상태 — 출시 전 변경 필요
+- `Assets/Art/Maps/Base` 가 빈 폴더 — 용도 확인 필요
+- 씬 3개의 실제 내용 확인 (비어 있을 가능성 높음)

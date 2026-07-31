@@ -1,7 +1,14 @@
-# Gamble_Yuusha — Claude 작업 가이드
+# Pretty_Knights — Claude 작업 가이드
 
 > 이 파일은 Claude Code가 세션마다 자동으로 읽습니다.
 > 프로젝트의 "무엇을/어떻게" 를 담고, 상세 기획은 `docs/game_design_plan_EN.md` 를 참조합니다.
+
+**프로젝트명은 `Pretty_Knights` 로 통일되어 있습니다.**
+저장소·로컬 폴더·Unity `productName` 이 모두 같은 이름을 씁니다.
+과거 문서나 대화에 등장하는 `Gamble_Yuusha` 는 폐기된 이전 이름입니다.
+
+- 저장소: `https://github.com/JuseokOh0907/Pretty_Knights`
+- 로컬 경로: `C:\Git\Pretty_Knights`
 
 ---
 
@@ -65,7 +72,7 @@ Assets/
 │   │   ├── Base/                          (비어 있음)
 │   │   ├── Goblin/{Objects,Tiles}
 │   │   ├── Orc/{Objects,Tiles}
-│   │   └── Vampire/{Objects,TIles}        ※ 오타: TIles → Tiles
+│   │   └── Vampire/{Objects,Tiles,Vampire.prefab}
 │   └── Objects/Interactive/
 │       ├── Items/
 │       └── Portals/{Animation,Images/{Blue,Gold,Red}}
@@ -133,7 +140,8 @@ Base body → Hair/Head → Top/Armor → Weapon → Secondary → Foreground FX
 - `.unity` 씬 파일과 `.prefab` 을 텍스트로 직접 편집하지 않는다. 필요하면 에디터 스크립트를 통한다.
 - `Library/`, `Temp/`, `Logs/`, `UserSettings/` 는 커밋 대상이 아니다 (`.gitignore` 참조).
 - 레거시 Input 매니저 API를 쓰지 않는다. Input System 액션 애셋(`Assets/InputSystem_Actions.inputactions`)을 사용한다.
-- 방향·상태 애니메이션은 방향별 Animator Controller를 늘리는 대신 **파라미터/블렌드 트리 방식**을 우선 검토한다 (현재 Walking은 방향마다 컨트롤러가 따로 있어 확장이 어렵다).
+- **방향·상태 애니메이션은 블렌드 트리 방식으로 간다** (2026-08-01 확정, `docs/decisions/001-animator-blend-tree.md`).
+  현재 Walking은 방향마다 Animator Controller가 따로 있어 `동작 × 8` 로 증가한다. 컨트롤러를 늘리지 말 것.
 - 결정이 내려질 때마다 `docs/decisions/` 에 기록한다. 다음 세션이 같은 질문을 반복하지 않도록.
 
 ---
