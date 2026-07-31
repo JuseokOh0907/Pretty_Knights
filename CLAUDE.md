@@ -71,7 +71,7 @@ Assets/
 │   │   ├── Animation_Knights-Running/     8방향 PNG 시트
 │   │   └── Animation_Knights-Walking/     8방향 PNG + Animation_clips/ + Animator/
 │   ├── Maps/
-│   │   ├── Base/                          (비어 있음)
+│   │   ├── Base/                          플레이어 시작 지점 주변 맵 (아직 비어 있음)
 │   │   ├── Goblin/{Objects,Tiles}
 │   │   ├── Orc/{Objects,Tiles}
 │   │   └── Vampire/{Objects,Tiles,Vampire.prefab}
@@ -83,6 +83,17 @@ Assets/
 ```
 
 **`Assets/Scripts/` 는 아직 존재하지 않습니다.** 코드는 전부 이제부터 작성됩니다.
+
+### `Maps/` 하위 폴더의 의미
+
+`Maps/` 아래 이름은 **맵 테마**이며 몬스터 종족 폴더가 아닙니다.
+
+| 폴더 | 용도 |
+|---|---|
+| `Base/` | **플레이어 시작 지점 주변 맵.** 몬스터 지역이 아닌 안전/거점 배경 (2026-08-01 확정) |
+| `Goblin/` `Orc/` `Vampire/` | 사냥터 테마 타일셋 (각 27파일) |
+
+몬스터 스프라이트는 이와 별개이며 아직 하나도 없습니다.
 
 ---
 
@@ -105,6 +116,11 @@ Assets/
 
 - 예: `03_faces-screen-right_walk_8x1.png` = 오른쪽 걷기, 가로 8프레임 1행
 - 신규 동작(공격·스킬·피격)도 **반드시 이 01~08 순번과 접미사 규칙을 그대로 따를 것.**
+
+> 아트는 현재 **Codex 에서 이미지 생성 방식으로 제작**되고 있으며 `.aseprite` 원본은 없습니다.
+> 나중에 Aseprite Importer 파이프라인을 끼워 넣을 때 재작업이 없도록,
+> Codex 산출물도 **지금부터 위 명명 규칙과 캔버스·피벗 규약을 지킵니다.**
+> 파이프라인 계획: `docs/decisions/002-sprite-pipeline.md`
 
 ### 스프라이트 레이어 순서 (장비 교체 대비)
 
@@ -175,8 +191,8 @@ Base body → Hair/Head → Top/Armor → Weapon → Secondary → Foreground FX
 
 - `ProjectSettings` 의 `companyName` 이 `DefaultCompany` — 출시 전 변경 필요
 - 루트에 옛 이름 잔재 `Gamble_Yuusha.slnx` 가 남아 있음 — 삭제/개명은 사용자 승인 후
-- `Assets/Art/Maps/Base` 는 빈 폴더 — 용도 미확인, 사용자 확인 필요
-- Aseprite Importer 가 설치되어 있음 → PNG 수동 슬라이싱 대신 `.aseprite` 원본 직접 임포트로 전환할 여지가 있음. **사용자에게 원본 파일 보유 여부 확인 필요**
+- `Assets/Art/Maps/Base` 는 아직 빈 폴더 — 용도는 확정됨(아래 참조), 아트만 미제작
+- ~~Aseprite 원본 파일 보유 여부 확인~~ → **`.aseprite` 원본은 없음** (아트를 Codex에서 생성 중). Aseprite Importer 전환은 Discord 에이전트 오케스트라 설정 이후로 보류. `docs/decisions/002-sprite-pipeline.md`
 - Walking Animator Controller 8개 → 블렌드 트리 단일 컨트롤러로 통합 대기 (`.anim` 클립 8개는 그대로 재사용)
 
 ---
