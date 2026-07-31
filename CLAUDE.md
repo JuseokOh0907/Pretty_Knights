@@ -71,9 +71,12 @@ Assets/
 │   │   ├── Animation_Knights-Running/     8방향 PNG 시트
 │   │   └── Animation_Knights-Walking/     8방향 PNG + Animation_clips/ + Animator/
 │   ├── Maps/
-│   │   ├── Base/                          플레이어 시작 지점 주변 맵 (아직 비어 있음)
-│   │   ├── Goblin/{Objects,Tiles}
-│   │   ├── Orc/{Objects,Tiles}
+│   │   ├── Base/                          플레이어 시작 지점 주변 맵
+│   │   │   ├── Campsite/Tiles             18타일
+│   │   │   ├── Dungeon/{Tiles,Dungeon.prefab}
+│   │   │   └── Start Points/Tiles
+│   │   ├── Goblin/{Objects,Tiles,Goblin.prefab}
+│   │   ├── Orc/{Objects,Tiles,Orc.prefab}
 │   │   └── Vampire/{Objects,Tiles,Vampire.prefab}
 │   └── Objects/Interactive/
 │       ├── Items/
@@ -88,12 +91,21 @@ Assets/
 
 `Maps/` 아래 이름은 **맵 테마**이며 몬스터 종족 폴더가 아닙니다.
 
-| 폴더 | 용도 |
-|---|---|
-| `Base/` | **플레이어 시작 지점 주변 맵.** 몬스터 지역이 아닌 안전/거점 배경 (2026-08-01 확정) |
-| `Goblin/` `Orc/` `Vampire/` | 사냥터 테마 타일셋 (각 27파일) |
+| 폴더 | 용도 | 구성 |
+|---|---|---|
+| `Base/` | **플레이어 시작 지점 주변 맵.** 몬스터 지역이 아닌 안전/거점 배경 (2026-08-01 확정) | `Campsite` / `Dungeon` / `Start Points` 3종, 각 18타일 |
+| `Goblin/` `Orc/` `Vampire/` | 사냥터 테마 | 각 18타일 + 오브젝트 6종 |
 
 몬스터 스프라이트는 이와 별개이며 아직 하나도 없습니다.
+
+### 실측 픽셀 규격 (2026-08-01 확인)
+
+| 자산 | 크기 |
+|---|---|
+| 맵 타일 | **64 × 64** (9슬라이스 8장 + 중앙 원본 1장 + 중앙 변형 5장 + 문 4방향 = 18장) |
+| 맵 오브젝트 | **128 × 128** |
+| 캐릭터 시트 | **2048 × 256** = 256×256 셀 × 8프레임 1행 |
+| 캐릭터 실제 그림 영역 | 셀 안에서 **약 140 × 192** (나머지는 투명 여백 ≈ 41%) |
 
 ---
 
@@ -197,7 +209,7 @@ Base body → Hair/Head → Top/Armor → Weapon → Secondary → Foreground FX
 - 스크립트 전무 (`Assets/Scripts/` 없음)
 - 몬스터 스프라이트 없음 (`Maps/` 의 Goblin·Orc·Vampire 는 **맵 테마**이지 몬스터가 아님)
 - 스킬 VFX 없음, 판정 시스템 없음
-- 타일맵 실제 배치 없음 (레이어 골격만 있음)
+- 타일맵 실제 배치 없음 (레이어 골격만 있음). **타일맵 아트는 추가 수정 중이라 작업 일시 정지 상태** (2026-08-01) — 재개 지시 전까지 타일 배치·팔레트 작업에 착수하지 않는다
 - 세로/가로 씬 스케일링 및 방향 전환 처리
 
 ### 남은 잡무 / 기술 부채
