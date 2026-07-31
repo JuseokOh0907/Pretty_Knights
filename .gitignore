@@ -104,3 +104,17 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# ---------------------------------------------------------------
+# 추가: 에디터 / OS 생성 파일
+# ---------------------------------------------------------------
+.idea/
+.vscode/
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
