@@ -55,10 +55,14 @@ namespace PrettyKnights.EditorTools
                 dirty = true;
             }
 
+            // spriteMeshType 은 TextureImporter 가 아니라 TextureImporterSettings 에 있다.
             // 투명 여백까지 그리지 않도록 알파에 밀착한 메시를 쓴다.
-            if (importer.spriteMeshType != SpriteMeshType.Tight)
+            var settings = new TextureImporterSettings();
+            importer.ReadTextureSettings(settings);
+            if (settings.spriteMeshType != SpriteMeshType.Tight)
             {
-                importer.spriteMeshType = SpriteMeshType.Tight;
+                settings.spriteMeshType = SpriteMeshType.Tight;
+                importer.SetTextureSettings(settings);
                 dirty = true;
             }
 
@@ -153,8 +157,11 @@ namespace PrettyKnights.EditorTools
                     TextureImporterPlatformSettings android =
                         t.importer.GetPlatformTextureSettings("Android");
 
+                    var settings = new TextureImporterSettings();
+                    t.importer.ReadTextureSettings(settings);
+
                     return $"  {System.IO.Path.GetFileName(t.path),-46} " +
-                           $"mesh={t.importer.spriteMeshType,-9} " +
+                           $"mesh={settings.spriteMeshType,-9} " +
                            $"ppu={t.importer.spritePixelsPerUnit,-6} " +
                            $"android={(android.overridden ? android.format.ToString() : "(없음)")}";
                 });
