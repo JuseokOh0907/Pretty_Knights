@@ -31,6 +31,9 @@ namespace PrettyKnights.EditorTools
         private const int TilePixelsPerUnit = 64;
         private const int MaxTextureSize = 2048;
 
+        /// <summary>Compressor Quality. 0=Fast, 50=Normal, 100=Best.</summary>
+        private const int CompressorQualityBest = 100;
+
         // ── 점검 ──────────────────────────────────────────────────────────
 
         [MenuItem(MenuRoot + "0. 현재 설정 점검 (변경 없음)", priority = 200)]
@@ -196,8 +199,56 @@ namespace PrettyKnights.EditorTools
             settings.overridden = true;
             settings.format = TextureImporterFormat.ASTC_4x4;
             settings.maxTextureSize = MaxTextureSize;
+            settings.compressionQuality = CompressorQualityBest;
             importer.SetPlatformTextureSettings(settings);
             return true;
+        }
+
+        /// <summary>
+        /// Unity 가 <b>실제로 들고 있는</b> 물리 형상을 출력한다.
+        /// `.meta` 텍스트와 런타임 스프라이트가 어긋났을 때 이걸로 갈린다.
+        /// 좌표는 유닛 단위이므로 PPU 64 기준 1.0 = 64px 이다.
+        /// </summary>
+        [MenuItem(MenuRoot + "7. 선택한 스프라이트의 실제 Physics Shape 출력", priority = 230)]
+        public static void DumpPhysicsShape()
+        {
+            Sprite[] sprites = Selection.GetFiltered<Sprite>(SelectionMode.DeepAssets);
+
+            // Tile 에셋을 골랐다면 그 안의 스프라이트를 꺼낸다.
+            var fromTiles = Selection.GetFiltered<Tile>(SelectionMode.DeepAssets)
+                .Select(t => t.sprite)
+                .Where(s => s != null);
+
+            var targets = sprites.Concat(fromTiles).Distinct().ToList();
+            if (targets.Count == 0)
+            {
+                Debug.LogWarning("[Tiles] Project 창에서 스프라이트나 Tile 에셋을 선택한 뒤 실행하세요.");
+                return;
+            }
+
+            var sb = new StringBuilder("[Tiles] 실제 Physics Shape (유닛 단위, PPU 64 기준 1.0 = 64px)\n");
+            var points = new List<Vector2>();
+
+            foreach (Sprite sprite in targets)
+            {
+                int paths = sprite.GetPhysicsShapeCount();
+                sb.AppendLine($"  {sprite.name} — 경로 {paths}개");
+
+                if (paths == 0)
+                {
+                    sb.AppendLine("      (없음 — Collider Type Sprite 로는 충돌이 생기지 않는다)");
+                    continue;
+                }
+
+                for (int i = 0; i < paths; i++)
+                {
+                    sprite.GetPhysicsShape(i, points);
+                    sb.AppendLine($"      [{i}] 정점 {points.Count} : " +
+                                  string.Join(" ", points.Select(p => $"({p.x:0.###},{p.y:0.###})")));
+                }
+            }
+
+            Debug.Log(sb.ToString());
         }
 
         // ── 플랫폼 압축 ────────────────────────────────────────────────────
