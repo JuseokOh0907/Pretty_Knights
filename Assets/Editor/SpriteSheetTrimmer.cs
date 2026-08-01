@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor;
+using UnityEditor.U2D.Sprites;
 using UnityEngine;
 
 namespace PrettyKnights.EditorTools
@@ -161,8 +162,11 @@ namespace PrettyKnights.EditorTools
             /// <summary>프레임 rect 를 텍스처 좌표(좌하단 원점)로 담는다. Single 이면 1개.</summary>
             public List<RectInt> FrameRects;
 
-            /// <summary>Multiple 인 경우의 원본 슬라이스 정보. 이름·피벗을 그대로 물려주기 위해 보관.</summary>
-            public SpriteMetaData[] Slices;
+            /// <summary>
+            /// Multiple 인 경우의 원본 슬라이스. 이름·피벗·<c>spriteID</c> 를 그대로 물려주기 위해 보관한다.
+            /// <c>spriteID</c> 가 유지되면 .anim 클립의 스프라이트 참조가 끊기지 않는다.
+            /// </summary>
+            public SpriteRect[] Slices;
 
             public Vector2Int CellSize => new Vector2Int(FrameRects[0].width, FrameRects[0].height);
         }
@@ -185,7 +189,7 @@ namespace PrettyKnights.EditorTools
                     Path = path,
                     Importer = importer,
                     Source = source,
-                    Slices = importer.spritesheet,
+                    Slices = ReadSlices(importer),
                     FrameRects = new List<RectInt>()
                 };
 
@@ -193,7 +197,7 @@ namespace PrettyKnights.EditorTools
                 {
                     // 가로로 늘어선 프레임 순서를 보장한다.
                     sheet.Slices = sheet.Slices.OrderBy(s => s.rect.x).ThenBy(s => s.rect.y).ToArray();
-                    foreach (SpriteMetaData s in sheet.Slices)
+                    foreach (SpriteRect s in sheet.Slices)
                     {
                         sheet.FrameRects.Add(new RectInt(
                             Mathf.RoundToInt(s.rect.x), Mathf.RoundToInt(s.rect.y),
@@ -389,24 +393,47 @@ namespace PrettyKnights.EditorTools
 
         /// <summary>
         /// 새 셀 크기에 맞춰 슬라이스를 다시 쓴다.
-        /// <b>이름을 그대로 유지</b>하므로 Unity 가 기존 스프라이트 fileID 를 재사용하고,
-        /// .anim 클립의 참조가 끊기지 않는다.
+        /// <c>SpriteRect</c> 객체를 그대로 재사용하므로 <c>spriteID</c>·이름·피벗이 유지되고,
+        /// .anim 클립의 스프라이트 참조가 끊기지 않는다.
         /// </summary>
         private static void RewriteSlices(Sheet sheet, RectInt crop)
         {
             if (sheet.Importer.spriteImportMode != SpriteImportMode.Multiple) return;
 
-            var updated = new SpriteMetaData[sheet.Slices.Length];
-            for (int i = 0; i < sheet.Slices.Length; i++)
-            {
-                SpriteMetaData meta = sheet.Slices[i];
-                meta.rect = new Rect(i * crop.width, 0f, crop.width, crop.height);
-                updated[i] = meta; // name · alignment · pivot · border 는 원본 그대로
-            }
+            ISpriteEditorDataProvider provider = GetDataProvider(sheet.Importer);
+            if (provider == null) return;
 
-            sheet.Importer.spritesheet = updated;
-            EditorUtility.SetDirty(sheet.Importer);
-            sheet.Importer.SaveAndReimport();
+            for (int i = 0; i < sheet.Slices.Length; i++)
+                sheet.Slices[i].rect = new Rect(i * crop.width, 0f, crop.width, crop.height);
+
+            provider.SetSpriteRects(sheet.Slices);
+            provider.Apply();
+
+            AssetDatabase.ImportAsset(sheet.Path, ImportAssetOptions.ForceUpdate);
+        }
+
+        /// <summary>
+        /// 슬라이스 정보를 읽는다.
+        /// <c>TextureImporter.spritesheet</c> 는 Unity 6 에서 폐기되어
+        /// <c>ISpriteEditorDataProvider</c> 를 쓴다.
+        /// </summary>
+        private static SpriteRect[] ReadSlices(TextureImporter importer)
+        {
+            if (importer.spriteImportMode != SpriteImportMode.Multiple)
+                return System.Array.Empty<SpriteRect>();
+
+            ISpriteEditorDataProvider provider = GetDataProvider(importer);
+            return provider?.GetSpriteRects() ?? System.Array.Empty<SpriteRect>();
+        }
+
+        private static ISpriteEditorDataProvider GetDataProvider(TextureImporter importer)
+        {
+            var factories = new SpriteDataProviderFactories();
+            factories.Init();
+
+            ISpriteEditorDataProvider provider = factories.GetSpriteEditorDataProviderFromObject(importer);
+            provider?.InitSpriteEditorDataProvider();
+            return provider;
         }
     }
 }
