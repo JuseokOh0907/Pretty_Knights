@@ -85,7 +85,23 @@ Assets/
 └── Settings/
 ```
 
-**`Assets/Scripts/` 는 아직 존재하지 않습니다.** 코드는 전부 이제부터 작성됩니다.
+### `Assets/Scripts/` (2026-08-01 착수)
+
+```
+Assets/Scripts/
+├── PrettyKnights.asmdef        어셈블리 하나로 묶음 (Unity.InputSystem 참조)
+├── Core/                       GameRoot, SceneFlow, ServiceRegistry, GameMode
+├── Data/                       StatBlock, PlayerStatsDefinition, MonsterDefinition, PlayerRuntimeState
+├── Save/                       SaveData, SaveService
+├── Characters/                 EightDirection (이동·애니메이션은 후속)
+├── World/                      (미작성)
+└── UI/                         (미작성)
+```
+
+구조 근거는 [`docs/decisions/003-runtime-architecture.md`](docs/decisions/003-runtime-architecture.md).
+
+**코드는 PPU 에 의존하지 않게 작성합니다.** 거리·범위·속도는 월드 유닛으로만 다루고
+픽셀 상수를 코드에 넣지 않습니다 (PPU 미확정).
 
 ### `Maps/` 하위 폴더의 의미
 
@@ -204,9 +220,11 @@ Base body → Hair/Head → Top/Armor → Weapon → Secondary → Foreground FX
   - `Title_Scene`, `Ingame_Horizontal` — 기본 빈 씬
   - `Ingame_Vertical` — Main Camera + Global Light 2D + `Grid` 아래 타일맵 4레이어(`BasePoints` / `Orc` / `Goblin` / `Vampire`) 골격만 존재. **네 레이어 전부 타일 0개(빈 타일맵).**
 
+- 런타임 기반 계층 작성 (Core / Data / Save) — Unity 에디터 임포트 및 컴파일 확인 대기
+
 **미착수**
 
-- 스크립트 전무 (`Assets/Scripts/` 없음)
+- 캐릭터·몬스터 프리팹, 이동·애니메이션 연결, 풀링, UI
 - 몬스터 스프라이트 없음 (`Maps/` 의 Goblin·Orc·Vampire 는 **맵 테마**이지 몬스터가 아님)
 - 스킬 VFX 없음, 판정 시스템 없음
 - 타일맵 실제 배치 없음 (레이어 골격만 있음). **타일맵 아트는 추가 수정 중이라 작업 일시 정지 상태** (2026-08-01) — 재개 지시 전까지 타일 배치·팔레트 작업에 착수하지 않는다
