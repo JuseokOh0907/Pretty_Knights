@@ -160,7 +160,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Front_walk
+      name: 01_front_walk_8x1_0
       rect:
         serializedVersion: 2
         x: 0
@@ -351,6 +351,7 @@ TextureImporter:
       - key: SpriteEditor.SliceSettings
         value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":256.0,"y":256.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
+      01_front_walk_8x1_0: 3494820730118738210
       01_front_walk_8x1_1: -506942770108784317
       01_front_walk_8x1_2: 6243350947672684135
       01_front_walk_8x1_3: -7139588733370012781
@@ -358,7 +359,6 @@ TextureImporter:
       01_front_walk_8x1_5: 5217092628031381708
       01_front_walk_8x1_6: 1505575463897940903
       01_front_walk_8x1_7: -4439732979499159433
-      Front_walk: 3494820730118738210
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
