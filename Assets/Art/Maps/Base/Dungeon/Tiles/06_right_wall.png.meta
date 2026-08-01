@@ -162,7 +162,11 @@ TextureImporter:
       weights: []
     outline: []
     customData: 
-    physicsShape: []
+    physicsShape:
+    - - {x: 24, y: -32}
+      - {x: 32, y: -32}
+      - {x: 32, y: 32}
+      - {x: 24, y: 32}
     bones: []
     spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
