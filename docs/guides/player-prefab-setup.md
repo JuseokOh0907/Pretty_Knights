@@ -37,12 +37,22 @@
 
 ### 1-2. 스테이트 3개 — 전부 블렌드 트리
 
-`Idle` / `Walk` / `Run` 각각:
+`Idle` / `Walk` / `Run` 각각 아래를 반복한다.
 
-1. 스테이트를 만들고 Motion 자리에서 **Create > New Blend Tree**
-2. 트리를 더블클릭 → **Blend Type: `2D Simple Directional`**
-3. Parameters: `MoveX`, `MoveY`
-4. 모션 8개를 추가하고 **Pos X / Pos Y 를 아래 표대로 직접 입력** (Compute Positions 쓰지 말 것)
+1. Animator 창 빈 공간에서 **우클릭 → Create State → From New Blend Tree**
+   - `Create State → Empty` 로 만들면 안 된다. Motion 필드는 기존 에셋을 고르는
+     오브젝트 선택창이라 거기서 새 트리를 만들 수 없다.
+2. 스테이트 이름을 `Idle` / `Walk` / `Run` 으로 바꾼다
+3. 스테이트를 **더블클릭**해 트리 안으로 들어간다 (브레드크럼이 `Base Layer > Idle`)
+4. 트리 노드를 선택하고 인스펙터에서 **Blend Type: `2D Simple Directional`**
+5. Parameters 좌/우에 `MoveX` / `MoveY`
+6. Motion 목록의 **`+` → Add Motion Field** 를 8번,
+   또는 Project 창에서 **클립 8개를 다중 선택해 목록으로 드래그**
+7. **Pos X / Pos Y 를 아래 표대로 직접 입력한다**
+
+> 맨 아래 **Compute Positions 는 쓰지 않는다.**
+> 클립 이름이나 루트 모션에서 좌표를 추정하는 기능인데
+> 스프라이트 클립은 루트 모션이 없어 전부 (0,0) 으로 뭉갠다.
 
 | # | 클립 접두어 | Pos X | Pos Y | 방향 |
 |---|---|---|---|---|
