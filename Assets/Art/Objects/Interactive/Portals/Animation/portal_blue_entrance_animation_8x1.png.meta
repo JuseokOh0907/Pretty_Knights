@@ -58,7 +58,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -69,10 +69,10 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 128
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -96,7 +96,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 2
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -163,12 +163,12 @@ TextureImporter:
       name: portal_blue_entrance_animation_8x1_0
       rect:
         serializedVersion: 2
-        x: 5
-        y: 6
-        width: 118
-        height: 116
+        x: 0
+        y: 0
+        width: 128
+        height: 128
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -185,12 +185,12 @@ TextureImporter:
       name: portal_blue_entrance_animation_8x1_1
       rect:
         serializedVersion: 2
-        x: 133
-        y: 6
-        width: 118
-        height: 116
+        x: 128
+        y: 0
+        width: 128
+        height: 128
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -207,12 +207,12 @@ TextureImporter:
       name: portal_blue_entrance_animation_8x1_2
       rect:
         serializedVersion: 2
-        x: 261
-        y: 6
-        width: 118
-        height: 116
+        x: 256
+        y: 0
+        width: 128
+        height: 128
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -229,12 +229,12 @@ TextureImporter:
       name: portal_blue_entrance_animation_8x1_3
       rect:
         serializedVersion: 2
-        x: 389
-        y: 6
-        width: 118
-        height: 116
+        x: 384
+        y: 0
+        width: 128
+        height: 128
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -251,12 +251,12 @@ TextureImporter:
       name: portal_blue_entrance_animation_8x1_4
       rect:
         serializedVersion: 2
-        x: 517
-        y: 6
-        width: 118
-        height: 116
+        x: 512
+        y: 0
+        width: 128
+        height: 128
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -273,12 +273,12 @@ TextureImporter:
       name: portal_blue_entrance_animation_8x1_5
       rect:
         serializedVersion: 2
-        x: 645
-        y: 6
-        width: 118
-        height: 116
+        x: 640
+        y: 0
+        width: 128
+        height: 128
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -295,12 +295,12 @@ TextureImporter:
       name: portal_blue_entrance_animation_8x1_6
       rect:
         serializedVersion: 2
-        x: 773
-        y: 6
-        width: 118
-        height: 116
+        x: 768
+        y: 0
+        width: 128
+        height: 128
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -317,12 +317,12 @@ TextureImporter:
       name: portal_blue_entrance_animation_8x1_7
       rect:
         serializedVersion: 2
-        x: 901
-        y: 6
-        width: 118
-        height: 116
+        x: 896
+        y: 0
+        width: 128
+        height: 128
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -339,7 +339,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: a8a044f8ba2a6bf46a707e7e711ff125
     internalID: 0
     vertices: []
     indices: 
@@ -347,7 +347,9 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":128.0,"y":128.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
       portal_blue_entrance_animation_8x1_0: -5015025078453035640
       portal_blue_entrance_animation_8x1_1: 8676552861486521695
