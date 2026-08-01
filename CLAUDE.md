@@ -235,33 +235,35 @@ Base body → Hair/Head → Top/Armor → Weapon → Secondary → Foreground FX
 
 ## 7. 현재 진행 상태
 
-**완료 / 진행 중**
+> 마지막 갱신 2026-08-01. 이 절이 실제와 어긋나면 먼저 고치고 작업할 것.
 
-- 스프라이트 셀 PNG 분리 진행 중
-- Knights 걷기 8방향 — PNG + 클립 + Animator 완료
-- Knights 달리기 8방향 — PNG만 존재 (클립·Animator 미작성)
-- 맵 타일셋 3테마 준비 (Goblin / Orc / Vampire), 각 27파일
-- 포탈·아이템 오브젝트 아트 존재
-- 씬 3개 생성 (2026-08-01 실물 확인)
-  - `Title_Scene`, `Ingame_Horizontal` — 기본 빈 씬
-  - `Ingame_Vertical` — Main Camera + Global Light 2D + `Grid` 아래 타일맵 4레이어(`BasePoints` / `Orc` / `Goblin` / `Vampire`) 골격만 존재. **네 레이어 전부 타일 0개(빈 타일맵).**
+**완료**
 
-- 런타임 기반 계층 작성 (Core / Data / Save)
-- **캐릭터 스프라이트 트림 완료** — 셀 256×256 → **184×232** (34.9% 절감).
-  세 동작 접지선이 전부 y=211 로 일치. `Visual` 오프셋 `0.375` 는 트림 전후 동일
-- **플레이어 프리팹 + 블렌드 트리 컨트롤러 동작 확인** (2026-08-01)
-  - 단일 `Knight.controller` 에 Idle / Walk / Run 세 블렌드 트리
-  - 8방향 이동·애니메이션 정상, **손을 떼도 바라보던 방향 유지**(latch 검증 완료)
+- **아트** — Knights 걷기·달리기·Idle 8방향 전부 PNG + 클립 24개 완비.
+  클립 명명 `{방향}_{동작}` 통일, 프레임 순서 검증 완료
+- **텍스처 최적화** — ASTC 4×4(Best) 적용, 트림으로 셀 256×256 → **184×232** (34.9% 절감).
+  세 동작 접지선 일치, `Visual` 오프셋 `0.375` 는 트림 전후 동일
+- **플레이어** — 프리팹 + 단일 `Knight.controller`(Idle/Walk/Run 블렌드 트리 3개).
+  8방향 이동·애니메이션 정상, **손을 떼도 방향 유지**(latch 검증 완료)
+- **런타임 기반 계층** — Core / Data / Save / Characters 작성.
+  단 `GameRoot` 가 아직 씬에 없어 **한 번도 실행되지 않았다**
+- **타일 콜라이더** — 9슬라이스 벽 48장(6테마 × 8종)의 `physicsShape` 를
+  알파에서 픽셀 정확도로 생성. 벽 두께 위/아래 22px, 좌/우 8px 전 테마 동일
+- **에디터 도구 4종** — `Assets/Editor/` (트림 / 캐릭터 설정 / 클립 순서 / 타일 설정).
+  전부 "점검(변경 없음)" 메뉴가 따로 있다
+- **맵 테마 6종** — `Base/{Campsite,Dungeon,Start Points}` + `Goblin/Orc/Vampire`,
+  각 18타일. 오브젝트는 Goblin/Orc/Vampire 에 6종씩
+- **`Ingame_Vertical` 테스트 맵** — Goblin 테마로 `Field` 180칸 + `Guide` 52칸 배치.
+  `Guide` 에 `TilemapCollider2D`. **테스트용이므로 갈아엎어도 무방**
 
 **미착수**
 
-- 몬스터 프리팹·스프라이트, 스폰·풀링
-- Boot 씬 + `GameRoot` 배치, `PlayerStatsDefinition` 에셋 생성, 세이브 연결
-- UI(HUD), 세로/가로 전환
-- 몬스터 스프라이트 없음 (`Maps/` 의 Goblin·Orc·Vampire 는 **맵 테마**이지 몬스터가 아님)
-- 스킬 VFX 없음, 판정 시스템 없음
-- 타일맵 실제 배치 없음 (레이어 골격만 있음). **타일맵 아트는 추가 수정 중이라 작업 일시 정지 상태** (2026-08-01) — 재개 지시 전까지 타일 배치·팔레트 작업에 착수하지 않는다
-- 세로/가로 씬 스케일링 및 방향 전환 처리
+- **Boot 씬 + `GameRoot` 배치** ← 다음 작업. `PlayerStatsDefinition` 에셋 생성과
+  세이브 연결이 여기 걸려 있다
+- 몬스터 — 스프라이트 자체가 없음 (`Maps/` 의 Goblin·Orc·Vampire 는 **맵 테마**이지 몬스터가 아니다)
+- 스폰·오브젝트 풀링
+- 스킬 판정 시스템과 VFX
+- UI(HUD), 세로/가로 전환 및 씬 스케일링
 
 ### 남은 잡무 / 기술 부채
 
@@ -270,6 +272,12 @@ Base body → Hair/Head → Top/Armor → Weapon → Secondary → Foreground FX
 - **Goblin 오브젝트 6장만 PPU 128** — Orc·Vampire 12장은 PPU 64(2×2칸)인데
   Goblin 만 절반 크기로 나온다. **오브젝트를 실제로 배치하는 시점에 64로 맞춘다**
   (2026-08-01 유예. 배치가 수작업이라 그때 함께 처리하는 편이 낫다는 판단)
+- **center 계열 타일 36장의 Collider Type 을 `None` 으로** — 지금은 `Field` 레이어에
+  콜라이더 컴포넌트가 없어 무해하지만, 붙는 순간 바닥 전체가 막힌다.
+  `Pretty Knights > Tiles > 4` 로 일괄 처리
+- 문 타일 4종(`10~13`)은 **사용하지 않기로 하여** `physicsShape` 미생성 (2026-08-01)
+- 방향별 Animator Controller 24개 — 블렌드 트리로 대체됐으므로 제거 가능.
+  삭제는 사용자 승인 후
 - 타일 일괄 설정은 `Pretty Knights > Tiles` 메뉴 사용.
   대상은 `/Tiles/` 폴더만이며 `/Objects/` 는 PPU 가 달라 제외되어 있다
 - ~~Aseprite 원본 파일 보유 여부 확인~~ → **`.aseprite` 원본은 없음** (아트를 Codex에서 생성 중). Aseprite Importer 전환은 Discord 에이전트 오케스트라 설정 이후로 보류. `docs/decisions/002-sprite-pipeline.md`
