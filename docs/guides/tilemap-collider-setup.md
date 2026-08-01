@@ -43,7 +43,9 @@ Tile 에셋을 Project 창에서 선택하면 인스펙터에 나온다.
 바꿔도 다른 설정은 건드릴 필요가 없다.
 
 > 스프라이트를 타일맵에 끌어다 만든 타일은 기본값이 `Sprite` 다.
-> **바닥 타일을 그대로 두면 바닥 전체가 벽이 된다.** 이게 "투명벽" 증상의 정체다.
+> 그 상태의 바닥 타일이 **콜라이더 컴포넌트가 붙은 레이어**에 깔리면
+> 바닥 전체가 벽이 된다. 이게 "투명벽" 증상의 정체다.
+> 조건이 둘 다 맞아야 생기므로, 바닥 레이어에 컴포넌트를 안 붙이는 것만으로도 막힌다.
 
 ## 3. 레이어 구조
 
@@ -82,9 +84,29 @@ Grid
    → `Rigidbody2D` 가 **자동으로 함께 붙는다**
 4. 그 `Rigidbody2D` 의 **Body Type 을 `Static`** 으로 바꾼다
    (기본값 Dynamic 이면 벽이 물리로 밀려 떠내려간다)
-5. `TilemapCollider2D` 의 **`Used By Composite` 체크**
-   → 이걸 안 켜면 합쳐지지 않고 그냥 두 개가 따로 논다
+5. `TilemapCollider2D` 의 **`Composite Operation` 을 `Merge`** 로
+   → 이걸 `None` 으로 두면 합쳐지지 않고 두 컴포넌트가 따로 논다
 6. `CompositeCollider2D` 의 `Geometry Type` 은 `Outlines` 로 둔다
+
+### `Composite Operation` 선택지
+
+Unity 6 에서 옛 `Used By Composite` **체크박스가 이 드롭다운으로 바뀌었다.**
+체크박스 시절의 "켬"이 `Merge` 다.
+
+| 값 | 동작 | 쓰임 |
+|---|---|---|
+| `None` | 참여 안 함 (= 옛 체크 해제) | 기본값 |
+| **`Merge`** | **합집합. 맞닿은 형상이 하나로 합쳐진다** | **벽** |
+| `Intersect` | 교집합 | 특수 |
+| `Difference` | 이 콜라이더만큼 빼낸다 | 벽에 구멍 뚫기 |
+| `Flip` | 안팎 반전 | 특수 |
+
+### `Geometry Type`
+
+- **`Outlines`** (기본값) — 외곽선만. 벽 막기에는 충분하다
+- `Polygons` — 속이 찬 다각형. 벽 **안쪽에 생성된 오브젝트를 밀어내야 할 때**
+
+몬스터 스폰이 벽과 겹칠 가능성이 생기면 그때 `Polygons` 로 바꾼다.
 
 ### 확인
 
@@ -95,9 +117,10 @@ Scene 뷰에서 벽을 보면 초록 외곽선이 **칸마다 격자로 보이�
 
 | 증상 | 원인 |
 |---|---|
-| 캐릭터가 아예 못 움직임 (투명벽) | 바닥 타일 Collider Type 이 `Sprite` |
+| 캐릭터가 아예 못 움직임 (투명벽) | 바닥 레이어에 `TilemapCollider2D` 가 붙어 있고 그 타일이 `Sprite`/`Grid` |
+| 벽 레이어인데 안 막힘 | 컴포넌트는 있는데 타일이 `None`, 또는 그 반대 |
 | 벽이 밀려서 떠내려감 | `CompositeCollider2D` 가 붙인 `Rigidbody2D` 가 Dynamic |
-| 합쳐지지 않고 칸마다 콜라이더 | `Used By Composite` 미체크 |
+| 합쳐지지 않고 칸마다 콜라이더 | `Composite Operation` 이 `None` |
 | 벽 모서리에 걸림 | 벽 타일이 `Sprite` — `Grid` 로 바꾼다 |
 | 타일을 지웠는데 충돌이 남음 | 재생 중 변경. 정지 후 다시 확인 |
 
