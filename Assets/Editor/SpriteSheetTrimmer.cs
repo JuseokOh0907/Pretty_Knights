@@ -60,13 +60,14 @@ namespace PrettyKnights.EditorTools
                 return;
             }
 
-            // 셀 크기가 섞여 있으면 하나의 rect 로 자를 수 없다.
             var cellSizes = sheets.Select(s => s.CellSize).Distinct().ToList();
+
+            // 셀 크기가 섞여 있다 = 이미 트림된 세트에 원본 크기 파일이 새로 들어왔다.
+            // (아트를 하나만 다시 뽑아 덮어쓴 경우) 전체를 다시 자르는 대신
+            // 기존 셀 크기에 맞춰 새로 들어온 것만 자른다.
             if (cellSizes.Count > 1)
             {
-                Debug.LogError(
-                    "[Trimmer] 셀 크기가 서로 다른 시트가 섞여 있어 중단합니다: " +
-                    string.Join(", ", cellSizes.Select(v => $"{v.x}x{v.y}")));
+                RetrimNewcomers(sheets, cellSizes, apply);
                 return;
             }
 
@@ -84,6 +85,69 @@ namespace PrettyKnights.EditorTools
             if (!apply) return;
 
             ApplyCrop(sheets, cell, crop);
+        }
+
+        /// <summary>
+        /// 이미 트림된 세트(작은 셀)에 원본 크기 파일이 섞여 들어온 경우,
+        /// 기존 셀 크기에 맞춰 새로 들어온 것만 같은 중심 대칭 rect 로 자른다.
+        /// 전체를 다시 자르면 이미 잘린 것들이 한 번 더 깎여 정렬이 무너진다.
+        /// </summary>
+        private static void RetrimNewcomers(List<Sheet> sheets, List<Vector2Int> cellSizes, bool apply)
+        {
+            // 가장 작은 셀을 이미 확정된 기준으로 본다.
+            Vector2Int target = cellSizes.OrderBy(v => v.x * v.y).First();
+            List<Sheet> oversized = sheets.Where(s => s.CellSize != target).ToList();
+
+            var sb = new StringBuilder();
+            sb.AppendLine("[Trimmer] 셀 크기가 섞여 있습니다. 기준 셀에 맞춰 새로 들어온 것만 자릅니다.");
+            sb.AppendLine($"  기준 셀 : {target.x} x {target.y} ({sheets.Count - oversized.Count}장)");
+
+            bool blocked = false;
+
+            foreach (Sheet sheet in oversized)
+            {
+                Vector2Int cell = sheet.CellSize;
+                if (cell.x < target.x || cell.y < target.y)
+                {
+                    sb.AppendLine($"  {System.IO.Path.GetFileName(sheet.Path)} — 기준보다 작아 처리할 수 없습니다 ({cell.x}x{cell.y})");
+                    blocked = true;
+                    continue;
+                }
+
+                var crop = new RectInt((cell.x - target.x) / 2, (cell.y - target.y) / 2, target.x, target.y);
+                RectInt content = ComputeUnion(new List<Sheet> { sheet });
+
+                bool fits = content.xMin >= crop.xMin && content.xMax <= crop.xMax &&
+                            content.yMin >= crop.yMin && content.yMax <= crop.yMax;
+
+                sb.AppendLine(
+                    $"  {System.IO.Path.GetFileName(sheet.Path)} — {cell.x}x{cell.y} -> {target.x}x{target.y}, " +
+                    (fits ? "그림이 크롭 창 안에 들어감" : "!! 그림이 크롭 창을 벗어나 잘립니다"));
+
+                if (!fits) blocked = true;
+            }
+
+            if (blocked)
+            {
+                sb.AppendLine("  → 잘려나가는 그림이 있어 적용하지 않았습니다. 원본 캔버스 정렬을 확인하세요.");
+                Debug.LogError(sb.ToString());
+                return;
+            }
+
+            Debug.Log(sb.ToString());
+            if (!apply) return;
+
+            foreach (Sheet sheet in oversized)
+            {
+                Vector2Int cell = sheet.CellSize;
+                var crop = new RectInt((cell.x - target.x) / 2, (cell.y - target.y) / 2, target.x, target.y);
+                WriteCropped(sheet, crop);
+                RewriteSlices(sheet, crop);
+                Object.DestroyImmediate(sheet.Source);
+            }
+
+            AssetDatabase.Refresh();
+            Debug.Log($"[Trimmer] {oversized.Count}장을 {target.x} x {target.y} 로 맞췄습니다.");
         }
 
         // ── 수집 ──────────────────────────────────────────────────────────
