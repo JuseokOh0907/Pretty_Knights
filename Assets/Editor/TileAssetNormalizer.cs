@@ -21,6 +21,16 @@ namespace PrettyKnights.EditorTools
         private const string TargetRoot = "Assets/Art/Maps";
         private const string MenuRoot = "Pretty Knights/Tiles/";
 
+        /// <summary>
+        /// 일괄 처리는 <c>/Tiles/</c> 폴더로 한정한다.
+        /// <c>/Objects/</c> 는 128px · PPU 128 이라 같은 기준을 적용하면
+        /// 월드 크기가 두 배(2×2칸)로 바뀐다.
+        /// </summary>
+        private const string TilesFolderToken = "/Tiles/";
+
+        private const int TilePixelsPerUnit = 64;
+        private const int MaxTextureSize = 2048;
+
         // ── 점검 ──────────────────────────────────────────────────────────
 
         [MenuItem(MenuRoot + "0. 현재 설정 점검 (변경 없음)", priority = 200)]
@@ -28,25 +38,38 @@ namespace PrettyKnights.EditorTools
         {
             var sb = new StringBuilder($"[Tiles] {TargetRoot} 현황\n");
 
-            var byMesh = new Dictionary<SpriteMeshType, int>();
-            var byFormat = new Dictionary<string, int>();
-            var byPpu = new Dictionary<float, int>();
-
-            foreach (TextureImporter importer in AllTextureImporters())
+            foreach (bool tilesOnly in new[] { true, false })
             {
-                var settings = new TextureImporterSettings();
-                importer.ReadTextureSettings(settings);
+                var scope = AllTextureImporters()
+                    .Where(t => t.Path.Replace('\\', '/').Contains(TilesFolderToken) == tilesOnly)
+                    .ToList();
 
-                Bump(byMesh, settings.spriteMeshType);
-                Bump(byPpu, importer.spritePixelsPerUnit);
+                if (scope.Count == 0) continue;
 
-                TextureImporterPlatformSettings android = importer.GetPlatformTextureSettings("Android");
-                Bump(byFormat, android.overridden ? android.format.ToString() : "(오버라이드 없음)");
+                var byMesh = new Dictionary<SpriteMeshType, int>();
+                var byMode = new Dictionary<SpriteImportMode, int>();
+                var byFormat = new Dictionary<string, int>();
+                var byPpu = new Dictionary<float, int>();
+
+                foreach ((_, TextureImporter importer) in scope)
+                {
+                    var settings = new TextureImporterSettings();
+                    importer.ReadTextureSettings(settings);
+
+                    Bump(byMesh, settings.spriteMeshType);
+                    Bump(byMode, importer.spriteImportMode);
+                    Bump(byPpu, importer.spritePixelsPerUnit);
+
+                    TextureImporterPlatformSettings android = importer.GetPlatformTextureSettings("Android");
+                    Bump(byFormat, android.overridden ? android.format.ToString() : "(오버라이드 없음)");
+                }
+
+                sb.AppendLine($"  [{(tilesOnly ? "/Tiles/ — 일괄 대상" : "그 외 (/Objects/ 등) — 제외")}] {scope.Count}개");
+                sb.AppendLine("    Sprite Mode : " + Join(byMode));
+                sb.AppendLine("    Mesh Type   : " + Join(byMesh));
+                sb.AppendLine("    PPU         : " + Join(byPpu));
+                sb.AppendLine("    Android     : " + Join(byFormat));
             }
-
-            sb.AppendLine("  Mesh Type : " + Join(byMesh));
-            sb.AppendLine("  PPU       : " + Join(byPpu));
-            sb.AppendLine("  Android   : " + Join(byFormat));
 
             var byCollider = new Dictionary<Tile.ColliderType, int>();
             int nonTile = 0;
@@ -62,16 +85,17 @@ namespace PrettyKnights.EditorTools
 
         // ── 텍스처 설정 통일 ───────────────────────────────────────────────
 
-        [MenuItem(MenuRoot + "1. 타일 텍스처 설정 통일 (Full Rect / Point / Clamp)", priority = 201)]
+        [MenuItem(MenuRoot + "1. 타일 텍스처 설정 통일 (/Tiles/ 폴더만)", priority = 201)]
         public static void NormalizeTextures()
         {
             int changed = 0, total = 0;
+            var demoted = new List<string>();
 
             try
             {
                 AssetDatabase.StartAssetEditing();
 
-                foreach (TextureImporter importer in AllTextureImporters())
+                foreach ((string path, TextureImporter importer) in AllTileImporters())
                 {
                     total++;
                     bool dirty = false;
@@ -79,11 +103,34 @@ namespace PrettyKnights.EditorTools
                     var settings = new TextureImporterSettings();
                     importer.ReadTextureSettings(settings);
 
+                    if (importer.textureType != TextureImporterType.Sprite)
+                    {
+                        importer.textureType = TextureImporterType.Sprite;
+                        dirty = true;
+                    }
+
+                    // 타일 한 장 = 스프라이트 한 장. 시트가 아니다.
+                    if (importer.spriteImportMode != SpriteImportMode.Single)
+                    {
+                        // Multiple 이었다면 슬라이스가 사라지므로 기록해 알린다.
+                        if (importer.spriteImportMode == SpriteImportMode.Multiple)
+                            demoted.Add(path);
+
+                        importer.spriteImportMode = SpriteImportMode.Single;
+                        dirty = true;
+                    }
+
                     // 타일은 칸을 꽉 채운다. Tight 는 인접 타일 사이 틈의 원인이 된다.
                     if (settings.spriteMeshType != SpriteMeshType.FullRect)
                     {
                         settings.spriteMeshType = SpriteMeshType.FullRect;
                         importer.SetTextureSettings(settings);
+                        dirty = true;
+                    }
+
+                    if (!Mathf.Approximately(importer.spritePixelsPerUnit, TilePixelsPerUnit))
+                    {
+                        importer.spritePixelsPerUnit = TilePixelsPerUnit;
                         dirty = true;
                     }
 
@@ -106,6 +153,9 @@ namespace PrettyKnights.EditorTools
                         dirty = true;
                     }
 
+                    dirty |= ApplyAstc(importer, "Android");
+                    dirty |= ApplyAstc(importer, "iPhone");
+
                     if (!dirty) continue;
 
                     EditorUtility.SetDirty(importer);
@@ -119,7 +169,35 @@ namespace PrettyKnights.EditorTools
                 AssetDatabase.Refresh();
             }
 
-            Debug.Log($"[Tiles] 텍스처 {total}개 중 {changed}개 갱신했습니다.");
+            Debug.Log(
+                $"[Tiles] /Tiles/ 텍스처 {total}개 중 {changed}개 갱신했습니다.\n" +
+                "  Sprite / Single / Full Rect / PPU 64 / Point / Clamp / mipmap off / ASTC 4x4\n" +
+                "  ※ /Objects/ 는 PPU 128 이라 제외했습니다.");
+
+            if (demoted.Count > 0)
+            {
+                Debug.LogWarning(
+                    "[Tiles] 아래는 Multiple 이었다가 Single 로 바뀌어 슬라이스가 사라졌습니다:\n  " +
+                    string.Join("\n  ", demoted));
+            }
+        }
+
+        private static bool ApplyAstc(TextureImporter importer, string platform)
+        {
+            TextureImporterPlatformSettings settings = importer.GetPlatformTextureSettings(platform);
+
+            if (settings.overridden &&
+                settings.format == TextureImporterFormat.ASTC_4x4 &&
+                settings.maxTextureSize == MaxTextureSize)
+            {
+                return false;
+            }
+
+            settings.overridden = true;
+            settings.format = TextureImporterFormat.ASTC_4x4;
+            settings.maxTextureSize = MaxTextureSize;
+            importer.SetPlatformTextureSettings(settings);
+            return true;
         }
 
         // ── 플랫폼 압축 ────────────────────────────────────────────────────
@@ -195,11 +273,15 @@ namespace PrettyKnights.EditorTools
 
         // ── 공용 ──────────────────────────────────────────────────────────
 
-        private static IEnumerable<TextureImporter> AllTextureImporters() =>
+        private static IEnumerable<(string Path, TextureImporter Importer)> AllTextureImporters() =>
             AssetDatabase.FindAssets("t:Texture2D", new[] { TargetRoot })
                 .Select(AssetDatabase.GUIDToAssetPath)
-                .Select(AssetImporter.GetAtPath)
-                .OfType<TextureImporter>();
+                .Select(p => (Path: p, Importer: AssetImporter.GetAtPath(p) as TextureImporter))
+                .Where(t => t.Importer != null);
+
+        /// <summary><c>/Tiles/</c> 폴더 안의 텍스처만. <c>/Objects/</c> 는 제외된다.</summary>
+        private static IEnumerable<(string Path, TextureImporter Importer)> AllTileImporters() =>
+            AllTextureImporters().Where(t => t.Path.Replace('\\', '/').Contains(TilesFolderToken));
 
         private static IEnumerable<TileBase> AllTiles() =>
             AssetDatabase.FindAssets("t:TileBase", new[] { TargetRoot })
