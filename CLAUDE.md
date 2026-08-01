@@ -236,11 +236,18 @@ Base body → Hair/Head → Top/Armor → Weapon → Secondary → Foreground FX
   - `Title_Scene`, `Ingame_Horizontal` — 기본 빈 씬
   - `Ingame_Vertical` — Main Camera + Global Light 2D + `Grid` 아래 타일맵 4레이어(`BasePoints` / `Orc` / `Goblin` / `Vampire`) 골격만 존재. **네 레이어 전부 타일 0개(빈 타일맵).**
 
-- 런타임 기반 계층 작성 (Core / Data / Save) — Unity 에디터 임포트 및 컴파일 확인 대기
+- 런타임 기반 계층 작성 (Core / Data / Save)
+- **캐릭터 스프라이트 트림 완료** — 셀 256×256 → **184×232** (34.9% 절감).
+  세 동작 접지선이 전부 y=211 로 일치. `Visual` 오프셋 `0.375` 는 트림 전후 동일
+- **플레이어 프리팹 + 블렌드 트리 컨트롤러 동작 확인** (2026-08-01)
+  - 단일 `Knight.controller` 에 Idle / Walk / Run 세 블렌드 트리
+  - 8방향 이동·애니메이션 정상, **손을 떼도 바라보던 방향 유지**(latch 검증 완료)
 
 **미착수**
 
-- 캐릭터·몬스터 프리팹, 이동·애니메이션 연결, 풀링, UI
+- 몬스터 프리팹·스프라이트, 스폰·풀링
+- Boot 씬 + `GameRoot` 배치, `PlayerStatsDefinition` 에셋 생성, 세이브 연결
+- UI(HUD), 세로/가로 전환
 - 몬스터 스프라이트 없음 (`Maps/` 의 Goblin·Orc·Vampire 는 **맵 테마**이지 몬스터가 아님)
 - 스킬 VFX 없음, 판정 시스템 없음
 - 타일맵 실제 배치 없음 (레이어 골격만 있음). **타일맵 아트는 추가 수정 중이라 작업 일시 정지 상태** (2026-08-01) — 재개 지시 전까지 타일 배치·팔레트 작업에 착수하지 않는다
