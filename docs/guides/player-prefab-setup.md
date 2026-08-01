@@ -78,21 +78,32 @@
 
 `Assets/Prefabs/Player.prefab`
 
-```
-Player                          ← 루트가 발밑이다
-├ Transform            (0, 0, 0)
-├ Rigidbody2D          Body Type: Dynamic / Gravity Scale: 0 / Freeze Rotation Z 체크
-├ CapsuleCollider2D    Offset (0, 0.12) / Size (0.35, 0.25)
-├ CharacterMotor       Move Speed 2.5 / Acceleration 0.08
-└ PlayerController     Input Actions: InputSystem_Actions
-                       Walk Speed 2.5 / Run Multiplier 1.6
+**게임오브젝트는 `Player` 와 `Visual` 둘뿐이다.** 나머지는 전부 컴포넌트다.
 
-  └ Visual                      ← 스프라이트만 담당
-    ├ Transform        (0, 0.375, 0)      ← 이 값이 핵심
-    ├ SpriteRenderer   Sprite: 01_front (Idle 아무거나)
-    ├ Animator         Controller: Knight / Apply Root Motion 끄기
-    └ PlayerAnimatorDriver
 ```
+Player  (GameObject)                    ← 루트가 발밑이다
+   │
+   ├─ [C] Transform            (0, 0, 0)
+   ├─ [C] Rigidbody2D          Dynamic / Gravity Scale 0 / Freeze Rotation Z 체크
+   ├─ [C] CapsuleCollider2D    Offset (0, 0.12) / Size (0.35, 0.25)
+   ├─ [C] CharacterMotor       Move Speed 2.5 / Acceleration 0.08
+   ├─ [C] PlayerController     Input Actions: InputSystem_Actions
+   │                           Walk Speed 2.5 / Run Multiplier 1.6
+   │
+   └─ Visual  (GameObject)               ← Player 의 직속 자식. 스프라이트 담당
+         ├─ [C] Transform            (0, 0.375, 0)   ← 이 값이 핵심
+         ├─ [C] SpriteRenderer       Sprite: 01_front (Idle 아무거나)
+         ├─ [C] Animator             Controller: Knight / Apply Root Motion 끄기
+         └─ [C] PlayerAnimatorDriver
+```
+
+`[C]` 는 컴포넌트다. `PlayerController` 를 자식 오브젝트로 빼면 안 된다 —
+내부에서 `GetComponent<CharacterMotor>()` 로 **같은 오브젝트의** 모터를 찾기 때문에
+자식에 있으면 모터를 못 찾아 이동 입력이 전달되지 않는다.
+
+`Animator` 가 `Visual` 에 있어야 하는 이유도 같다.
+클립이 `m_Sprite` 를 **경로 없이**(`path:` 가 빈 값) 애니메이션하므로
+`SpriteRenderer` 와 반드시 같은 오브젝트여야 한다.
 
 **왜 스프라이트를 자식으로 두는가**
 스프라이트 피벗이 Center 라 루트에 바로 붙이면 캐릭터 몸통 한가운데가 좌표 원점이 된다.
