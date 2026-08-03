@@ -114,5 +114,67 @@ namespace PrettyKnights.Core
             ServiceRegistry.Clear();
             Instance = null;
         }
+
+        // ── 검증용 ────────────────────────────────────────────────────────
+        // HUD 가 아직 없어 상태를 볼 방법이 없다.
+        // 재생 중 인스펙터에서 GameRoot 컴포넌트 우클릭 → 아래 항목으로 확인한다.
+
+        [ContextMenu("상태 로그")]
+        private void LogState()
+        {
+            if (!Application.isPlaying)
+            {
+                Debug.LogWarning("[GameRoot] 재생 중에만 동작합니다.");
+                return;
+            }
+
+            if (Player == null || !Player.IsBound)
+            {
+                Debug.LogError("[GameRoot] Player 가 정의에 연결되지 않았습니다. PlayerStatsDefinition 을 확인하세요.");
+                return;
+            }
+
+            Debug.Log(
+                $"[GameRoot] Lv {Player.Level}  EXP {Player.Exp}/{Player.ExpToNextLevel}  " +
+                $"HP {Player.CurrentHp:0.#}/{Player.MaxHp:0.#}\n" +
+                $"  스탯 : {Player.Stats}\n" +
+                $"  신규 플레이 : {IsNewGame}\n" +
+                $"  세이브 : {Saves.SavePath}  (존재 {Saves.Exists})");
+        }
+
+        [ContextMenu("경험치 +100")]
+        private void DebugAddExp()
+        {
+            if (!Application.isPlaying) return;
+
+            Player?.AddExp(100);
+            LogState();
+        }
+
+        [ContextMenu("피해 10")]
+        private void DebugDamage()
+        {
+            if (!Application.isPlaying) return;
+
+            Player?.ApplyDamage(10f);
+            LogState();
+        }
+
+        [ContextMenu("지금 저장")]
+        private void DebugSave()
+        {
+            if (!Application.isPlaying) return;
+
+            SaveNow();
+            Debug.Log($"[GameRoot] 저장했습니다 → {Saves.SavePath}");
+        }
+
+        [ContextMenu("세이브 삭제")]
+        private void DebugDeleteSave()
+        {
+            Saves ??= new SaveService();
+            Saves.Delete();
+            Debug.Log("[GameRoot] 세이브를 삭제했습니다. 다음 실행이 신규 플레이가 됩니다.");
+        }
     }
 }
