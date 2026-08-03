@@ -14,7 +14,7 @@ namespace PrettyKnights.Characters
     /// </summary>
     [RequireComponent(typeof(Animator))]
     [DisallowMultipleComponent]
-    public sealed class PlayerAnimatorDriver : MonoBehaviour
+    public sealed class DirectionalAnimatorDriver : MonoBehaviour
     {
         public static readonly int MoveXParam = Animator.StringToHash("MoveX");
         public static readonly int MoveYParam = Animator.StringToHash("MoveY");
@@ -36,6 +36,9 @@ namespace PrettyKnights.Characters
 
         public EightDirection Facing => EightDirectionUtil.FromVector(facing);
 
+        /// <summary>latch 된 방향 벡터 그대로. 세이브에 담아 재시작 후 복원한다.</summary>
+        public Vector2 FacingVector => facing;
+
         private void Awake()
         {
             animator = GetComponent<Animator>();
@@ -55,12 +58,24 @@ namespace PrettyKnights.Characters
             ApplyToAnimator(speed);
         }
 
-        /// <summary>이동과 무관하게 방향만 강제한다 (공격 방향 고정 등).</summary>
-        public void ForceFacing(Vector2 direction)
+        /// <summary>
+        /// 이동과 무관하게 방향만 강제한다 (공격 방향 고정, 세이브 복원 등).
+        /// <paramref name="snap"/> 이면 보간을 건너뛰고 즉시 그 방향을 바라본다.
+        /// 세이브 복원처럼 "이미 그 방향을 보고 있었어야" 하는 경우에 쓴다.
+        /// </summary>
+        public void ForceFacing(Vector2 direction, bool snap = true)
         {
             if (direction.sqrMagnitude < 0.0001f) return;
 
             facing = direction.normalized;
+
+            if (snap)
+            {
+                smoothed = facing;
+                smoothVelocity = Vector2.zero;
+            }
+
+            if (animator != null) ApplyToAnimator(0f);
         }
 
         private void ApplyToAnimator(float speed)

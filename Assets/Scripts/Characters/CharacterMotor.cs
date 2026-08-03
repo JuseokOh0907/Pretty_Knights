@@ -58,6 +58,19 @@ namespace PrettyKnights.Characters
             body.linearVelocity = Vector2.zero;
         }
 
+        /// <summary>
+        /// 즉시 자리를 옮긴다. 세이브 복원·방 전환에 쓴다.
+        /// <c>transform.position</c> 을 직접 쓰면 물리가 한 프레임 늦게 따라와
+        /// 벽에 낀 것으로 판정될 수 있으므로 <c>Rigidbody2D.position</c> 을 함께 옮긴다.
+        /// </summary>
+        public void Warp(Vector2 position)
+        {
+            Stop();
+
+            transform.position = new Vector3(position.x, position.y, transform.position.z);
+            if (body != null) body.position = position;
+        }
+
         private void FixedUpdate()
         {
             Vector2 target = desiredDirection * moveSpeed;

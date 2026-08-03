@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 namespace PrettyKnights.Characters
 {
     /// <summary>
-    /// 입력을 받아 <see cref="CharacterMotor"/> 와 <see cref="PlayerAnimatorDriver"/> 를 구동한다.
+    /// 입력을 받아 <see cref="CharacterMotor"/> 와 <see cref="DirectionalAnimatorDriver"/> 를 구동한다.
     ///
     /// 레거시 Input 매니저를 쓰지 않고 <c>Assets/InputSystem_Actions.inputactions</c> 의
     /// Player 맵을 직접 참조한다 (CLAUDE.md §6).
@@ -23,7 +23,7 @@ namespace PrettyKnights.Characters
 
         [Header("연결")]
         [SerializeField] private CharacterMotor motor;
-        [SerializeField] private PlayerAnimatorDriver animatorDriver;
+        [SerializeField] private DirectionalAnimatorDriver animatorDriver;
 
         [Header("속도 (월드 유닛/초)")]
         [SerializeField, Min(0f)] private float walkSpeed = 2.5f;
@@ -35,12 +35,28 @@ namespace PrettyKnights.Characters
         private InputAction moveAction;
         private InputAction sprintAction;
 
+        /// <summary>이 몸의 이동을 담당하는 모터. 세이브 복원이 위치를 옮길 때 쓴다.</summary>
+        public CharacterMotor Motor => motor;
+
+        /// <summary>바라보는 방향을 들고 있는 드라이버. 세이브 복원이 방향을 되돌릴 때 쓴다.</summary>
+        public DirectionalAnimatorDriver AnimatorDriver => animatorDriver;
+
         private void Awake()
         {
             if (motor == null) motor = GetComponent<CharacterMotor>();
-            if (animatorDriver == null) animatorDriver = GetComponentInChildren<PlayerAnimatorDriver>();
+            if (animatorDriver == null) animatorDriver = GetComponentInChildren<DirectionalAnimatorDriver>();
 
             ResolveActions();
+
+            // 게임플레이 씬에 있는 "몸"을 Boot 쪽에서 찾을 수 있게 등록한다.
+            // 데이터(GameRoot.PlayerState)와 달리 몸은 씬마다 새로 생긴다.
+            Core.ServiceRegistry.Register(this);
+        }
+
+        private void OnDestroy()
+        {
+            if (Core.ServiceRegistry.TryGet(out PlayerController registered) && registered == this)
+                Core.ServiceRegistry.Unregister<PlayerController>();
         }
 
         private void ResolveActions()

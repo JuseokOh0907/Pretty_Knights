@@ -1,3 +1,4 @@
+using PrettyKnights.Characters;
 using PrettyKnights.Data;
 using PrettyKnights.Save;
 using UnityEngine;
@@ -33,8 +34,14 @@ namespace PrettyKnights.Core
         public SaveService Saves { get; private set; }
         public SceneFlow Scenes { get; private set; }
 
+        /// <summary>마지막으로 있었던 자리. 씬이 올라온 뒤 여기로 몸을 옮긴다.</summary>
+        public WorldLocation Location { get; private set; }
+
         /// <summary>이번 실행이 신규 플레이인지 (세이브 파일이 없었는지).</summary>
         public bool IsNewGame { get; private set; }
+
+        /// <summary>디버그로 세이브를 지운 뒤 자동 저장이 되살리는 것을 막는다.</summary>
+        private bool suppressAutoSave;
 
         private void Awake()
         {
@@ -55,7 +62,48 @@ namespace PrettyKnights.Core
 
         private void Start()
         {
-            StartCoroutine(Scenes.SwitchTo(startMode));
+            // 저장된 모드가 있으면 그쪽으로 복귀한다. 없으면 인스펙터의 시작 모드.
+            GameMode target = Location.HasValue ? Location.Mode : startMode;
+            StartCoroutine(Scenes.SwitchTo(target));
+        }
+
+        /// <summary>
+        /// 씬이 올라온 직후 저장된 자리로 몸을 옮긴다.
+        /// 몸(<see cref="PlayerController"/>)은 게임플레이 씬에 있고 씬마다 새로 생기므로
+        /// 매 전환마다 다시 찾아야 한다.
+        /// </summary>
+        private void RestorePlayerPosition(GameMode mode)
+        {
+            if (!Location.HasValue || Location.Mode != mode) return;
+
+            if (!ServiceRegistry.TryGet(out PlayerController body) || body.Motor == null)
+            {
+                Debug.LogWarning(
+                    "[GameRoot] 씬에서 플레이어를 찾지 못해 위치를 복원하지 못했습니다. " +
+                    "Player 프리팹이 씬에 있는지 확인하세요.");
+                return;
+            }
+
+            body.Motor.Warp(Location.Position);
+
+            // 바라보던 방향까지 되돌린다. snap 이라 보간 없이 즉시 그 방향으로 선다.
+            // 이게 없으면 재시작 때마다 정면(기본값)을 보게 되어 latch 규칙이 끊긴다.
+            body.AnimatorDriver?.ForceFacing(Location.Facing);
+
+            if (logLifecycle) Debug.Log($"[GameRoot] 위치 복원 — {Location}");
+        }
+
+        /// <summary>현재 몸의 좌표와 방향을 <see cref="Location"/> 에 담는다. 저장 직전에 호출한다.</summary>
+        private void CaptureLocation()
+        {
+            if (Scenes?.CurrentMode == null) return;
+            if (!ServiceRegistry.TryGet(out PlayerController body)) return;
+
+            Vector2 facing = body.AnimatorDriver != null
+                ? body.AnimatorDriver.FacingVector
+                : Location.Facing;
+
+            Location.Set(Scenes.CurrentMode.Value, body.transform.position, facing);
         }
 
         private void InitializeServices()
@@ -65,6 +113,7 @@ namespace PrettyKnights.Core
 
             IsNewGame = !Saves.TryLoad(out SaveData data);
             PlayerState = data.Player;
+            Location = data.Location;
 
             if (playerStats == null)
             {
@@ -82,6 +131,9 @@ namespace PrettyKnights.Core
             ServiceRegistry.Register(Saves);
             ServiceRegistry.Register(Scenes);
 
+            // 씬이 올라온 뒤라야 몸이 존재한다. 전환 완료 시점에 자리를 되돌린다.
+            Scenes.ModeChanged += RestorePlayerPosition;
+
             if (!logLifecycle) return;
 
             Scenes.ModeChanged += mode => Debug.Log($"[GameRoot] 씬 전환 완료 — {mode}");
@@ -98,15 +150,17 @@ namespace PrettyKnights.Core
                 $"  Lv {PlayerState.Level}  EXP {PlayerState.Exp}/{PlayerState.ExpToNextLevel}  " +
                 $"HP {PlayerState.CurrentHp:0.#}/{PlayerState.MaxHp:0.#}\n" +
                 $"  스탯 : {PlayerState.Stats}\n" +
+                $"  위치 : {Location}\n" +
                 $"  세이브 : {Saves.SavePath}  (존재 {Saves.Exists})";
         }
 
         /// <summary>현재 상태를 파일에 쓴다. 저장 지점마다 호출한다.</summary>
         public void SaveNow()
         {
-            if (Saves == null || PlayerState == null) return;
+            if (Saves == null || PlayerState == null || suppressAutoSave) return;
 
-            Saves.TrySave(SaveData.From(PlayerState));
+            CaptureLocation();
+            Saves.TrySave(SaveData.From(PlayerState, Location));
         }
 
         public void RequestMode(GameMode mode)
@@ -182,6 +236,7 @@ namespace PrettyKnights.Core
         {
             if (!Application.isPlaying) return;
 
+            suppressAutoSave = false;   // 명시적 저장은 억제를 푼다
             SaveNow();
             Debug.Log($"[GameRoot] 저장했습니다 → {Saves.SavePath}");
         }
@@ -191,7 +246,15 @@ namespace PrettyKnights.Core
         {
             Saves ??= new SaveService();
             Saves.Delete();
-            Debug.Log("[GameRoot] 세이브를 삭제했습니다. 다음 실행이 신규 플레이가 됩니다.");
+            Location?.Clear();
+
+            // 이걸 안 하면 재생을 멈추는 순간 OnApplicationQuit 이 다시 저장해
+            // 방금 지운 것이 되살아난다.
+            suppressAutoSave = true;
+
+            Debug.Log(
+                "[GameRoot] 세이브를 삭제했습니다. 다음 실행이 신규 플레이가 됩니다.\n" +
+                "  이번 세션의 자동 저장은 꺼졌습니다 (지금 저장 메뉴로 다시 켤 수 있습니다).");
         }
     }
 }
