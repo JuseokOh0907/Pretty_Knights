@@ -25,7 +25,7 @@ namespace PrettyKnights.Core
 
         public static GameRoot Instance { get; private set; }
 
-        public PlayerRuntimeState Player { get; private set; }
+        public PlayerRuntimeState PlayerState { get; private set; }
         public SaveService Saves { get; private set; }
         public SceneFlow Scenes { get; private set; }
 
@@ -60,7 +60,7 @@ namespace PrettyKnights.Core
             Scenes = new SceneFlow();
 
             IsNewGame = !Saves.TryLoad(out SaveData data);
-            Player = data.Player;
+            PlayerState = data.Player;
 
             if (playerStats == null)
             {
@@ -70,11 +70,11 @@ namespace PrettyKnights.Core
             }
             else
             {
-                Player.Bind(playerStats);
+                PlayerState.Bind(playerStats);
             }
 
             ServiceRegistry.Register(this);
-            ServiceRegistry.Register(Player);
+            ServiceRegistry.Register(PlayerState);
             ServiceRegistry.Register(Saves);
             ServiceRegistry.Register(Scenes);
         }
@@ -82,9 +82,9 @@ namespace PrettyKnights.Core
         /// <summary>현재 상태를 파일에 쓴다. 저장 지점마다 호출한다.</summary>
         public void SaveNow()
         {
-            if (Saves == null || Player == null) return;
+            if (Saves == null || PlayerState == null) return;
 
-            Saves.TrySave(SaveData.From(Player));
+            Saves.TrySave(SaveData.From(PlayerState));
         }
 
         public void RequestMode(GameMode mode)
@@ -128,16 +128,16 @@ namespace PrettyKnights.Core
                 return;
             }
 
-            if (Player == null || !Player.IsBound)
+            if (PlayerState == null || !PlayerState.IsBound)
             {
-                Debug.LogError("[GameRoot] Player 가 정의에 연결되지 않았습니다. PlayerStatsDefinition 을 확인하세요.");
+                Debug.LogError("[GameRoot] PlayerState 가 정의에 연결되지 않았습니다. PlayerStatsDefinition 을 확인하세요.");
                 return;
             }
 
             Debug.Log(
-                $"[GameRoot] Lv {Player.Level}  EXP {Player.Exp}/{Player.ExpToNextLevel}  " +
-                $"HP {Player.CurrentHp:0.#}/{Player.MaxHp:0.#}\n" +
-                $"  스탯 : {Player.Stats}\n" +
+                $"[GameRoot] Lv {PlayerState.Level}  EXP {PlayerState.Exp}/{PlayerState.ExpToNextLevel}  " +
+                $"HP {PlayerState.CurrentHp:0.#}/{PlayerState.MaxHp:0.#}\n" +
+                $"  스탯 : {PlayerState.Stats}\n" +
                 $"  신규 플레이 : {IsNewGame}\n" +
                 $"  세이브 : {Saves.SavePath}  (존재 {Saves.Exists})");
         }
@@ -147,7 +147,7 @@ namespace PrettyKnights.Core
         {
             if (!Application.isPlaying) return;
 
-            Player?.AddExp(100);
+            PlayerState?.AddExp(100);
             LogState();
         }
 
@@ -156,7 +156,7 @@ namespace PrettyKnights.Core
         {
             if (!Application.isPlaying) return;
 
-            Player?.ApplyDamage(10f);
+            PlayerState?.ApplyDamage(10f);
             LogState();
         }
 

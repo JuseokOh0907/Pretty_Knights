@@ -19,8 +19,22 @@ Boot (상주)                     ← 이번에 만든다
      └ SceneFlow                 ← 게임플레이 씬을 Additive 로 교체
 
 Ingame_Vertical   ┐ 둘 중 하나만 Additive 로 적재
-Ingame_Horizontal ┘
+Ingame_Horizontal ┘  Player.prefab 인스턴스는 여기 산다
 ```
+
+### 프리팹과 데이터는 다른 것이다
+
+"플레이어"라는 말이 두 가지를 가리키므로 먼저 갈라둔다.
+
+| | 정체 | 사는 곳 | 씬 전환 시 |
+|---|---|---|---|
+| `Player.prefab` | 화면에 보이는 **몸**. Transform · Rigidbody2D · 스프라이트 | 게임플레이 씬 | **파괴된다** |
+| `GameRoot.PlayerState` | 레벨 · 경험치 · HP **데이터**. 순수 C# 객체 | Boot (상주) | **살아남는다** |
+
+기획서 §15-6 의 "세로와 가로가 동일한 캐릭터 데이터를 공유한다"가 이 분리의 실체다.
+**몸은 씬마다 새로 만들어지고 데이터는 하나만 유지된다.**
+
+`Player.prefab` 은 이미 `Ingame_Vertical` 에 배치되어 있으므로 이번 작업에서 건드리지 않는다.
 
 ---
 
@@ -138,9 +152,11 @@ C:\Users\<사용자>\AppData\LocalLow\DefaultCompany\Pretty_Knights\save.json
 
 ## 7. 이 작업 뒤에 남는 것
 
-- **`PlayerStatsDefinition` 의 속도가 아직 캐릭터에 연결되어 있지 않다.**
+- **`PlayerStatsDefinition` 의 속도가 아직 몸에 연결되어 있지 않다.**
   현재 `PlayerController` 가 자기 인스펙터 값(`walkSpeed 2.5`)을 쓰고 있어
-  정의와 값이 이중으로 존재한다. 다음 단계에서 `GameRoot.Player` 를 참조하도록 잇는다.
+  정의와 값이 이중으로 존재한다. 정의를 고쳐도 캐릭터가 안 바뀐다.
+  다음 단계에서 `Player.prefab` 이 `GameRoot.PlayerState` 를 참조하도록 잇는다.
+  **이것이 몸과 데이터를 잇는 첫 실물 연결이다.**
 - Boot 를 거치지 않고 게임플레이 씬을 단독 재생할 때 자동으로 Boot 를 끼우는
   에디터 스크립트 (편의 기능, 필수 아님)
 - HUD — 지금은 컨텍스트 메뉴로만 상태를 본다
