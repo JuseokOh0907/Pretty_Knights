@@ -104,7 +104,22 @@ Ingame_Horizontal ┘  Player.prefab 인스턴스는 여기 산다
 Hierarchy 에 `Boot` 와 `Ingame_Vertical` 이 **동시에** 보이면 성공이다.
 `GameRoot` 는 `DontDestroyOnLoad` 항목으로 빠진다.
 
-### 5-2. 데이터가 도는지
+### 5-2. 시작 로그
+
+재생하자마자 콘솔에 아래가 떠야 한다. **안 뜨면 `GameRoot` 가 씬에 없거나 비활성이다.**
+
+```
+[GameRoot] 시작 — 신규 플레이
+  Lv 1  EXP 0/25  HP 100/100
+  스탯 : VIT 20 / ATK 10 / DEF 5 / AGI 8 / FOC 5
+  세이브 : C:\Users\...\Pretty_Knights\save.json  (존재 False)
+[GameRoot] 씬 전환 완료 — Vertical
+```
+
+두 번째 줄까지 나오면 `SceneFlow` 의 Additive 적재까지 성공한 것이다.
+`GameRoot` 인스펙터의 **Log Lifecycle** 을 끄면 이 로그가 사라진다.
+
+### 5-3. 데이터가 도는지
 
 재생 중 `GameRoot` 컴포넌트를 **우클릭**하면 검증 메뉴가 나온다.
 
@@ -124,7 +139,7 @@ Hierarchy 에 `Boot` 와 `Ingame_Vertical` 이 **동시에** 보이면 성공이
   신규 플레이 : True
 ```
 
-### 5-3. 세이브가 실제로 써지는지
+### 5-4. 세이브가 실제로 써지는지
 
 재생을 멈추면 `OnApplicationQuit` 에서 저장된다. 파일 위치:
 
@@ -149,6 +164,7 @@ C:\Users\<사용자>\AppData\LocalLow\DefaultCompany\Pretty_Knights\save.json
 | `'Ingame_Vertical' 씬을 불러오지 못했습니다` | Build Settings 미등록 |
 | AudioListener 중복 경고 | Boot 의 Main Camera 를 안 지웠다 |
 | 상태 로그가 재생 중에만 된다는 경고 | 정상. 편집 모드에서는 데이터가 없다 |
+| 시작 로그가 아예 안 뜸 | GameRoot 가 씬에 없거나 비활성. Log Lifecycle 체크도 확인 |
 
 ## 7. 이 작업 뒤에 남는 것
 

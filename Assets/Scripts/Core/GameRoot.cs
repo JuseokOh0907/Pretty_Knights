@@ -23,6 +23,10 @@ namespace PrettyKnights.Core
         [SerializeField, Tooltip("모바일에서 배터리를 아끼기 위한 상한. 0이면 건드리지 않음")]
         private int targetFrameRate = 60;
 
+        [Header("디버그")]
+        [SerializeField, Tooltip("시작과 씬 전환을 콘솔에 남긴다")]
+        private bool logLifecycle = true;
+
         public static GameRoot Instance { get; private set; }
 
         public PlayerRuntimeState PlayerState { get; private set; }
@@ -77,6 +81,24 @@ namespace PrettyKnights.Core
             ServiceRegistry.Register(PlayerState);
             ServiceRegistry.Register(Saves);
             ServiceRegistry.Register(Scenes);
+
+            if (!logLifecycle) return;
+
+            Scenes.ModeChanged += mode => Debug.Log($"[GameRoot] 씬 전환 완료 — {mode}");
+            Debug.Log($"[GameRoot] 시작 — {(IsNewGame ? "신규 플레이" : "이어하기")}\n{BuildStateReport()}");
+        }
+
+        /// <summary>상태 한 덩어리. 시작 로그와 컨텍스트 메뉴가 함께 쓴다.</summary>
+        private string BuildStateReport()
+        {
+            if (PlayerState == null || !PlayerState.IsBound)
+                return "  (PlayerStatsDefinition 이 연결되지 않아 스탯을 계산할 수 없습니다)";
+
+            return
+                $"  Lv {PlayerState.Level}  EXP {PlayerState.Exp}/{PlayerState.ExpToNextLevel}  " +
+                $"HP {PlayerState.CurrentHp:0.#}/{PlayerState.MaxHp:0.#}\n" +
+                $"  스탯 : {PlayerState.Stats}\n" +
+                $"  세이브 : {Saves.SavePath}  (존재 {Saves.Exists})";
         }
 
         /// <summary>현재 상태를 파일에 쓴다. 저장 지점마다 호출한다.</summary>
@@ -134,12 +156,7 @@ namespace PrettyKnights.Core
                 return;
             }
 
-            Debug.Log(
-                $"[GameRoot] Lv {PlayerState.Level}  EXP {PlayerState.Exp}/{PlayerState.ExpToNextLevel}  " +
-                $"HP {PlayerState.CurrentHp:0.#}/{PlayerState.MaxHp:0.#}\n" +
-                $"  스탯 : {PlayerState.Stats}\n" +
-                $"  신규 플레이 : {IsNewGame}\n" +
-                $"  세이브 : {Saves.SavePath}  (존재 {Saves.Exists})");
+            Debug.Log($"[GameRoot] 현재 상태 — {(IsNewGame ? "신규 플레이" : "이어하기")}\n{BuildStateReport()}");
         }
 
         [ContextMenu("경험치 +100")]
