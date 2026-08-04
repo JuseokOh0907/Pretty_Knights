@@ -2,7 +2,8 @@
     "name": "PrettyKnights",
     "rootNamespace": "PrettyKnights",
     "references": [
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

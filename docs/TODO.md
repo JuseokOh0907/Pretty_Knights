@@ -11,10 +11,19 @@
 **① `MonsterDefinition` 에셋이 하나도 없다** ← 이게 없으면 스폰해도 아무것도 안 나온다
 
 임시값을 [`docs/design/monster-definitions.xlsx`](design/monster-definitions.xlsx) 로 정리해 두었다.
-사용자가 확정본을 주면 `.asset` 9종으로 변환한다.
+확정본이 나오면 `.asset` **10종**(Goblin 4 · Orc 3 · Vampire 3)으로 변환한다.
 
-- [ ] 확정본 수령
-- [ ] `Assets/Data/Monsters/` 에 `.asset` 9종 생성
+**데미지 공식이 먼저 정해져야 한다.** 시트에 `DAMAGE = ATK − DEF×1.5` 가 들어왔는데,
+플레이어 Lv1 ATK 20 · DEF 40 을 그대로 넣으면 양쪽 다 무너진다.
+
+| 방향 | 결과 |
+|---|---|
+| 플레이어 → 몬스터 | DEF 14 이상이면 **데미지 0**. 10종 중 5종(2F 정예 2 · 3F 보스 3)이 기본공격 무적 |
+| 몬스터 → 플레이어 | 감산량이 60 인데 최대 ATK 가 50 이라 **10종 전부 데미지 0** |
+
+- [ ] 공식 확정 — 몬스터 ATK 재작성 / DEF 배율 비대칭 / 감산을 감쇠율(`ATK × 100/(100+DEF×1.5)`)로 교체
+- [ ] 시트 갱신 (플레이어 DEF 40 반영 + 검증 열 수식 · 낡은 문구 정리)
+- [ ] `Assets/Data/Monsters/` 에 `.asset` 10종 생성
 - [ ] 임시 몬스터 프리팹에 연결해 배회·추격·공격 검증
 
 **② 몬스터 아트가 없다**
@@ -36,35 +45,42 @@
 | 2F | `WalkableArea` + `FloorPopulation`(층에 하나) |
 | 3F | `WalkableArea` + `MonsterSpawner`(보스 자리) |
 
+`WalkableArea` 부착은 아래 3번(포탈 배치)과 같은 작업이다.
+층 루트에 `AreaAnchor` 와 나란히 붙이므로 한 번에 처리한다.
+
 - [ ] 9개 층에 `WalkableArea` 부착 (Floor / Guide 타일맵 연결)
 - [ ] 2F 3개에 `FloorPopulation` 부착
 - [ ] 1F·3F 에 `MonsterSpawner` 배치
 - [ ] 가이드 작성
 
-### 2. 카메라 경계를 층마다 바꾼다
+### 2. 카메라 경계를 층마다 바꾼다 — 코드 완료
 
-지금은 `Bounds Source` 에 타일맵 하나만 넣을 수 있는데 층이 9개다.
-어느 하나를 박아두면 다른 층에서 카메라가 엉뚱한 데 갇힌다.
+`AreaRegistry.Activate()` 가 구역을 켤 때 `CameraFollow.SetBoundsSource()` 를 함께 부른다.
+`CameraFollow` 도 `ServiceRegistry` 에 등록된다. **씬 배치만 남았다** (아래 3번과 같은 작업).
 
-- [ ] 포탈이 전환할 때 `CameraFollow.SetBoundsSource()` 호출
-
-### 3. 구역 전환 (포탈)
+### 3. 구역 전환 (포탈) — 코드 완료, 씬 배치 남음
 
 흐름: **시작 신전 → 숲(슬라임 튜토리얼) → 던전 입구(테마 선택) → 던전 층 이동**
 
-포탈이 전환의 주체다. 목표 구역·스폰 지점·경계 타일맵 셋을 들고 있으면 된다.
+설계 근거는 [`docs/decisions/006-area-transition.md`](decisions/006-area-transition.md),
+배치 절차는 [`docs/guides/portal-area-setup.md`](guides/portal-area-setup.md).
 
-```
-페이드 아웃 → 현재 구역 끄고 목표 구역 켜기 → 플레이어 이동
-           → 카메라 경계 교체 → 페이드 인
-```
+- [x] AreaID 체계 — `테마번호 × 100 + 층` (Goblin 101~103 · Orc 201~203 · Vampire 301~303)
+- [x] `AreaDefinition`(SO) · `AreaAnchor` · `SpawnPoint` · `AreaRegistry` · `AreaTransition` · `Portal`
+- [x] 상호작용 계층 — `IInteractable` · `InteractableBehaviour` · `InteractionHub`
+      (히든 상자·아이템이 같은 흐름을 쓴다)
+- [x] `WorldLocation` 에 `areaId` 추가 + `GameRoot` 복원 시 구역 먼저 켜기
+- [x] `ScreenFader` · `InteractButton`
+- [x] 에디터 점검 — `Pretty Knights > Areas > 0. 포탈 링크 점검 (변경 없음)`
+- [ ] **`Assets/Data/Areas/` 에 `AreaDefinition` 3개 생성** (101 · 102 · 103)
+- [ ] **Boot 씬** — `AreaTransition` · `InteractionHub` · `InteractButton` · `FadeOverlay` 배치
+- [ ] **Ingame_Horizontal** — `Map` 에 `AreaRegistry`, Goblin 3개 층에 `AreaAnchor` + `WalkableArea`,
+      `SpawnPoint` · `Portal` 배치
+- [ ] Orc · Vampire 로 복제 (Goblin 검증 후)
 
-- [ ] AreaID 체계 확정 (사용자가 번호 부여 예정)
-- [ ] `AreaDefinition`(SO) — 구역 ID, 루트 오브젝트, 경계 Floor, 기본 스폰 지점
-- [ ] `Portal` — 접촉 시 전환 요청
-- [ ] `AreaTransition` — 페이드 · 구역 교체 · 위치/카메라 갱신
-- [ ] **`WorldLocation` 에 `areaId` 추가** ← 없으면 재시작 시 엉뚱한 구역의 같은 좌표에 선다
-- [ ] `UIRoot` 에 페이드 오버레이
+> 포탈은 **단방향**이다. 되돌아오는 길은 탈출 스킬뿐이며
+> `AreaTransition.RequestEscape()` 는 만들어져 있으나 부르는 쪽이 아직 없다.
+> `AreaDefinition.EscapeTo` 는 던전 입구 구역(#3)이 생긴 뒤 채운다.
 
 ### 4. 경로 탐색 (그리드 A*)
 

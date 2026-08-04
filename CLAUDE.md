@@ -91,12 +91,15 @@ Assets/
 Assets/Scripts/
 ├── PrettyKnights.asmdef   어셈블리 하나 (Unity.InputSystem 참조)
 ├── Core/        GameRoot · SceneFlow · ServiceRegistry · GameMode
-├── Data/        StatBlock · PlayerStatsDefinition · MonsterDefinition · PlayerRuntimeState
+├── Data/        StatBlock · PlayerStatsDefinition · MonsterDefinition
+│                AreaDefinition · PlayerRuntimeState
 ├── Save/        SaveData · SaveService · WorldLocation
 ├── Characters/  CharacterMotor · PlayerController · PlayerHitReaction
 │                DirectionalAnimatorDriver · MonsterController · EightDirection
 ├── World/       CameraFollow · WalkableArea · MonsterSpawner · FloorPopulation
-└── UI/          UIRoot · ModeSwitchButton
+│                AreaAnchor · SpawnPoint · AreaRegistry · AreaTransition · Portal
+│                IInteractable · InteractableBehaviour · InteractionHub
+└── UI/          UIRoot · ModeSwitchButton · ScreenFader · InteractButton
 ```
 
 **씬에 있는 것을 찾을 때는 `ServiceRegistry`.** 몸(`PlayerController`)·카메라·구역은
@@ -281,6 +284,10 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
 - `MonsterSpawner` — 지점 고정 스폰 (1F 안내 · 3F 보스용)
 - `FloorPopulation` — 층 인구 관리 (2F 파밍용). 분포 3종
 - `MonsterController` — 배회/추격/공격. **임시 프리팹만 있고 몬스터 아트는 없다**
+- **구역 전환 일습** — `AreaDefinition` · `AreaAnchor` · `SpawnPoint` · `AreaRegistry` ·
+  `AreaTransition` · `Portal` · 상호작용 3종 · `ScreenFader` · `InteractButton`.
+  배치 절차는 [`docs/guides/portal-area-setup.md`](docs/guides/portal-area-setup.md),
+  설계 근거는 [`docs/decisions/006-area-transition.md`](docs/decisions/006-area-transition.md)
 
 **에셋**
 

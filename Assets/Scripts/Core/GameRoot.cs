@@ -77,6 +77,16 @@ namespace PrettyKnights.Core
         {
             if (!Location.HasValue || Location.Mode != mode) return;
 
+            // 좌표를 되돌리기 전에 구역부터 켠다. 층 9개가 좌표계를 공유하므로
+            // 순서가 바뀌면 옛 구역의 같은 자리에 서게 된다.
+            if (Location.AreaId != 0 && ServiceRegistry.TryGet(out World.AreaRegistry areas) && areas != null)
+            {
+                if (!areas.Activate(Location.AreaId))
+                    Debug.LogWarning(
+                        $"[GameRoot] 저장된 구역 #{Location.AreaId} 을 씬에서 찾지 못했습니다. " +
+                        "켜져 있는 층을 그대로 씁니다.");
+            }
+
             if (!ServiceRegistry.TryGet(out PlayerController body) || body.Motor == null)
             {
                 Debug.LogWarning(

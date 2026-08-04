@@ -47,6 +47,16 @@ namespace PrettyKnights.World
             RefreshBounds();
         }
 
+        // 구역 전환이 층마다 경계를 갈아 끼우려면 카메라를 찾을 수 있어야 한다.
+        // 카메라도 몸과 마찬가지로 게임플레이 씬에 있어 씬마다 새로 생긴다.
+        private void OnEnable() => ServiceRegistry.Register(this);
+
+        private void OnDisable()
+        {
+            if (ServiceRegistry.TryGet(out CameraFollow current) && current == this)
+                ServiceRegistry.Unregister<CameraFollow>();
+        }
+
         /// <summary>
         /// 층이 바뀌면 경계도 바뀐다. 층 전환이 붙으면 그쪽에서 이걸 호출한다.
         /// </summary>
