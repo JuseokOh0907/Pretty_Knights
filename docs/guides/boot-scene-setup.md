@@ -38,6 +38,59 @@ Ingame_Horizontal ┘  Player.prefab 인스턴스는 여기 산다
 
 ---
 
+## Boot 씬 완성형 계층
+
+`[C]` = 컴포넌트, 들여쓰기 = 부모-자식. **루트 오브젝트는 `GameRoot` 와 `UIRoot` 둘뿐이다.**
+
+```
+Boot.unity
+│
+├─ GameRoot  (GameObject)                    ← 루트. DontDestroyOnLoad 대상
+│    ├─ [C] Transform
+│    └─ [C] GameRoot
+│             Player Stats      → Knight_Stats (에셋)
+│             Start Mode        → Horizontal
+│             Target Frame Rate → 60
+│             Log Lifecycle     → 켬
+│
+└─ UIRoot  (GameObject)                      ← 루트. DontDestroyOnLoad 대상
+     ├─ [C] Transform
+     ├─ [C] UIRoot
+     │        Canvas / Scaler   → 비워도 자식에서 자동 탐색
+     │        Portrait  Reference 1080×1920,  Match 0
+     │        Landscape Reference 1920×1080,  Match 1
+     │
+     ├─ Canvas  (GameObject)
+     │    ├─ [C] RectTransform
+     │    ├─ [C] Canvas             Render Mode: Screen Space - Overlay
+     │    ├─ [C] CanvasScaler       UI Scale Mode: Scale With Screen Size
+     │    ├─ [C] GraphicRaycaster
+     │    │
+     │    └─ ModeSwitchButton  (GameObject)
+     │         ├─ [C] RectTransform
+     │         ├─ [C] Image             버튼 배경 (Raycast Target 켜짐)
+     │         ├─ [C] Button
+     │         └─ [C] ModeSwitchButton  연결할 것 없음
+     │
+     └─ EventSystem  (GameObject)
+          ├─ [C] EventSystem
+          └─ [C] Input System UI Input Module   ← Standalone 아님
+```
+
+### 이 구조에서 지켜야 할 것 네 가지
+
+| | 왜 |
+|---|---|
+| **Main Camera · Directional Light 를 지운다** | 게임플레이 씬에 이미 카메라와 AudioListener 가 있다. 남기면 AudioListener 중복 경고가 계속 뜬다. URP 2D 는 Directional Light 를 쓰지 않는다 |
+| **`GameRoot` 와 `UIRoot` 는 루트에 둔다** | `DontDestroyOnLoad` 는 루트 오브젝트에만 걸린다. 다른 오브젝트의 자식이면 상주하지 않는다 |
+| **Canvas 는 Overlay** | Camera 모드는 씬마다 카메라를 다시 물려줘야 하고, 놓치면 UI 가 통째로 사라진다 |
+| **Input Module 을 교체한다** | 기본 `Standalone Input Module` 은 신규 Input System 전용 설정에서 **무반응**이다. 에러도 안 난다 |
+
+> `EventSystem` 을 `UIRoot` 의 자식으로 두면 함께 상주한다.
+> 씬마다 따로 만들면 중복 경고가 뜬다.
+
+---
+
 ## 1. PlayerStatsDefinition 에셋 만들기
 
 `Assets/Data/` 폴더를 만들고 그 안에서:
