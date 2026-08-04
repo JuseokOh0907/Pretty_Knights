@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6716755404322771691}
   - component: {fileID: 3277961279561595137}
   - component: {fileID: 9166342121919576543}
+  - component: {fileID: 833023288656345177}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -114,6 +115,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: PrettyKnights::PrettyKnights.Characters.CharacterMotor
   moveSpeed: 2.5
   acceleration: 0.08
+  knockbackDecay: 0.18
 --- !u!114 &9166342121919576543
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -131,6 +133,21 @@ MonoBehaviour:
   animatorDriver: {fileID: 0}
   walkSpeed: 2.5
   runMultiplier: 1.6
+--- !u!114 &833023288656345177
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3320719914569758650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad2f2c1cb47272f45a9c9de205bf66ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrettyKnights::PrettyKnights.Characters.PlayerHitReaction
+  invulnerabilityDuration: 0.4
+  flashTarget: {fileID: 0}
+  flashInterval: 0.08
 --- !u!1 &8235316920896806562
 GameObject:
   m_ObjectHideFlags: 0
