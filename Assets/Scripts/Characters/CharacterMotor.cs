@@ -18,13 +18,23 @@ namespace PrettyKnights.Characters
         [SerializeField, Min(0f), Tooltip("가속에 걸리는 시간. 0이면 즉시 최고 속도")]
         private float acceleration = 0.08f;
 
+        [SerializeField, Min(0f), Tooltip("넉백이 사그라드는 데 걸리는 시간")]
+        private float knockbackDecay = 0.18f;
+
         private Rigidbody2D body;
         private Vector2 desiredDirection;
         private Vector2 currentVelocity;
         private Vector2 accelerationRef;
 
-        /// <summary>실제로 적용 중인 속도 벡터. 애니메이션 구동에 쓴다.</summary>
+        private Vector2 knockbackVelocity;
+
+        /// <summary>
+        /// 이동으로 만들어진 속도. 애니메이션 구동에 쓴다.
+        /// 넉백은 제외한다 — 밀려나는 중에 달리기 애니메이션이 나오면 어색하다.
+        /// </summary>
         public Vector2 Velocity => currentVelocity;
+
+        public bool IsKnockedBack => knockbackVelocity.sqrMagnitude > 0.01f;
 
         public float MoveSpeed
         {
@@ -55,7 +65,23 @@ namespace PrettyKnights.Characters
             desiredDirection = Vector2.zero;
             currentVelocity = Vector2.zero;
             accelerationRef = Vector2.zero;
+            knockbackVelocity = Vector2.zero;
             body.linearVelocity = Vector2.zero;
+        }
+
+        /// <summary>
+        /// 뒤로 밀어낸다.
+        ///
+        /// <see cref="FixedUpdate"/> 가 매번 <c>linearVelocity</c> 를 통째로 덮어쓰므로
+        /// 외부에서 <c>AddForce</c> 를 걸면 다음 프레임에 지워진다.
+        /// 그래서 넉백을 모터 안에서 다뤄야 한다.
+        /// </summary>
+        public void ApplyKnockback(Vector2 direction, float force)
+        {
+            if (force <= 0f || direction.sqrMagnitude < 0.0001f) return;
+
+            // 연속으로 맞으면 덮어쓴다. 누적시키면 화면 밖으로 날아간다.
+            knockbackVelocity = direction.normalized * force;
         }
 
         /// <summary>
@@ -79,7 +105,16 @@ namespace PrettyKnights.Characters
                 ? Vector2.SmoothDamp(currentVelocity, target, ref accelerationRef, acceleration)
                 : target;
 
-            body.linearVelocity = currentVelocity;
+            if (knockbackVelocity.sqrMagnitude > 0f)
+            {
+                knockbackVelocity = knockbackDecay > 0f
+                    ? Vector2.Lerp(knockbackVelocity, Vector2.zero, Time.fixedDeltaTime / knockbackDecay)
+                    : Vector2.zero;
+
+                if (knockbackVelocity.sqrMagnitude < 0.01f) knockbackVelocity = Vector2.zero;
+            }
+
+            body.linearVelocity = currentVelocity + knockbackVelocity;
         }
     }
 }

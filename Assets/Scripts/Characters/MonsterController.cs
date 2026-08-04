@@ -195,7 +195,13 @@ namespace PrettyKnights.Characters
 
             // 판정 시스템이 아직 없다. 스킬 판정이 붙으면 여기서 범위 계산을 호출한다
             // (CLAUDE.md §5 — 판정과 VFX 를 분리한다).
-            if (Core.ServiceRegistry.TryGet(out PlayerRuntimeState playerState))
+            if (!Core.ServiceRegistry.TryGet(out PlayerController player) || player == null) return;
+
+            // 피해·넉백·경직·무적을 전부 PlayerHitReaction 이 판단한다.
+            // 무적 중이면 여기서 알아서 무시된다.
+            if (player.HitReaction != null)
+                player.HitReaction.TakeHit(definition, transform.position);
+            else if (Core.ServiceRegistry.TryGet(out PlayerRuntimeState playerState))
                 playerState.ApplyDamage(definition.Stats.Attack);
         }
 

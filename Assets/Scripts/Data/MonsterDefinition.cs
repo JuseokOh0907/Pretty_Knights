@@ -34,6 +34,13 @@ namespace PrettyKnights.Data
         [SerializeField, Min(0f)] private float attackRange = 0.9f;
         [SerializeField, Min(0.05f)] private float attackCooldown = 1.2f;
 
+        [Header("피격 반응 — 몬스터마다 손맛을 다르게 한다")]
+        [SerializeField, Min(0f), Tooltip("맞은 대상이 밀려나는 세기 (월드 유닛/초)")]
+        private float knockbackForce = 4f;
+
+        [SerializeField, Min(0f), Tooltip("맞은 대상의 입력이 잠기는 시간. 0.3초를 넘기면 렉으로 오해한다")]
+        private float hitStunDuration = 0.12f;
+
         [Header("보상")]
         [SerializeField, Min(0)] private int expReward = 12;
 
@@ -49,6 +56,8 @@ namespace PrettyKnights.Data
         public float DetectRange => detectRange;
         public float AttackRange => attackRange;
         public float AttackCooldown => attackCooldown;
+        public float KnockbackForce => knockbackForce;
+        public float HitStunDuration => hitStunDuration;
         public int ExpReward => expReward;
         public Sprite[] Frames => frames;
         public bool HasArt => frames != null && frames.Length > 0;

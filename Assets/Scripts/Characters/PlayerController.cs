@@ -41,10 +41,15 @@ namespace PrettyKnights.Characters
         /// <summary>바라보는 방향을 들고 있는 드라이버. 세이브 복원이 방향을 되돌릴 때 쓴다.</summary>
         public DirectionalAnimatorDriver AnimatorDriver => animatorDriver;
 
+        /// <summary>피격 반응. 몬스터가 때릴 때 여기로 넘긴다.</summary>
+        public PlayerHitReaction HitReaction { get; private set; }
+
         private void Awake()
         {
             if (motor == null) motor = GetComponent<CharacterMotor>();
             if (animatorDriver == null) animatorDriver = GetComponentInChildren<DirectionalAnimatorDriver>();
+
+            HitReaction = GetComponent<PlayerHitReaction>();
 
             ResolveActions();
 
@@ -105,9 +110,12 @@ namespace PrettyKnights.Characters
                 ? moveAction.ReadValue<Vector2>()
                 : Vector2.zero;
 
-            bool sprinting = InputEnabled && sprintAction != null && sprintAction.IsPressed();
-
-            motor.MoveSpeed = sprinting ? walkSpeed * runMultiplier : walkSpeed;
+            // 상한은 항상 달리기 속도다. 실제 속도는 스틱을 얼마나 미느냐로 정해진다.
+            // 살짝 밀면 걷고 끝까지 밀면 달린다 — 블렌드 트리의 Speed 경계가 그대로 상태를 가른다.
+            // 걷기를 페널티가 아니라 플레이어의 선택으로 만들기 위한 것이다.
+            //
+            // 키보드는 입력 크기가 항상 1이라 늘 달리기가 된다. 개발용 입력이므로 무방하다.
+            motor.MoveSpeed = walkSpeed * runMultiplier;
             motor.SetMoveInput(input);
 
             // 실제 적용된 속도를 넘긴다. 가속 중에도 애니메이션이 어긋나지 않는다.
