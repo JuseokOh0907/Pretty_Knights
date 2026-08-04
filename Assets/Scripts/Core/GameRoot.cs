@@ -85,7 +85,20 @@ namespace PrettyKnights.Core
                 return;
             }
 
-            body.Motor.Warp(Location.Position);
+            // 저장된 좌표가 맵 밖일 수 있다. 구역이 바뀌었거나 맵을 다시 그렸다면 그렇다.
+            Vector2 destination = Location.Position;
+            if (ServiceRegistry.TryGet(out World.WalkableArea area) && area != null)
+            {
+                if (!area.TryFindWalkable(destination, 3f, out destination))
+                {
+                    Debug.LogWarning(
+                        $"[GameRoot] 저장된 자리 {Location.Position} 주변에서 설 수 있는 곳을 찾지 못했습니다. " +
+                        "씬의 기본 위치를 그대로 씁니다.");
+                    return;
+                }
+            }
+
+            body.Motor.Warp(destination);
 
             // 바라보던 방향까지 되돌린다. snap 이라 보간 없이 즉시 그 방향으로 선다.
             // 이게 없으면 재시작 때마다 정면(기본값)을 보게 되어 latch 규칙이 끊긴다.

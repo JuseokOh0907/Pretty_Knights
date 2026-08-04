@@ -85,9 +85,13 @@ namespace PrettyKnights.Characters
         }
 
         /// <summary>
-        /// 즉시 자리를 옮긴다. 세이브 복원·방 전환에 쓴다.
+        /// 즉시 자리를 옮긴다. 세이브 복원·포탈·순간이동에 쓴다.
         /// <c>transform.position</c> 을 직접 쓰면 물리가 한 프레임 늦게 따라와
         /// 벽에 낀 것으로 판정될 수 있으므로 <c>Rigidbody2D.position</c> 을 함께 옮긴다.
+        ///
+        /// <b>여기서는 목적지가 갈 수 있는 자리인지 검사하지 않는다.</b>
+        /// 맵 밖으로 옮겨질 수 있으므로 호출부가
+        /// <c>WalkableArea.IsWalkable</c> / <c>TryFindWalkable</c> 로 먼저 걸러야 한다.
         /// </summary>
         public void Warp(Vector2 position)
         {
