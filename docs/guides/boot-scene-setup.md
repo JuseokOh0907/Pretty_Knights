@@ -79,8 +79,19 @@ Ingame_Horizontal ┘  Player.prefab 인스턴스는 여기 산다
 | 필드 | 값 |
 |---|---|
 | **Player Stats** | 1번에서 만든 `Knight_Stats` ← **비우면 스탯 계산이 전부 죽는다** |
-| Start Mode | `Vertical` |
+| Start Mode | `Horizontal` (Goblin 맵이 있는 쪽) |
 | Target Frame Rate | 60 (0이면 건드리지 않음) |
+| Log Lifecycle | 켬 |
+
+> **`Start Mode` 는 신규 플레이일 때만 쓰인다.**
+> ```csharp
+> GameMode target = Location.HasValue ? Location.Mode : startMode;
+> ```
+> 세이브에 위치가 저장되어 있으면 **그 모드로 복귀**한다. 마지막 있던 자리에서
+> 이어가야 하므로 의도된 동작이다.
+>
+> 그래서 시작 모드를 바꿨는데 반영이 안 되면 **세이브에 이전 모드가 남아 있는 것**이다.
+> 재생 중 `GameRoot` 우클릭 → `세이브 삭제` 로 지운 뒤 다시 재생한다.
 
 ## 4. Build Settings 등록
 

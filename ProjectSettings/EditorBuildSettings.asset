@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Boot.unity
     guid: c0a751f272c468c4499bf16cc1b21057
   - enabled: 1
+    path: Assets/Scenes/Ingame_Horizontal.unity
+    guid: 9a6cdd7e784ede644802389372388145
+  - enabled: 1
     path: Assets/Scenes/Ingame_Vertical.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
   m_configObjects:

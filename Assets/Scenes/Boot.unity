@@ -149,8 +149,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PrettyKnights::PrettyKnights.Core.GameRoot
   playerStats: {fileID: 11400000, guid: 2dca1b38cbc16ac43bec58897f1b376c, type: 2}
-  startMode: 0
+  startMode: 1
   targetFrameRate: 60
+  logLifecycle: 1
 --- !u!4 &85138472
 Transform:
   m_ObjectHideFlags: 0

@@ -20,7 +20,8 @@ namespace PrettyKnights.Core
         [SerializeField] private PlayerStatsDefinition playerStats;
 
         [Header("시작 설정")]
-        [SerializeField] private GameMode startMode = GameMode.Vertical;
+        [SerializeField, Tooltip("신규 플레이일 때의 시작 모드. 저장된 위치가 있으면 그쪽이 우선한다")]
+        private GameMode startMode = GameMode.Horizontal;
         [SerializeField, Tooltip("모바일에서 배터리를 아끼기 위한 상한. 0이면 건드리지 않음")]
         private int targetFrameRate = 60;
 
