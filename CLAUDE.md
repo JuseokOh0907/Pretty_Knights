@@ -85,18 +85,23 @@ Assets/
 └── Settings/
 ```
 
-### `Assets/Scripts/` (2026-08-01 착수)
+### `Assets/Scripts/` (2026-08-05 기준)
 
 ```
 Assets/Scripts/
-├── PrettyKnights.asmdef        어셈블리 하나로 묶음 (Unity.InputSystem 참조)
-├── Core/                       GameRoot, SceneFlow, ServiceRegistry, GameMode
-├── Data/                       StatBlock, PlayerStatsDefinition, MonsterDefinition, PlayerRuntimeState
-├── Save/                       SaveData, SaveService
-├── Characters/                 EightDirection (이동·애니메이션은 후속)
-├── World/                      (미작성)
-└── UI/                         (미작성)
+├── PrettyKnights.asmdef   어셈블리 하나 (Unity.InputSystem 참조)
+├── Core/        GameRoot · SceneFlow · ServiceRegistry · GameMode
+├── Data/        StatBlock · PlayerStatsDefinition · MonsterDefinition · PlayerRuntimeState
+├── Save/        SaveData · SaveService · WorldLocation
+├── Characters/  CharacterMotor · PlayerController · PlayerHitReaction
+│                DirectionalAnimatorDriver · MonsterController · EightDirection
+├── World/       CameraFollow · WalkableArea · MonsterSpawner · FloorPopulation
+└── UI/          UIRoot · ModeSwitchButton
 ```
+
+**씬에 있는 것을 찾을 때는 `ServiceRegistry`.** 몸(`PlayerController`)·카메라·구역은
+씬마다 새로 생기므로 인스펙터 연결 대신 등록/조회로 잇는다.
+데이터(`PlayerRuntimeState`)는 Boot 에 상주하므로 그대로 유지된다.
 
 구조 근거는 [`docs/decisions/003-runtime-architecture.md`](docs/decisions/003-runtime-architecture.md).
 
@@ -251,53 +256,53 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
 
 ## 7. 현재 진행 상태
 
-> 마지막 갱신 2026-08-01. 이 절이 실제와 어긋나면 먼저 고치고 작업할 것.
+> 마지막 갱신 2026-08-05. 이 절이 실제와 어긋나면 먼저 고치고 작업할 것.
+> 할 일 목록은 [`docs/TODO.md`](docs/TODO.md) 를 본다.
 
-**완료**
+**동작하는 것** — 실행해서 확인된 것만 적는다
 
-- **아트** — Knights 걷기·달리기·Idle 8방향 전부 PNG + 클립 24개 완비.
-  클립 명명 `{방향}_{동작}` 통일, 프레임 순서 검증 완료
-- **텍스처 최적화** — ASTC 4×4(Best) 적용, 트림으로 셀 256×256 → **184×232** (34.9% 절감).
-  세 동작 접지선 일치, `Visual` 오프셋 `0.375` 는 트림 전후 동일
-- **플레이어** — 프리팹 + 단일 `Knight.controller`(Idle/Walk/Run 블렌드 트리 3개).
-  8방향 이동·애니메이션 정상, **손을 떼도 방향 유지**(latch 검증 완료)
-- **런타임 기반 계층** — Core / Data / Save / Characters 작성.
-  단 `GameRoot` 가 아직 씬에 없어 **한 번도 실행되지 않았다**
-- **타일 콜라이더** — 9슬라이스 벽 48장(6테마 × 8종)의 `physicsShape` 를
-  알파에서 픽셀 정확도로 생성. 벽 두께 위/아래 22px, 좌/우 8px 전 테마 동일
-- **에디터 도구 4종** — `Assets/Editor/` (트림 / 캐릭터 설정 / 클립 순서 / 타일 설정).
-  전부 "점검(변경 없음)" 메뉴가 따로 있다
-- **맵 테마 6종** — `Base/{Campsite,Dungeon,Start Points}` + `Goblin/Orc/Vampire`,
-  각 18타일. 오브젝트는 Goblin/Orc/Vampire 에 6종씩
-- **`Ingame_Vertical` 테스트 맵** — Goblin 테마로 `Field` 180칸 + `Guide` 52칸 배치.
-  `Guide` 에 `TilemapCollider2D`. **테스트용이므로 갈아엎어도 무방**
+- **플레이어** — `Player.prefab` (루트: Rigidbody2D · CapsuleCollider2D · CharacterMotor ·
+  PlayerController · PlayerHitReaction / 자식 `Visual`: SpriteRenderer · Animator ·
+  DirectionalAnimatorDriver). 단일 `Knight.controller` 에 Idle/Walk/Run 블렌드 트리.
+  8방향 이동, **손을 떼도 방향 유지**(latch 검증 완료)
+- **Boot 씬** — `GameRoot` + `UIRoot`(Canvas Overlay · EventSystem ·
+  ModeSwitchButton · Controls/JoystickArea/Handle). 두 루트 모두 DontDestroyOnLoad
+- **세이브** — 레벨·경험치·HP + **마지막 위치와 바라보던 방향**까지 복원.
+  원자적 쓰기(임시 → 백업 → 교체), `OnApplicationPause` 에서도 저장
+- **모드 전환** — 버튼으로 세로 ↔ 가로. Additive 로 게임플레이 씬만 교체
+- **조작** — `OnScreenStick` (`<Gamepad>/leftStick`). **스틱 기울기가 곧 속도**라
+  살짝 밀면 걷고 끝까지 밀면 달린다
+- **피격 반응** — 넉백 + 경직 + 무적. 넉백 세기와 경직 시간은 때린 몬스터 정의에서 온다
+- **카메라** — `CameraFollow`. Floor 타일맵 범위로 가둔다
 
-**미착수**
+**만들어졌지만 아직 씬에 붙지 않은 것**
 
-- **Boot 씬 + `GameRoot` 배치** ← 다음 작업. `PlayerStatsDefinition` 에셋 생성과
-  세이브 연결이 여기 걸려 있다
-- 몬스터 — 스프라이트 자체가 없음 (`Maps/` 의 Goblin·Orc·Vampire 는 **맵 테마**이지 몬스터가 아니다)
-- 스폰·오브젝트 풀링
-- 스킬 판정 시스템과 VFX
-- UI(HUD), 세로/가로 전환 및 씬 스케일링
+- `WalkableArea` — 바닥 타일 유무로 설 수 있는 자리를 판정
+- `MonsterSpawner` — 지점 고정 스폰 (1F 안내 · 3F 보스용)
+- `FloorPopulation` — 층 인구 관리 (2F 파밍용). 분포 3종
+- `MonsterController` — 배회/추격/공격. **임시 프리팹만 있고 몬스터 아트는 없다**
+
+**에셋**
+
+- **아트** — Knights 걷기·달리기·Idle 8방향, 클립 24개. ASTC 4×4, 셀 184×232
+- **타일** — 6테마 × 18타일 + **연결 타일 4종(24장)**. `physicsShape` 전량 생성,
+  center 계열은 Collider `None`
+- **맵** — 3테마 9층 **81,373칸** (`Ingame_Horizontal`). 층 오브젝트 단위로 켜고 끈다
+- **에디터 도구 4종** — `Assets/Editor/`. 전부 "점검(변경 없음)" 메뉴가 따로 있다
 
 ### 남은 잡무 / 기술 부채
 
 - `ProjectSettings` 의 `companyName` 이 `DefaultCompany` — 출시 전 변경 필요
-- 루트에 옛 이름 잔재 `Gamble_Yuusha.slnx` 가 남아 있음 — 삭제/개명은 사용자 승인 후
-- **Goblin 오브젝트 6장만 PPU 128** — Orc·Vampire 12장은 PPU 64(2×2칸)인데
-  Goblin 만 절반 크기로 나온다. **오브젝트를 실제로 배치하는 시점에 64로 맞춘다**
-  (2026-08-01 유예. 배치가 수작업이라 그때 함께 처리하는 편이 낫다는 판단)
-- **center 계열 타일 36장의 Collider Type 을 `None` 으로** — 지금은 `Field` 레이어에
-  콜라이더 컴포넌트가 없어 무해하지만, 붙는 순간 바닥 전체가 막힌다.
-  `Pretty Knights > Tiles > 4` 로 일괄 처리
-- 문 타일 4종(`10~13`)은 **사용하지 않기로 하여** `physicsShape` 미생성 (2026-08-01)
-- 방향별 Animator Controller 24개 — 블렌드 트리로 대체됐으므로 제거 가능.
-  삭제는 사용자 승인 후
-- 타일 일괄 설정은 `Pretty Knights > Tiles` 메뉴 사용.
-  대상은 `/Tiles/` 폴더만이며 `/Objects/` 는 PPU 가 달라 제외되어 있다
-- ~~Aseprite 원본 파일 보유 여부 확인~~ → **`.aseprite` 원본은 없음** (아트를 Codex에서 생성 중). Aseprite Importer 전환은 Discord 에이전트 오케스트라 설정 이후로 보류. `docs/decisions/002-sprite-pipeline.md`
-- Walking Animator Controller 8개 → 블렌드 트리 단일 컨트롤러로 통합 대기 (`.anim` 클립 8개는 그대로 재사용)
+- Unity Cloud 의 `projectName` 이 `Gamble_Yuusha` 로 되돌아온다.
+  대시보드에서 바꿔야 하며 로컬 수정은 유지되지 않는다
+- 루트에 옛 이름 잔재 `Gamble_Yuusha.slnx` — 추적되지 않는 생성 파일. 삭제는 승인 후
+- **Goblin 오브젝트 6장만 PPU 128** — Orc·Vampire 는 PPU 64(2×2칸)이라 Goblin 만
+  절반 크기로 나온다. 오브젝트를 실제로 배치하는 시점에 64로 맞춘다
+- 문 타일 4종(`10~13`)은 사용하지 않기로 하여 `physicsShape` 미생성.
+  전체 교체 가능성이 있어 그대로 둔다
+- 방향별 Animator Controller 24개 — 블렌드 트리로 대체됐으므로 제거 가능. 삭제는 승인 후
+- `Ingame_Vertical` 은 옛 테스트 맵이 남아 있다. 세로 모드 설계 시 갈아엎어도 무방
+- `Assets/Art/Reference/` 에 참고용 이미지가 들어 있다. 빌드에는 포함되지 않지만 정리 대상
 
 ---
 

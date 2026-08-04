@@ -118,3 +118,6 @@ InitTestScene*.unity*
 ehthumbs.db
 Thumbs.db
 desktop.ini
+
+# Excel 임시 잠금 파일
+~$*
