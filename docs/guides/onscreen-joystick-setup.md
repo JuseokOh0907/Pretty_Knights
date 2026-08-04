@@ -44,6 +44,22 @@ UIRoot
 만든 뒤 `Controls` 를 `UIRoot` 컴포넌트의 **`Landscape Only`** 배열에 넣는다.
 그러면 세로로 전환할 때 자동으로 꺼진다.
 
+### `Controls` 는 빈 컨테이너다 — 만드는 법에 주의
+
+캔버스 안의 오브젝트는 **`RectTransform`** 이어야 한다.
+`GameObject > Create Empty` 로 만들면 일반 `Transform` 이 붙는 경우가 있고,
+그러면 자식 UI 의 앵커 계산이 어긋난다.
+
+**확실한 방법: `GameObject > UI > Image` 로 만들고 이름을 바꾼 뒤 `Image` 컴포넌트를 제거한다.**
+`RectTransform` 만 남은 순수 컨테이너가 된다.
+
+> Canvas 를 우클릭해 `Create Empty` 를 하면 Unity 가 `RectTransform` 을 붙여 주기도 한다.
+> 만든 뒤 **인스펙터 맨 위가 `Rect Transform` 인지** 확인하고, `Transform` 이면 위 방법으로 다시 만든다.
+
+**지금 단계에서는 생략해도 된다.** `Controls` 는 공격·스킬 버튼이 늘어날 때
+한 번에 껐다 켜기 위한 묶음이다. 조이스틱 하나뿐이라면
+`JoystickArea` 를 `Landscape Only` 에 직접 넣어도 동작은 같다.
+
 ## 2. On-Screen Stick 설정
 
 | 필드 | 값 |
