@@ -23,20 +23,45 @@ D-Pad 나 버튼은 입력 크기가 항상 1이라 이 구조가 성립하지 �
 
 조이스틱은 **가로 모드에서만** 쓴다. 세로는 자동 사냥이라 직접 조작이 없다.
 
+`[C]` = 컴포넌트, 들여쓰기 = 부모-자식.
+**이 절에서 새로 만드는 게임오브젝트는 `Controls` · `JoystickArea` · `Handle` 셋뿐이다.**
+
 ```
-UIRoot
- └─ Canvas
-     ├─ ModeSwitchButton
-     └─ Controls  (GameObject)              ← UIRoot 의 Landscape Only 에 등록
+UIRoot  (GameObject)
+ └─ Canvas  (GameObject)
+     ├─ ModeSwitchButton  (GameObject)          이미 만들어져 있음
+     │
+     └─ Controls  (GameObject)                  ← UIRoot 의 Landscape Only 에 등록
+          ├─ [C] RectTransform                     이것 하나뿐이다. Image 는 지운다
+          │
           └─ JoystickArea  (GameObject)
                ├─ [C] RectTransform
-               ├─ [C] Image                  배경 원. Raycast Target 켬
+               ├─ [C] CanvasRenderer
+               ├─ [C] Image                        배경 원
+               │        Raycast Target  → 켬
+               │        Color           → 알파 낮게 (반투명)
                │
                └─ Handle  (GameObject)
                     ├─ [C] RectTransform
-                    ├─ [C] Image             손잡이. Raycast Target 켬
-                    └─ [C] On-Screen Stick   ← 여기에 붙인다
+                    ├─ [C] CanvasRenderer
+                    ├─ [C] Image                   손잡이
+                    │        Raycast Target  → 켬
+                    │
+                    └─ [C] On-Screen Stick         ← 배경이 아니라 여기
+                             Control Path    → <Gamepad>/leftStick
+                             Movement Range  → 100
 ```
+
+### 만드는 순서와 메뉴
+
+| 오브젝트 | 메뉴 | 비고 |
+|---|---|---|
+| `Controls` | `GameObject > UI > Image` | 만든 뒤 **`Image` 컴포넌트를 제거**한다 |
+| `JoystickArea` | `GameObject > UI > Image` | `Controls` 를 선택한 상태로 만들면 자식이 된다 |
+| `Handle` | `GameObject > UI > Image` | `JoystickArea` 를 선택한 상태로 |
+
+`Image` 를 지우면 `CanvasRenderer` 도 함께 지워도 된다. `Controls` 는
+아무것도 그리지 않는 순수 컨테이너이므로 `RectTransform` 만 남기면 된다.
 
 > **`On-Screen Stick` 은 배경이 아니라 손잡이에 붙인다.**
 > 이 컴포넌트가 자기 `RectTransform` 을 직접 움직이기 때문이다.
