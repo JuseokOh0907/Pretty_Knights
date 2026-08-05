@@ -5,9 +5,6 @@ TextureImporter:
   - first:
       213: 5451083555534987161
     second: 04_candle_cluster_128_0
-  - first:
-      213: 4791447963452628908
-    second: 04_candle_cluster_128_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -49,9 +46,9 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
-  spriteMeshType: 0
+  spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 64
@@ -78,7 +75,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 2
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -103,12 +100,12 @@ TextureImporter:
     buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 48
     textureCompression: 1
-    compressionQuality: 50
+    compressionQuality: 100
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -145,8 +142,8 @@ TextureImporter:
       name: 04_candle_cluster_128_0
       rect:
         serializedVersion: 2
-        x: 21
-        y: 6
+        x: 35
+        y: 25
         width: 57
         height: 79
       alignment: 0
@@ -163,33 +160,11 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
-    - serializedVersion: 2
-      name: 04_candle_cluster_128_1
-      rect:
-        serializedVersion: 2
-        x: 100
-        y: 17
-        width: 7
-        height: 7
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: cafdc5d5984ae7240800000000000000
-      internalID: 4791447963452628908
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -200,7 +175,6 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       04_candle_cluster_128_0: 5451083555534987161
-      04_candle_cluster_128_1: 4791447963452628908
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

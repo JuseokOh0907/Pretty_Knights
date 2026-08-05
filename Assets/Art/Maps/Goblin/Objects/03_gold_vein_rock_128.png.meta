@@ -5,9 +5,6 @@ TextureImporter:
   - first:
       213: 4900300470240427156
     second: 03_gold_vein_rock_128_0
-  - first:
-      213: -4276623419336410638
-    second: 03_gold_vein_rock_128_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -51,10 +48,10 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 1
   spriteExtrude: 1
-  spriteMeshType: 0
+  spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 128
+  spritePixelsToUnits: 64
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -78,7 +75,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 2
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -103,12 +100,12 @@ TextureImporter:
     buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 48
     textureCompression: 1
-    compressionQuality: 50
+    compressionQuality: 100
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -163,28 +160,6 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
-    - serializedVersion: 2
-      name: 03_gold_vein_rock_128_1
-      rect:
-        serializedVersion: 2
-        x: 51
-        y: 6
-        width: 10
-        height: 6
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 2f9365c98a166a4c0800000000000000
-      internalID: -4276623419336410638
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -200,7 +175,6 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       03_gold_vein_rock_128_0: 4900300470240427156
-      03_gold_vein_rock_128_1: -4276623419336410638
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
