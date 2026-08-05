@@ -303,8 +303,11 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
 - Unity Cloud 의 `projectName` 이 `Gamble_Yuusha` 로 되돌아온다.
   대시보드에서 바꿔야 하며 로컬 수정은 유지되지 않는다
 - 루트에 옛 이름 잔재 `Gamble_Yuusha.slnx` — 추적되지 않는 생성 파일. 삭제는 승인 후
-- **Goblin 오브젝트 6장만 PPU 128** — Orc·Vampire 는 PPU 64(2×2칸)이라 Goblin 만
-  절반 크기로 나온다. 오브젝트를 실제로 배치하는 시점에 64로 맞춘다
+- ~~Goblin 오브젝트 6장만 PPU 다름~~ — **해결** (2026-08-05). 18장 전부 PPU 64 ·
+  Pivot Center · 2×2칸. 실측표는 [`docs/design/map-objects.md`](docs/design/map-objects.md)
+- **오브젝트 접지선이 테마마다 다르다** — Goblin·Vampire 는 캔버스 중앙 정렬,
+  Orc 만 바닥 정렬(하단 여백 7px). 같은 Y 에 놓으면 겉보기 접지점이 최대 0.5칸 어긋나
+  프리팹마다 `Visual` Y 오프셋을 따로 준다. 8/8 아트 교체 때 하단 여백 7px 로 통일하면 사라진다
 - 문 타일 4종(`10~13`)은 사용하지 않기로 하여 `physicsShape` 미생성.
   전체 교체 가능성이 있어 그대로 둔다
 - 방향별 Animator Controller 24개 — 블렌드 트리로 대체됐으므로 제거 가능. 삭제는 승인 후
