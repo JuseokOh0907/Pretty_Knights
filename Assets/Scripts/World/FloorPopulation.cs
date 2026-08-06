@@ -142,6 +142,11 @@ namespace PrettyKnights.World
             // 고른 자리가 벽이나 맵 밖일 수 있다. 주변에서 설 수 있는 곳을 찾는다.
             if (!area.TryFindWalkable(wanted, 4f, out Vector2 point)) return;
 
+            // 히든 방처럼 봉인된 구역에는 뿌리지 않는다.
+            // 들어가면 몬스터가 오브젝트를 부술 수 없어 영영 갇히고,
+            // 그 상태로 층 인구 상한을 계속 차지해 토템 지분 모델이 샌다.
+            if (NoSpawnZone.BlocksMonsterAt(point)) return;
+
             MonsterDefinition definition = PickDefinition();
             if (definition == null) return;
 
