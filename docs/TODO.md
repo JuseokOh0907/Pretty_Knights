@@ -130,7 +130,12 @@
 - [x] `NoSpawnZone` — 히든 방 내부에 몬스터·오브젝트를 안 뿌린다.
       **`WalkableArea` 는 건드리지 않는다** (거기서 빼면 세이브 복원·도착 보정·A\* 가 깨진다).
       `FloorPopulation` 연결 완료, 배치 도구 쪽은 도구를 만들 때
+- [x] SO 구조 확정 — `AreaDefinition` 에 `nextArea` · `nextArrivalId` 추가.
+      메인 토템이 어디에 배치되든 포탈이 올바른 곳으로 이어진다
+- [x] 파괴는 `Destroy` 가 아니라 **콜라이더 끄기 + 스프라이트 교체**.
+      지우면 세이브의 파괴 목록을 복원할 대상이 사라진다
 - [ ] `PropDefinition`(SO) — HP · 역할 · 드랍 · 인구 지분
+- [ ] `DropTable`(SO) · `FloorScatterProfile`(SO)
 - [ ] `Prop.prefab` + 18 배리언트 (콜라이더는 접지폭 × 0.5칸, `Visual` Y 오프셋은 실측표)
 - [ ] `Destructible` — HP · 피격 · 파괴 이벤트
 - [ ] `SpawnTotem` — 메인은 포탈 활성화, 서브는 `FloorPopulation` 목표 인구 감소
@@ -159,7 +164,20 @@ Goblin·Orc 의 트인 보스방(`1 : 18`)에서는 드러나지 않다가 거�
 - [ ] 방/구역 단위 그리드 A\*. `WalkableArea` 가 이미 통행 판정을 들고 있다
 - [ ] Vampire 보스는 순간이동이라 예외 (경로 탐색 불필요)
 
-### 5. 스킬 판정 시스템 ← **다음 작업** (2026-08-05 순서 조정)
+### 4-1. 공격 예고 인디케이터 ← **다음 작업** (2026-08-08)
+
+방식은 [`docs/decisions/007-skill-indicator.md`](decisions/007-skill-indicator.md).
+**메시가 아니라 런타임 래스터화**다 — 폴리곤의 매끈한 가장자리가 64px 도트 위에서 튄다.
+
+- [ ] `SkillShape` 에 점 포함 검사 추가 (판정과 같은 수학)
+- [ ] 래스터라이저 — 64 px/unit · Point 필터 · 1~2px 테두리
+- [ ] **8방향 캐시** (`스킬 × 방향`). 픽셀 아트는 회전시키면 어긋난다
+- [ ] `MonsterDefinition.telegraphDuration` — Normal 0.30 / Elite 0.45 / Boss 0.70
+- [ ] `MonsterController.PerformAttack` 을 **예고 → 판정 → 경직** 3단계로.
+      `SkillShape` 로 옮기는 아래 5번 항목과 같은 작업이다
+- [ ] 플레이어는 애니메이션으로 예고하므로 `showIndicator` 로 끈다
+
+### 5. 스킬 판정 시스템 (2026-08-05 순서 조정)
 
 `CLAUDE.md` §5 의 원칙을 따른다. **판정과 VFX 를 분리한다.**
 

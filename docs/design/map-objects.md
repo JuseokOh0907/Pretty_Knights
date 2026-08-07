@@ -150,23 +150,45 @@ Pivot 이 Center 이므로 같은 Y 에 놓으면 **겉보기 접지점이 최�
 
 ## 3. 데이터 구조
 
-```
-PropDefinition (SO)              수치만. 씬 참조 없음
-    propId · displayName · theme
-    maxHp · isDestructible
-    role : Decoration | Destructible | SubTotem | MainTotem
-    expReward · dropTable
-    populationShare                서브 토템이 담당하는 인구 지분
+**기준은 하나다 — SO 는 씬 오브젝트를 참조할 수 없지만 다른 SO 는 참조할 수 있다.**
 
-Prop.prefab + 18 배리언트          콜라이더 · Visual 오프셋은 프리팹에 굽는다
+| SO 에 넣는다 | 씬에 둔다 |
+|---|---|
+| 수치 (HP · 드랍 확률 · 인구 지분) | 좌표 |
+| 역할 (Decoration / SubTotem / MainTotem) | 콜라이더 크기 |
+| **다음 층이 어디인가** (`AreaDefinition` → `AreaDefinition`) | 어느 GameObject 인가 |
+| 층별 배치 개수 · 간격 | 실제 배치 결과 |
+
+```
+Data/
+  PropDefinition (SO)       propId · displayName · theme
+                            maxHp · role · expReward · dropTable · populationShare
+  DropTable (SO)            확률 항목. 아이템 SO 가 없으니 1단계는 경험치만
+  FloorScatterProfile (SO)  항목별 개수 · 최소 간격 · 서브 토템 수
+                            기본 점유량 · 추가 점유량   → AreaDefinition 이 참조
+
+Prop.prefab + 18 배리언트   콜라이더 · Visual 오프셋은 프리팹에 굽는다
+    [C] CapsuleCollider2D   접지폭 × 0.5칸
+    [C] Destructible        IDamageable 구현. HP · 파괴 이벤트
     └ Visual  [C] SpriteRenderer
-    [C] CapsuleCollider2D          접지폭 × 0.5칸
-    [C] Destructible               HP · 피격 · 파괴 이벤트
 
-SpawnTotem                        Destructible 을 구독
-    MainTotem → 같은 자리의 Portal 활성화
-    SubTotem  → FloorPopulation 의 목표 인구 감소
+World/
+  SpawnTotem                Destructible 을 구독
+      MainTotem → 같은 자리의 Portal 활성화
+      SubTotem  → FloorPopulation.ReduceTarget()
 ```
+
+### 파괴는 `Destroy` 가 아니다 (2026-08-08 확정)
+
+**콜라이더를 끄고 부서진 스프라이트로 바꾼다.** 오브젝트 자체는 남긴다.
+
+완전히 지우면 세이브의 "부순 것" 목록을 복원할 대상이 사라져 재진입 시 되살아난다.
+남겨두면 층을 켤 때 목록과 대조해 그대로 꺼둘 수 있다.
+
+### 서브 토템의 인구 감소는 절반이 이미 되어 있다
+
+`FloorPopulation` 은 `alive.Count >= targetPopulation` 일 때 **채우기만 멈추고 회수하지 않는다.**
+`ReduceTarget(int)` 하나만 열면 "현재 몬스터는 그대로 두고 새로 채우지 않는다" 가 그대로 나온다.
 
 콜라이더 크기와 오프셋을 SO 가 아니라 프리팹에 두는 이유는 **에디터에서 눈으로 맞춰야 하는 값**이기
 때문이다. 몬스터가 `MonsterDefinition` 으로 수치만 갈아 끼우는 것과 같은 분리다.
