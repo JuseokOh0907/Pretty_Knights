@@ -150,7 +150,11 @@
       18종의 역할·HP·경험치·지분. 접지폭과 `Visual` Y 는 프리팹에 넣는 값이라
       에셋이 아니라 로그에만 찍는다
 - [ ] 도구 실행해 `Assets/Data/Props/` 에 18종 생성
-- [ ] `Prop.prefab` + 18 배리언트 (콜라이더는 접지폭 × 0.5칸, `Visual` Y 는 실측표)
+- [x] **프리팹은 하나** — 배리언트 18개를 만들지 않는다.
+      스프라이트·콜라이더 크기·`Visual` Y 는 `Destructible.Bind` 가 정의에서 읽는다
+- [ ] `Prop.prefab` 하나 만들기
+      (루트: `CapsuleCollider2D` · `Destructible` / 자식 `Visual`: `SpriteRenderer`)
+      → 층별 `FloorScatterProfile` 의 `Prop Prefab` 에 연결
 - [ ] 층별 `FloorScatterProfile` 작성 (9개 층) → `AreaDefinition` 에 연결
 - [ ] `AreaDefinition.nextArea` 연결 (101→102, 102→103)
 - [ ] **파괴 상태 세이브** — `areaId + 칸 좌표` 를 이름표로. 재시작 후에도 부순 것이 부서진 채

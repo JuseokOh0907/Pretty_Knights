@@ -155,9 +155,10 @@ Pivot 이 Center 이므로 같은 Y 에 놓으면 **겉보기 접지점이 최�
 | SO 에 넣는다 | 씬에 둔다 |
 |---|---|
 | 수치 (HP · 드랍 확률 · 인구 지분) | 좌표 |
-| 역할 (Decoration / SubTotem / MainTotem) | 콜라이더 크기 |
+| 역할 (Decoration / SubTotem / MainTotem) | 실제 배치 결과 |
 | **다음 층이 어디인가** (`AreaDefinition` → `AreaDefinition`) | 어느 GameObject 인가 |
-| 층별 배치 개수 · 간격 | 실제 배치 결과 |
+| 층별 배치 개수 · 간격 | |
+| **겉모습** (스프라이트 · 콜라이더 크기 · `Visual` Y) | |
 
 ```
 Data/
@@ -167,10 +168,10 @@ Data/
   FloorScatterProfile (SO)  항목별 개수 · 최소 간격 · 서브 토템 수
                             기본 점유량 · 추가 점유량   → AreaDefinition 이 참조
 
-Prop.prefab + 18 배리언트   콜라이더 · Visual 오프셋은 프리팹에 굽는다
-    [C] CapsuleCollider2D   접지폭 × 0.5칸
-    [C] Destructible        IDamageable 구현. HP · 파괴 이벤트
-    └ Visual  [C] SpriteRenderer
+Prop.prefab  하나만 만든다   배리언트 18개를 만들지 않는다
+    [C] CapsuleCollider2D    크기는 Destructible.Bind 가 정의에서 채운다
+    [C] Destructible         IDamageable 구현. HP · 파괴 이벤트 · Bind
+    └ Visual  [C] SpriteRenderer   스프라이트와 Y 오프셋도 Bind 가 채운다
 
 World/
   SpawnTotem                Destructible 을 구독
@@ -190,8 +191,23 @@ World/
 `FloorPopulation` 은 `alive.Count >= targetPopulation` 일 때 **채우기만 멈추고 회수하지 않는다.**
 `ReduceTarget(int)` 하나만 열면 "현재 몬스터는 그대로 두고 새로 채우지 않는다" 가 그대로 나온다.
 
-콜라이더 크기와 오프셋을 SO 가 아니라 프리팹에 두는 이유는 **에디터에서 눈으로 맞춰야 하는 값**이기
-때문이다. 몬스터가 `MonsterDefinition` 으로 수치만 갈아 끼우는 것과 같은 분리다.
+### 프리팹은 하나다 (2026-08-08 확정)
+
+배리언트 18개를 만들지 않는다. 만들고 유지하는 비용이 실질적이다 —
+8/8 에 아트가 교체되면 18개를 다 다시 손봐야 하고, 콜라이더 값 하나를 고치려면
+배리언트를 하나씩 열어야 한다.
+
+**대신 겉모습이 프리팹에서 데이터로 옮겨온다.** 접지폭(0.48~1.75)과
+`Visual` Y(0.375~0.891)가 오브젝트마다 다르므로 `PropDefinition` 이 들고 있어야 한다.
+앞서 "콜라이더는 프리팹에 굽는다" 고 정했던 것을 뒤집는 셈인데,
+**프리팹이 하나면 그 논리가 성립하지 않는다.**
+실측표가 이미 있어 손으로 맞출 일도 없고 생성 도구가 채운다.
+스프라이트도 propId 로 경로를 만들어 자동 연결한다.
+
+> **메모리를 아끼려고 하는 것이 아니다.** 9개 층이 한 씬에 있어 참조된 에셋은
+> 층을 꺼도 함께 메모리에 남는다. `SetActive(false)` 는 렌더링과 `Update` 를 멈출 뿐이다.
+> 그리고 오브젝트 18장은 0.3~1.2 MB 로 캐릭터 한 세트(8 MB)의 1/10 이하다.
+> 테마별 로드/언로드가 정말 필요해지면 그때 Addressables 를 넣는다.
 
 ### 토템 자리 = 포탈 자리
 
