@@ -40,7 +40,15 @@ namespace PrettyKnights.World
             if (colliders == null || colliders.Length == 0)
                 colliders = GetComponentsInChildren<Collider2D>(includeInactive: true);
 
-            Bind(definition);
+            // 런타임 생성이면 Instantiate 직후 Bind 가 따로 불린다.
+            // 그때는 여기서 아직 비어 있는 것이 정상이므로 조용히 넘어간다.
+            if (definition != null) Bind(definition);
+        }
+
+        private void Start()
+        {
+            if (definition == null)
+                Debug.LogError($"[Destructible] '{name}' 에 PropDefinition 이 끝내 연결되지 않았습니다.");
         }
 
         /// <summary>
@@ -56,7 +64,6 @@ namespace PrettyKnights.World
 
             if (definition == null)
             {
-                Debug.LogError($"[Destructible] '{name}' 에 PropDefinition 이 비어 있습니다.");
                 CurrentHp = 1f;
                 return;
             }

@@ -9,34 +9,31 @@ using UnityEngine;
 namespace PrettyKnights.EditorTools
 {
     /// <summary>
-    /// 층에 맵 오브젝트를 뿌린다. <b>에디터 베이크</b>이며 런타임 랜덤이 아니다.
+    /// 배치를 <b>미리 본다.</b> 실제 배치는 런타임에 <see cref="FloorProps"/> 가 만든다.
     ///
-    /// 탈출 스킬로 나갔다 돌아왔을 때 지형이 바뀌면 길을 처음부터 다시 찾아야 한다.
-    /// 오브젝트가 통행 경로를 만드는 이상 배치는 그 층의 지형 그 자체다
-    /// (docs/design/map-objects.md §4).
+    /// <b>씬에 굽지 않는 이유</b>는 재배치 때문이다. 테마를 완전 클리어하면
+    /// 그 테마가 초기화되고 배치가 새로 뽑혀야 하는데, 씬에 구워두면 그럴 수 없다
+    /// (docs/decisions/006-area-transition.md §3-1).
     ///
-    /// <b>손으로 배치한 것은 건드리지 않는다.</b> 도구는 자기가 만든
-    /// <c>AutoProps</c> 컨테이너만 관리하고, 그 밖의 오브젝트는 회피 대상으로만 읽는다.
-    /// 히든 방 입구처럼 의도적으로 막아둔 배치를 지우면 설계가 깨진다.
+    /// 계산은 <see cref="PropScatterer"/> 한 곳에 있으므로 여기서 본 것과
+    /// 실제로 나오는 것이 같다. 시드가 같으면 결과가 같기 때문이다.
+    ///
+    /// <b>손으로 놓은 것은 건드리지 않는다.</b> 미리보기는 <c>PropPreview</c> 컨테이너에만
+    /// 만들고, 그 밖의 오브젝트는 회피 대상으로만 읽는다.
     /// </summary>
     public static class PropScatterTool
     {
         private const string MenuRoot = "Pretty Knights/Props/";
-        internal const string ContainerName = "AutoProps";
+        internal const string PreviewName = "PropPreview";
 
-        /// <summary>오브젝트가 차지하는 칸. 128px · PPU 64 라 2 × 2 다.</summary>
-        private static readonly Vector2Int PropFootprint = new Vector2Int(2, 2);
+        [MenuItem(MenuRoot + "0. 배치 개수만 계산 (변경 없음)", priority = 500)]
+        public static void Count() => Run(spawn: false);
 
-        // ── 점검 ──────────────────────────────────────────────────────────
+        [MenuItem(MenuRoot + "1. 미리보기 만들기", priority = 501)]
+        public static void Preview() => Run(spawn: true);
 
-        [MenuItem(MenuRoot + "0. 배치 미리보기 (변경 없음)", priority = 500)]
-        public static void Preview() => Run(dryRun: true);
-
-        [MenuItem(MenuRoot + "1. 오브젝트 뿌리기", priority = 501)]
-        public static void Scatter() => Run(dryRun: false);
-
-        [MenuItem(MenuRoot + "2. 자동 배치분만 지우기", priority = 502)]
-        public static void ClearGenerated()
+        [MenuItem(MenuRoot + "2. 미리보기 지우기", priority = 502)]
+        public static void ClearPreview()
         {
             AreaAnchor[] anchors = Object.FindObjectsByType<AreaAnchor>(
                 FindObjectsInactive.Include, FindObjectsSortMode.None);
@@ -45,19 +42,17 @@ namespace PrettyKnights.EditorTools
 
             foreach (AreaAnchor anchor in anchors)
             {
-                Transform container = anchor.transform.Find(ContainerName);
+                Transform container = anchor.transform.Find(PreviewName);
                 if (container == null) continue;
 
                 removed += container.childCount;
                 Undo.DestroyObjectImmediate(container.gameObject);
             }
 
-            Debug.Log($"[PropScatter] 자동 배치분 {removed}개를 지웠습니다. 손으로 놓은 것은 그대로입니다.");
+            Debug.Log($"[PropScatter] 미리보기 {removed}개를 지웠습니다. 손으로 놓은 것은 그대로입니다.");
         }
 
-        // ── 본체 ──────────────────────────────────────────────────────────
-
-        private static void Run(bool dryRun)
+        private static void Run(bool spawn)
         {
             AreaAnchor[] anchors = Object.FindObjectsByType<AreaAnchor>(
                 FindObjectsInactive.Include, FindObjectsSortMode.None);
@@ -68,11 +63,13 @@ namespace PrettyKnights.EditorTools
                 return;
             }
 
-            var report = new StringBuilder(dryRun ? "[PropScatter] 미리보기 (변경 없음)\n" : "[PropScatter] 배치\n");
-            int totalPlaced = 0;
+            var report = new StringBuilder(
+                spawn ? "[PropScatter] 미리보기\n" : "[PropScatter] 개수 계산 (변경 없음)\n");
 
-            NoSpawnZone[] zones = Object.FindObjectsByType<NoSpawnZone>(
-                FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var zones = new List<NoSpawnZone>(Object.FindObjectsByType<NoSpawnZone>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None));
+
+            int total = 0;
 
             foreach (AreaAnchor anchor in anchors.OrderBy(a => a.AreaId))
             {
@@ -85,264 +82,68 @@ namespace PrettyKnights.EditorTools
 
                 if (anchor.Walkable == null || anchor.Walkable.Floor == null)
                 {
-                    report.AppendLine($"  ✗ #{anchor.AreaId} '{anchor.name}' — WalkableArea 또는 Floor 가 없어 건너뜁니다");
+                    report.AppendLine($"  ✗ #{anchor.AreaId} '{anchor.name}' — WalkableArea 또는 Floor 가 없습니다");
                     continue;
                 }
 
-                if (profile.PropPrefab == null)
-                {
-                    report.AppendLine($"  ✗ #{anchor.AreaId} — 프로필에 Prop Prefab 이 없습니다");
-                    continue;
-                }
+                Transform container = anchor.transform.Find(PreviewName);
+                if (container != null) Undo.DestroyObjectImmediate(container.gameObject);
 
-                int placed = ScatterFloor(anchor, definition, profile, zones, dryRun, report);
-                totalPlaced += placed;
+                List<Vector2> avoid = PropScatterer.CollectAvoidPoints(anchor, null);
+                int seed = profile.Seed + definition.AreaId;
+
+                List<PropScatterer.Placement> plan =
+                    PropScatterer.Plan(anchor.Walkable, profile, seed, zones, avoid);
+
+                total += plan.Count;
+
+                int wanted = profile.TotalCount;
+                string shortfall = plan.Count < wanted
+                    ? $"  ← {wanted}개 요청 중 {plan.Count}개만 자리를 찾았습니다"
+                    : "";
+
+                report.AppendLine($"  · #{anchor.AreaId} {definition.DisplayName} — {plan.Count}개{shortfall}");
+
+                if (spawn) SpawnPreview(anchor, profile, plan);
             }
 
-            if (totalPlaced == 0) report.AppendLine("  놓을 것이 없었습니다. AreaDefinition 의 Scatter Profile 을 확인하세요.");
-
             report.AppendLine();
-            report.Append(dryRun
-                ? "  실제로 놓으려면 \"1. 오브젝트 뿌리기\" 를 실행하세요."
-                : $"  총 {totalPlaced}개를 놓았습니다. 씬을 저장하세요.");
+            report.Append(spawn
+                ? $"  미리보기 {total}개. 실제 배치는 재생 시 FloorProps 가 같은 시드로 다시 만듭니다."
+                : $"  총 {total}개가 놓입니다. \"1. 미리보기 만들기\" 로 눈으로 확인하세요.");
 
             Debug.Log(report.ToString());
         }
 
-        private static int ScatterFloor(
-            AreaAnchor anchor, AreaDefinition definition, FloorScatterProfile profile,
-            NoSpawnZone[] zones, bool dryRun, StringBuilder report)
-        {
-            WalkableArea walkable = anchor.Walkable;
-            var floorCells = CollectFloorCells(anchor);
-
-            if (floorCells.Count == 0)
-            {
-                report.AppendLine($"  ✗ #{anchor.AreaId} — 바닥 타일이 하나도 없습니다");
-                return 0;
-            }
-
-            // 1) 피해야 할 지점 — 도착 지점 · 포탈 · 손으로 놓은 오브젝트
-            var avoid = new List<Vector2>();
-
-            foreach (ArrivalPoint arrival in anchor.AllArrivals)
-                if (arrival != null) avoid.Add(arrival.Position);
-
-            foreach (Portal portal in anchor.GetComponentsInChildren<Portal>(includeInactive: true))
-                if (portal != null) avoid.Add(portal.transform.position);
-
-            Transform container = anchor.transform.Find(ContainerName);
-
-            foreach (Destructible manual in anchor.GetComponentsInChildren<Destructible>(includeInactive: true))
-            {
-                // 자동 배치분은 지우고 다시 놓으므로 회피 대상이 아니다.
-                if (container != null && manual.transform.IsChildOf(container)) continue;
-                avoid.Add(manual.transform.position);
-            }
-
-            // 2) 기존 자동 배치분을 걷어낸다. 손으로 놓은 것은 그대로 둔다.
-            if (!dryRun && container != null) Undo.DestroyObjectImmediate(container.gameObject);
-
-            // 3) 순서가 중요하다 — 메인 토템을 먼저 놓아야 좋은 자리를 차지한다.
-            var queue = new List<FloorScatterProfile.Entry>();
-            queue.AddRange(profile.Entries.Where(e => Role(e) == PropRole.MainTotem));
-            queue.AddRange(profile.Entries.Where(e => Role(e) == PropRole.SubTotem));
-            queue.AddRange(profile.Entries.Where(e => Role(e) != PropRole.MainTotem && Role(e) != PropRole.SubTotem));
-
-            var random = new System.Random(profile.Seed + anchor.AreaId);
-            var placedPoints = new List<Vector2>();
-
-            Transform newContainer = null;
-            if (!dryRun)
-            {
-                var go = new GameObject(ContainerName);
-                Undo.RegisterCreatedObjectUndo(go, "오브젝트 뿌리기");
-                go.transform.SetParent(anchor.transform, worldPositionStays: false);
-                newContainer = go.transform;
-            }
-
-            int placedHere = 0;
-
-            foreach (FloorScatterProfile.Entry entry in queue)
-            {
-                if (entry.definition == null || entry.count <= 0) continue;
-
-                int want = entry.count;
-                int got = 0;
-
-                // 자리 찾기는 확률적이라 실패할 수 있다. 시도 상한을 둔다.
-                int attempts = want * 200 + 200;
-
-                while (got < want && attempts-- > 0)
-                {
-                    Vector3Int cell = floorCells[random.Next(floorCells.Count)];
-                    Vector2 point = walkable.Floor.GetCellCenterWorld(cell);
-
-                    if (!IsPlaceable(point, walkable, profile, zones, avoid, placedPoints)) continue;
-
-                    placedPoints.Add(point);
-                    got++;
-                    placedHere++;
-
-                    if (dryRun) continue;
-
-                    GameObject instance = Place(profile, entry, point, newContainer);
-
-                    if (Role(entry) == PropRole.MainTotem)
-                        AttachPortal(instance, definition, profile, newContainer);
-                }
-
-                if (got < want)
-                {
-                    report.AppendLine(
-                        $"  △ #{anchor.AreaId} '{entry.definition.DisplayName}' — {want}개 중 {got}개만 놓았습니다. " +
-                        "간격이나 보호 반경을 줄이거나 개수를 낮추세요");
-                }
-            }
-
-            report.AppendLine($"  · #{anchor.AreaId} {definition.DisplayName} — {placedHere}개 " +
-                              $"(바닥 {floorCells.Count}칸)");
-
-            return placedHere;
-        }
-
-        private static PropRole Role(FloorScatterProfile.Entry entry) =>
-            entry.definition != null ? entry.definition.Role : PropRole.Decoration;
-
-        /// <summary>이 자리에 놓아도 되는가. 실패 사유가 여럿이라 순서대로 걸러낸다.</summary>
-        private static bool IsPlaceable(
-            Vector2 point, WalkableArea walkable, FloorScatterProfile profile,
-            NoSpawnZone[] zones, List<Vector2> avoid, List<Vector2> placed)
-        {
-            // 2×2 칸 전부가 바닥이어야 한다. 점 하나만 보면 모서리가 벽에 걸친다.
-            if (!walkable.IsAreaWalkable(point, PropFootprint)) return false;
-
-            // 벽에서 띄운다. 벽에 붙으면 통로가 실질적으로 좁아진다.
-            if (profile.WallClearance > 0f && !HasClearance(point, walkable, profile.WallClearance))
-                return false;
-
-            // 히든 방 안은 비워 둔다. 손으로 꾸미는 공간이다.
-            if (NoSpawnZone.BlocksPropAt(point, zones)) return false;
-
-            // 도착 지점·포탈·수동 배치 주변은 막지 않는다.
-            float protectedSqr = profile.ProtectedRadius * profile.ProtectedRadius;
-            foreach (Vector2 p in avoid)
-                if ((p - point).sqrMagnitude < protectedSqr) return false;
-
-            float spacingSqr = profile.MinSpacing * profile.MinSpacing;
-            foreach (Vector2 p in placed)
-                if ((p - point).sqrMagnitude < spacingSqr) return false;
-
-            return true;
-        }
-
-        /// <summary>주변 <paramref name="radius"/> 안이 전부 바닥인가. 벽에서 띄우는 데 쓴다.</summary>
-        private static bool HasClearance(Vector2 point, WalkableArea walkable, float radius)
-        {
-            int steps = Mathf.CeilToInt(radius);
-
-            for (int dy = -steps; dy <= steps; dy++)
-            {
-                for (int dx = -steps; dx <= steps; dx++)
-                {
-                    var offset = new Vector2(dx, dy);
-                    if (offset.sqrMagnitude > radius * radius) continue;
-                    if (!walkable.IsWalkable(point + offset)) return false;
-                }
-            }
-
-            return true;
-        }
-
         /// <summary>
-        /// 공용 프리팹을 놓고 정의만 꽂는다.
-        /// 겉모습(스프라이트 · 콜라이더 크기 · Visual 오프셋)은 <c>Destructible.Bind</c> 가
-        /// 정의에서 읽어 채우므로 배리언트가 필요 없다.
+        /// 눈으로 보기 위한 것이라 <see cref="Destructible"/> 만 채운다.
+        /// 토템 연동과 포탈은 런타임이 담당하므로 여기서 흉내내지 않는다 —
+        /// 흉내내면 미리보기와 실제가 갈릴 여지가 생긴다.
         /// </summary>
-        private static GameObject Place(
-            FloorScatterProfile profile, FloorScatterProfile.Entry entry, Vector2 point, Transform parent)
+        private static void SpawnPreview(
+            AreaAnchor anchor, FloorScatterProfile profile, List<PropScatterer.Placement> plan)
         {
-            var instance = (GameObject)PrefabUtility.InstantiatePrefab(profile.PropPrefab, parent);
-            instance.transform.position = point;
-            instance.name = entry.definition.PropId;
-
-            var destructible = instance.GetComponent<Destructible>();
-            if (destructible != null)
+            if (profile.PropPrefab == null)
             {
-                var so = new SerializedObject(destructible);
-                so.FindProperty("definition").objectReferenceValue = entry.definition;
-                so.ApplyModifiedPropertiesWithoutUndo();
-            }
-
-            // 토템은 컴포넌트가 하나 더 필요하다. 공용 프리팹에는 없으므로 여기서 붙인다.
-            if (entry.definition.IsTotem && instance.GetComponent<SpawnTotem>() == null)
-                instance.AddComponent<SpawnTotem>();
-
-            Undo.RegisterCreatedObjectUndo(instance, "오브젝트 뿌리기");
-            return instance;
-        }
-
-        /// <summary>
-        /// 메인 토템 자리에 <b>꺼진 포탈</b>을 함께 만든다.
-        ///
-        /// 런타임 생성으로 미루면 <c>포탈 링크 점검</c> 이 부숴보기 전에 오타를 잡아주던 것이
-        /// 사라진다. 그 점검은 비활성 포탈까지 훑으므로 꺼진 채로 두어도 검사된다.
-        /// </summary>
-        private static void AttachPortal(
-            GameObject totem, AreaDefinition definition, FloorScatterProfile profile, Transform parent)
-        {
-            if (profile.PortalPrefab == null)
-            {
-                Debug.LogError(
-                    $"[PropScatter] '{definition.DisplayName}' 의 프로필에 Portal Prefab 이 없습니다. " +
-                    "메인 토템을 부숴도 다음 층으로 갈 길이 생기지 않습니다.");
+                Debug.LogError($"[PropScatter] #{anchor.AreaId} 프로필에 Prop Prefab 이 없습니다.");
                 return;
             }
 
-            if (!definition.HasNextArea)
+            var root = new GameObject(PreviewName);
+            Undo.RegisterCreatedObjectUndo(root, "배치 미리보기");
+            root.transform.SetParent(anchor.transform, worldPositionStays: false);
+
+            foreach (PropScatterer.Placement placement in plan)
             {
-                Debug.LogError(
-                    $"[PropScatter] '{definition.DisplayName}' 의 Next Area 가 비어 있습니다. " +
-                    "메인 토템이 열 포탈의 목적지를 정할 수 없습니다.");
-                return;
+                var instance = (GameObject)PrefabUtility.InstantiatePrefab(profile.PropPrefab, root.transform);
+                instance.transform.position = placement.Position;
+                instance.name = placement.Definition.PropId;
+
+                var destructible = instance.GetComponent<Destructible>();
+                if (destructible != null) destructible.Bind(placement.Definition);
+
+                Undo.RegisterCreatedObjectUndo(instance, "배치 미리보기");
             }
-
-            var portal = (GameObject)PrefabUtility.InstantiatePrefab(profile.PortalPrefab, parent);
-            portal.transform.position = totem.transform.position;
-            portal.name = $"Portal_from_{definition.AreaId}";
-            Undo.RegisterCreatedObjectUndo(portal, "오브젝트 뿌리기");
-
-            var portalComponent = portal.GetComponent<Portal>();
-            if (portalComponent != null)
-            {
-                var so = new SerializedObject(portalComponent);
-                so.FindProperty("destination").objectReferenceValue = definition.NextArea;
-                so.FindProperty("destinationArrivalId").stringValue = definition.NextArrivalId;
-                so.ApplyModifiedPropertiesWithoutUndo();
-            }
-
-            // 토템을 부술 때까지 보이지 않는다.
-            portal.SetActive(false);
-
-            var totemComponent = totem.GetComponent<SpawnTotem>();
-            if (totemComponent == null) return;
-
-            var totemSo = new SerializedObject(totemComponent);
-            totemSo.FindProperty("portalToOpen").objectReferenceValue = portal;
-            totemSo.ApplyModifiedPropertiesWithoutUndo();
-        }
-
-        private static List<Vector3Int> CollectFloorCells(AreaAnchor anchor)
-        {
-            var cells = new List<Vector3Int>();
-            var floor = anchor.Walkable.Floor;
-
-            floor.CompressBounds();
-
-            foreach (Vector3Int cell in floor.cellBounds.allPositionsWithin)
-                if (floor.HasTile(cell)) cells.Add(cell);
-
-            return cells;
         }
     }
 }

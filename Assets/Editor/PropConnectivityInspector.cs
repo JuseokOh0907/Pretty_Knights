@@ -97,8 +97,9 @@ namespace PrettyKnights.EditorTools
                 return 1;
             }
 
-            // 2) 오브젝트가 덮은 칸. 자동 배치분은 치울 수 있고 수동 배치분은 못 치운다.
-            Transform container = anchor.transform.Find(PropScatterTool.ContainerName);
+            // 2) 오브젝트가 덮은 칸. 미리보기는 치울 수 있고 수동 배치분은 못 치운다.
+            //    실제 배치는 런타임 생성이라 에디터에서는 미리보기를 대상으로 검사한다.
+            Transform container = anchor.transform.Find(PropScatterTool.PreviewName);
 
             var autoCells = new Dictionary<Vector3Int, GameObject>();
             var manualCells = new HashSet<Vector3Int>();

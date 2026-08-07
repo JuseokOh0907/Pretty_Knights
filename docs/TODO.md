@@ -140,9 +140,12 @@
 - [x] `SpawnTotem` — 메인은 포탈 켜기, 서브는 지분 빼기
 - [x] `FloorPopulation.AddShare` / `ClearTarget` — 목표만 줄고 살아 있는 개체는 그대로
 - [x] `WalkableArea.IsAreaWalkable(center, size)` — 2×2칸 판정
-- [x] **배치 도구** `Pretty Knights > Props > 0. 미리보기 / 1. 뿌리기 / 2. 자동 배치분만 지우기`
-      항목별 정확한 개수 · 최소 간격 · 벽 여유 · 보호 반경 · 시드
-      메인 토템을 먼저 놓고 그 자리에 **꺼진 포탈**을 함께 만든다
+- [x] **배치는 런타임 생성** (2026-08-08 전환) — `PropScatterer`(계산) + `FloorProps`(생성).
+      씬에 굽지 않는 이유는 **재배치** 때문이다. 완전 클리어 시 배치가 새로 뽑혀야 한다
+- [x] 에디터는 미리보기만 — `0. 개수 계산 / 1. 미리보기 만들기 / 2. 미리보기 지우기`.
+      계산이 `PropScatterer` 한 곳이라 미리보기와 실제가 같다
+- [x] 메인 토템 자리에 **꺼진 포탈**을 함께 만든다. 목적지는 `AreaDefinition.NextArea`
+- [ ] 층마다 `FloorProps` 부착 (`AreaAnchor` 와 나란히)
 - [x] **연결성 검사** `Pretty Knights > Props > 3. 검사 / 4. 막는 것 치우기`
       가중 탐색으로 최소 비용 경로가 지나는 자동 배치분이 곧 치울 목록이 된다.
       손으로 놓은 것은 통행 불가로 두어 자동으로 치우지 않는다
@@ -157,7 +160,10 @@
       → 층별 `FloorScatterProfile` 의 `Prop Prefab` 에 연결
 - [ ] 층별 `FloorScatterProfile` 작성 (9개 층) → `AreaDefinition` 에 연결
 - [ ] `AreaDefinition.nextArea` 연결 (101→102, 102→103)
-- [ ] **파괴 상태 세이브** — `areaId + 칸 좌표` 를 이름표로. 재시작 후에도 부순 것이 부서진 채
+- [ ] **파괴 상태 세이브** ← 다음 작업
+      - 오브젝트: `{areaId, index}` — 시드가 같으면 생성 순서가 같으므로 i번째는 언제나 같은 것
+      - 부술 수 있는 벽: `{areaId, cellX, cellY}`
+      - `themeClearCount` — 완전 클리어 횟수. 재배치 시드가 된다
 - [ ] 드랍 — 1단계는 경험치만(`AddExp` 가 이미 있다), 아이템은 시스템 생긴 뒤
 
 **미결** — 서브 토템 층당 개수와 기본/추가 점유량 · `weapon_rack` 용도 · 층당 밀도

@@ -30,6 +30,16 @@ namespace PrettyKnights.World
         public AreaDefinition Destination => destination;
         public string DestinationArrivalId => destinationArrivalId;
 
+        /// <summary>
+        /// 목적지를 런타임에 정한다. 메인 토템이 여는 포탈은 배치가 뽑힐 때 만들어지므로
+        /// 인스펙터로 미리 채워둘 수 없다. 값은 <c>AreaDefinition.NextArea</c> 가 준다.
+        /// </summary>
+        public void SetDestination(AreaDefinition area, string arrivalId)
+        {
+            destination = area;
+            destinationArrivalId = arrivalId;
+        }
+
         public override bool CanInteract => base.CanInteract && destination != null;
 
         /// <summary>버튼 라벨을 비워두면 목적지 이름으로 자동 생성한다.</summary>

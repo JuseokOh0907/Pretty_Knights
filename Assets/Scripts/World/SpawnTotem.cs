@@ -37,7 +37,24 @@ namespace PrettyKnights.World
         {
             if (destructible == null) destructible = GetComponent<Destructible>();
             if (population == null) population = GetComponentInParent<FloorPopulation>();
+        }
 
+        /// <summary>배치가 뽑힐 때 만들어진 포탈을 물린다. 런타임 생성 경로에서 쓴다.</summary>
+        public void SetPortal(GameObject portal) => portalToOpen = portal;
+
+        private void OnEnable()
+        {
+            if (destructible != null) destructible.Broken += OnBroken;
+        }
+
+        private void OnDisable()
+        {
+            if (destructible != null) destructible.Broken -= OnBroken;
+        }
+
+        private void Start()
+        {
+            // 검사를 Start 로 미룬다. 런타임 생성이면 Awake 시점엔 정의가 아직 비어 있다.
             PropDefinition definition = destructible != null ? destructible.Definition : null;
 
             if (definition == null || !definition.IsTotem)
@@ -52,25 +69,9 @@ namespace PrettyKnights.World
                 Debug.LogError(
                     $"[SpawnTotem] 메인 토템 '{name}' 에 열 포탈이 연결되지 않았습니다. " +
                     "부숴도 다음 층으로 갈 길이 생기지 않습니다.");
-        }
 
-        private void OnEnable()
-        {
-            if (destructible != null) destructible.Broken += OnBroken;
-        }
-
-        private void OnDisable()
-        {
-            if (destructible != null) destructible.Broken -= OnBroken;
-        }
-
-        private void Start()
-        {
             // 층 인구는 살아 있는 토템의 합이다. 시작 시 자기 지분을 얹는다.
-            PropDefinition definition = destructible != null ? destructible.Definition : null;
-            if (definition == null || population == null) return;
-
-            population.AddShare(definition.PopulationShare);
+            if (population != null) population.AddShare(definition.PopulationShare);
         }
 
         private void OnBroken(Destructible source)
