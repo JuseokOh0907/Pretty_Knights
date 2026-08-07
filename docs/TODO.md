@@ -305,6 +305,85 @@ Unity 게임플레이는 메인 스레드 단일이라 "동시" 는 같은 프�
 
 ---
 
+## 정렬(Sorting) 일괄 지정 — 마지막에 한 번에
+
+> 지금까지 정렬을 하나도 손대지 않았다. **마지막에 몰아서 잡기로 했으므로**
+> 그때 찾아 헤매지 않도록 현재 상태와 임시값을 전부 여기 모아 둔다 (2026-08-08).
+
+### 지금 상태 — 전부 기본값
+
+| 대상 | Sorting Layer | Order |
+|---|---|---|
+| `1Floor` `2Floor` `3Floor` `BasicFloor` `Floor` | Default | **0** |
+| `1FGuide` `2FGuide` `3FGuide` `Guide` | Default | **0** |
+| `1FHIddenReward` (히든방 벽) | Default | **0** |
+| 인디케이터 (`SkillIndicatorPool`) | Default | **50** ← 코드에 박힌 임시값 |
+
+**바닥과 벽이 같은 레이어·같은 Order 다.** 그리기 순서가 계층 순서에 의존하므로
+바닥이 벽 위에 그려질 수도 있다. 지금 안 깨져 보이는 것은 우연이다.
+
+### ⚠ Y-소팅이 꺼져 있다
+
+`ProjectSettings/GraphicsSettings.asset`
+
+```
+m_TransparencySortMode: 0        (Default)
+m_TransparencySortAxis: (0, 0, 1)
+```
+
+`CLAUDE.md` §4 의 **"캐릭터·프롭은 지면 위치 기준 Y-소팅"** 이 전혀 적용되지 않은 상태다.
+`Custom Axis (0, 1, 0)` 으로 바꿔야 아래에 있는 것이 앞에 그려진다.
+
+### ⚠ 그런데 Y-소팅만으로는 안 된다 — 접지점 문제
+
+Y-소팅은 **렌더러의 위치**로 정렬하는데, 이 프로젝트는 `Visual` 자식에 스프라이트를 두고
+위로 오프셋을 준다. 그 오프셋이 오브젝트마다 다르다 (0.375 ~ 0.891, `docs/design/map-objects.md` §2).
+
+```
+가시 장미  Visual Y 0.375      같은 자리에 서 있어도
+그루터기   Visual Y 0.828      정렬이 뒤집힌다
+```
+
+두 갈래가 있다.
+
+| 안 | 방식 | 언제 |
+|---|---|---|
+| **A. 수동 Y-소팅 컴포넌트** | 루트(접지점) Y 로 `sortingOrder` 를 매 프레임 계산 | 지금 바로 가능 |
+| B. 피벗을 접지선에 | 스프라이트 피벗을 바닥에 두고 `Sprite Sort Point: Pivot` | **아트 하단 여백 7px 통일 후** |
+
+B 가 더 싸지만 8/8 아트 교체가 선행 조건이다. 그때까지는 A 로 간다.
+
+### 정할 것
+
+- [ ] **Sorting Layer 목록 확정** — 권장안
+      `Floor` → `Entities` → `Effects` → (나중) `Overhead`
+- [ ] `Transparency Sort Mode` → `Custom Axis (0, 1, 0)`
+- [ ] Y-소팅 방식 A/B 결정 및 구현
+- [ ] 각 요소의 Layer·Order 지정 — 권장안
+
+| 대상 | Layer | Order |
+|---|---|---|
+| 바닥 타일맵 | `Floor` | 0 |
+| 벽 (`Guide`) | `Floor` | 10 |
+| **히든방 벽 (Breakable)** | `Floor` | **11** ← `Guide` 보다 1 높게. 같으면 프레임마다 뒤집혀 깜빡인다 |
+| 지면 인디케이터 | `Floor` | 20 |
+| 플레이어 · 몬스터 · 오브젝트 · 포탈 | `Entities` | **0 고정** (Y-소팅이 여기서 순서를 정한다) |
+| 임팩트 이펙트 | `Effects` | 0 |
+| 데미지 숫자 | `Effects` | 10 |
+
+> **`Entities` 안은 Order 를 전부 0 으로 두어야 한다.** Y-소팅은 Layer 와 Order 가
+> 같을 때만 적용된다. 하나라도 다르면 그것만 항상 앞이나 뒤로 간다.
+
+- [ ] `SkillIndicatorPool` 의 코드 기본값(`Default` / 50)을 확정값으로 교체
+- [ ] 인디케이터가 캐릭터에 가리지 않는지 실기 확인
+
+### 겸사겸사
+
+- [ ] `1FHIddenReward` 이름 정리 — `HIdden` 오타이고, 히든방 벽인지 보상 관련인지
+      이름만으로 갈리지 않는다. `1FBreakable` 처럼 역할이 드러나는 이름을 권한다
+
+---
+
 ## 그 뒤
 
 - [ ] **속성(원소)** — 데미지 공식을 바꾼다. 미결정 #3(스탯 공식)이 먼저 확정돼야 한다
