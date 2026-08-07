@@ -51,6 +51,19 @@ namespace PrettyKnights.Data
         [SerializeField, Tooltip("보스가 있는 층인지. 보상 포탈과 클리어 기록이 여기에 걸린다")]
         private bool isBossFloor;
 
+        [Header("다음 층 — 메인 토템을 부수면 열릴 포탈의 목적지")]
+        [SerializeField, Tooltip(
+            "메인 토템이 어디에 랜덤 배치되든 그 자리에 열리는 포탈은 여기로 간다. " +
+            "SO 는 씬 오브젝트를 참조할 수 없지만 다른 SO 는 참조할 수 있다")]
+        private AreaDefinition nextArea;
+
+        [SerializeField, Tooltip("다음 층의 도착 지점 arrivalId. 비우면 그 구역의 대체 지점")]
+        private string nextArrivalId = string.Empty;
+
+        [Header("배치 — 오브젝트 자동 배치 도구가 읽는다")]
+        [SerializeField, Tooltip("이 층에 무엇을 몇 개 뿌릴지. 비우면 도구가 이 층을 건너뛴다")]
+        private FloorScatterProfile scatterProfile;
+
         [Header("탈출 — 던전 탈출 스킬이 데려다 놓을 곳")]
         [SerializeField, Tooltip("이 구역에서 탈출하면 도착할 구역. 보통 그 던전의 입구")]
         private AreaDefinition escapeTo;
@@ -68,6 +81,14 @@ namespace PrettyKnights.Data
 
         /// <summary>층 번호. 거점(1~99)은 0 이다.</summary>
         public int Floor => areaId < 100 ? 0 : areaId % 100;
+
+        /// <summary>메인 토템을 부수면 열릴 포탈의 목적지. 없으면 그 층에 메인 토템이 없다.</summary>
+        public AreaDefinition NextArea => nextArea;
+        public string NextArrivalId => nextArrivalId;
+        public bool HasNextArea => nextArea != null;
+
+        /// <summary>배치 도구가 읽는 프로필. 비면 그 층은 자동 배치 대상이 아니다.</summary>
+        public FloorScatterProfile ScatterProfile => scatterProfile;
 
         /// <summary>던전 탈출 목적지. 없으면 탈출할 수 없는 구역이다 (거점 등).</summary>
         public AreaDefinition EscapeTo => escapeTo;

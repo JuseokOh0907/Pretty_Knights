@@ -134,20 +134,20 @@
       메인 토템이 어디에 배치되든 포탈이 올바른 곳으로 이어진다
 - [x] 파괴는 `Destroy` 가 아니라 **콜라이더 끄기 + 스프라이트 교체**.
       지우면 세이브의 파괴 목록을 복원할 대상이 사라진다
-- [ ] `PropDefinition`(SO) — HP · 역할 · 드랍 · 인구 지분
-- [ ] `DropTable`(SO) · `FloorScatterProfile`(SO)
+- [x] `PropDefinition`(SO) · `DropTable`(SO) · `FloorScatterProfile`(SO)
+- [x] `AreaDefinition` 에 `nextArea` · `nextArrivalId` · `scatterProfile`
+- [x] `Destructible` — `IDamageable` 구현. **파괴 시 콜라이더 끄고 스프라이트 교체**
+- [x] `SpawnTotem` — 메인은 포탈 켜기, 서브는 지분 빼기
+- [x] `FloorPopulation.AddShare` / `ClearTarget` — 목표만 줄고 살아 있는 개체는 그대로
+- [x] `WalkableArea.IsAreaWalkable(center, size)` — 2×2칸 판정
+- [x] **배치 도구** `Pretty Knights > Props > 0. 미리보기 / 1. 뿌리기 / 2. 자동 배치분만 지우기`
+      항목별 정확한 개수 · 최소 간격 · 벽 여유 · 보호 반경 · 시드
+      메인 토템을 먼저 놓고 그 자리에 **꺼진 포탈**을 함께 만든다
 - [ ] `Prop.prefab` + 18 배리언트 (콜라이더는 접지폭 × 0.5칸, `Visual` Y 오프셋은 실측표)
-- [ ] `Destructible` — HP · 피격 · 파괴 이벤트
-- [ ] `SpawnTotem` — 메인은 포탈 활성화, 서브는 `FloorPopulation` 목표 인구 감소
-- [ ] `FloorPopulation` 에 목표 인구를 런타임에 낮추는 API.
-      **살아 있는 개체는 회수하지 않는다** — 지금도 `alive.Count >= target` 이면
-      채우기를 멈출 뿐이라 API 만 열면 그대로 동작한다
-- [ ] `WalkableArea.IsAreaWalkable(center, size)` — 2×2칸 판정
-- [ ] **배치 도구** `Pretty Knights > Props > 오브젝트 뿌리기`
-      항목별 **정확한 개수** 지정 · 최소 간격 · 토템 주변 보호 반경 · 미리보기 메뉴 별도
-      - **손으로 배치한 것은 건드리지 않는다** (히든 방 입구가 지워지면 안 된다)
-      - 연결성 검사는 **필수 지점**(시작 → 토템 → 포탈)만 본다.
-        히든 방은 필수 지점이 아니라 자동으로 예외가 된다
+- [ ] `PropDefinition` 18종 생성 — 메인/서브 토템 6종은 `Role` 을 맞출 것
+- [ ] 층별 `FloorScatterProfile` 작성 (9개 층)
+- [ ] **연결성 검사** — 필수 지점(시작 → 토템 → 포탈) 도달 가능 확인.
+      지금은 보호 반경으로만 막고 있어 통로가 좁으면 여전히 갇힐 수 있다
 - [ ] **파괴 상태 세이브** — `areaId + 칸 좌표` 를 이름표로. 재시작 후에도 부순 것이 부서진 채
 - [ ] 드랍 — 1단계는 경험치만(`AddExp` 가 이미 있다), 아이템은 시스템 생긴 뒤
 

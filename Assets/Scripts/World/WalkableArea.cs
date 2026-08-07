@@ -81,6 +81,33 @@ namespace PrettyKnights.World
         }
 
         /// <summary>
+        /// 가로 <paramref name="size"/> 칸이 전부 설 수 있는 자리인가.
+        ///
+        /// <b>오브젝트는 2 × 2칸을 차지한다.</b> <see cref="IsWalkable"/> 는 점 하나만 보므로
+        /// 오브젝트 배치에 쓰면 모서리가 벽에 걸친 채로 놓인다.
+        /// <paramref name="center"/> 는 오브젝트의 중심이다.
+        /// </summary>
+        public bool IsAreaWalkable(Vector2 center, Vector2Int size)
+        {
+            if (floor == null) return false;
+
+            // 중심에서 좌우·상하로 반씩 펼친다. 2×2 면 (-1,-1)~(0,0) 네 칸이다.
+            int minX = -(size.x / 2);
+            int minY = -(size.y / 2);
+
+            for (int dy = 0; dy < size.y; dy++)
+            {
+                for (int dx = 0; dx < size.x; dx++)
+                {
+                    var offset = new Vector2(minX + dx, minY + dy);
+                    if (!IsWalkable(center + offset)) return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// <paramref name="origin"/> 주변 <paramref name="radius"/> 안에서
         /// 설 수 있는 자리를 찾는다. 스폰과 순간이동이 함께 쓴다.
         /// </summary>

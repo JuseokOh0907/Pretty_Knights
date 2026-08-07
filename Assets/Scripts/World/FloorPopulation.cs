@@ -77,6 +77,39 @@ namespace PrettyKnights.World
         private Vector2 clusterAnchor;
         private int clusterLeft;
 
+        /// <summary>
+        /// 토템이 얹은 지분의 합. 목표 인구는 이 값이다.
+        ///
+        /// <b>인스펙터의 <see cref="targetPopulation"/> 은 토템이 없는 층의 기본값이다.</b>
+        /// 토템이 하나라도 등록되면 그쪽이 목표를 결정한다
+        /// (docs/design/map-objects.md §1 — 메모리 할당 모델).
+        /// </summary>
+        private int totemShare;
+        private bool hasTotems;
+
+        /// <summary>지금 목표 인구. 토템이 있으면 지분 합, 없으면 인스펙터 값.</summary>
+        public int CurrentTarget => hasTotems ? Mathf.Max(0, totemShare) : targetPopulation;
+
+        /// <summary>
+        /// 토템이 자기 지분을 얹거나 뺀다. <paramref name="amount"/> 가 음수면 부서진 것이다.
+        ///
+        /// <b>살아 있는 개체는 건드리지 않는다.</b> 목표만 줄고, 실제 수는
+        /// 처치되면서 자연히 수렴한다. 아래 <see cref="Update"/> 가
+        /// <c>alive.Count >= 목표</c> 일 때 채우기만 멈추므로 그대로 성립한다.
+        /// </summary>
+        public void AddShare(int amount)
+        {
+            hasTotems = true;
+            totemShare += amount;
+        }
+
+        /// <summary>메인 토템이 부서졌다. 할당의 밑동이 사라져 더는 채우지 않는다.</summary>
+        public void ClearTarget()
+        {
+            hasTotems = true;
+            totemShare = 0;
+        }
+
         private void OnEnable()
         {
             totalWeight = 0f;
@@ -106,7 +139,7 @@ namespace PrettyKnights.World
             if (spawnTimer > 0f) return;
             spawnTimer = spawnInterval;
 
-            if (alive.Count >= targetPopulation) return;
+            if (alive.Count >= CurrentTarget) return;
 
             SpawnOne(playerPos);
         }
