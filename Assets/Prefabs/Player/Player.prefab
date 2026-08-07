@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3277961279561595137}
   - component: {fileID: 9166342121919576543}
   - component: {fileID: 833023288656345177}
+  - component: {fileID: 3898597163481235292}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -148,6 +149,36 @@ MonoBehaviour:
   invulnerabilityDuration: 0.4
   flashTarget: {fileID: 0}
   flashInterval: 0.08
+--- !u!114 &3898597163481235292
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3320719914569758650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dfe0e211cafbd134d8b6c6212cccfb47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrettyKnights::PrettyKnights.Combat.PlayerAttack
+  inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  player: {fileID: 0}
+  animatorDriver: {fileID: 0}
+  shape: 0
+  shapeParams:
+    range: 1.6
+    width: 1
+    angle: 100
+    forwardOffset: 0
+  originForwardOffset: 0.3
+  cooldown: 0.45
+  autoAim: 0
+  autoAimRadius: 3
+  targetLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  drawLastSwing: 1
+  logHits: 1
 --- !u!1 &8235316920896806562
 GameObject:
   m_ObjectHideFlags: 0

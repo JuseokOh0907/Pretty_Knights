@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 562cd38f397930d42aaf895723026387, type: 3}
+  m_Name: Monster_goblin_hob
+  m_EditorClassIdentifier: PrettyKnights::PrettyKnights.Data.MonsterDefinition
+  monsterId: goblin_hob
+  displayName: Hobgoblin
+  tier: 0
+  stats:
+    Vitality: 10
+    Attack: 10
+    Defense: 8
+    Agility: 6
+    Focus: 0
+  hpPerVitality: 10
+  moveSpeed: 2
+  detectRange: 5
+  attackRange: 1.2
+  attackCooldown: 1.4
+  knockbackForce: 3
+  hitStunDuration: 0.1
+  expReward: 15
+  frames: []
