@@ -9,24 +9,59 @@
 
 ---
 
-## 0. 지금 무엇이 있고 무엇이 없는가
+## 0. 현재 상태 — 2026-08-08 실측
 
-| 대상 | 상태 | 이 문서에서 |
+씬·프리팹을 직접 훑어 확인한 것이다. **남은 것은 5절(맵) 하나뿐이다.**
+
+### ✅ 끝난 것 — 다시 안 해도 된다
+
+| 대상 | 확인된 내용 |
+|---|---|
+| `Assets/Data/CombatSettings.asset` | 생성됨 · `GameRoot` 에 연결됨 |
+| `Assets/Data/Areas/` | `Area_Goblin_1F` · `_2F` · `_3F` 3종 |
+| `Assets/Data/Monsters/` | `MonsterDefinition` 10종 |
+| `Assets/Prefabs/Monsters/Monster_Temp.prefab` | `MonsterController` 있음 · 콜라이더 `Is Trigger` **꺼짐**(정상) |
+| `Assets/Prefabs/Player/Player.prefab` | `PlayerAttack` 붙음 |
+| `Assets/Prefabs/Portals/Blue_Portal.prefab` | `Portal` + `BoxCollider2D`(**Is Trigger 켜짐**) |
+| `Boot.unity` | `AreaTransition` · `InteractionHub` · `ScreenFader` · `InteractButton` · `AttackButton` 전부 배치. `Landscape Only` 3개 등록 |
+| `Ingame_Horizontal` | 9개 층 전부에 `WalkableArea` · `Main Camera` 에 `CameraFollow` |
+
+### ⚠️ 지금 바로 고쳐야 하는 것
+
+**① 층이 10개나 켜져 있다 — 이것부터.**
+
+```
+Goblin1F ON   Goblin2F ON   Goblin3F ON
+Orc1F    ON   Orc2F    ON   Orc3F    ON
+Vampire1F ON  Vampire2F ON  Vampire3F ON
+Dungeon  ON   ← Base 맵 프리팹. 여기에도 WalkableArea 가 붙어 있다
+```
+
+`WalkableArea` 는 `OnEnable` 에서 `ServiceRegistry` 에 자기를 등록한다.
+10개가 동시에 켜지면 **마지막 하나가 이기고 나머지는 덮어쓰기 경고만 남긴다.**
+어느 것이 이길지는 순서에 달려 있어, 플레이어가 선 층과 다른 층의 판정이 쓰일 수 있다.
+층들이 좌표계를 공유하므로 타일맵도 전부 겹쳐 그려진다.
+
+> **`Goblin1F` 하나만 남기고 나머지 9개를 끈다.** `Dungeon` 도 끈다.
+
+**② `Gold_Portal` · `Red_Portal` 의 `Is Trigger` 가 꺼져 있다.**
+`Blue_Portal` 만 켜져 있다. 지금 안 쓰더라도 나중에 원인을 찾기 어려운 종류라 함께 켜 둔다.
+
+### ❌ 남은 것 — 전부 `Ingame_Horizontal` 안
+
+| 위치 | 할 일 | 절 |
 |---|---|---|
-| `MonsterDefinition` 10종 | ✅ `Assets/Data/Monsters/` | 그대로 쓴다 |
-| `Player.prefab` | ⚠️ `PlayerAttack` 없음 | **3절** |
-| 포탈 프리팹 3종 | ⚠️ 스프라이트·Animator뿐. **콜라이더·`Portal` 없음** | **4절** |
-| `Boot.unity` | ⚠️ `GameRoot` · `UIRoot` 뼈대만 | **2절** |
-| `Ingame_Horizontal` | ⚠️ 맵 9층만. 구역 컴포넌트 없음 | **5절** |
-| 몬스터 프리팹 | ❌ **없다 — 때릴 대상이 없다** | **1-3절** |
-| `CombatSettings` | ❌ 없다 | 1-1절 |
-| `AreaDefinition` 3종 | ❌ 없다 | 1-2절 |
+| `Map` | `AreaRegistry` 추가 | 5-1 |
+| `Goblin1F` `Goblin2F` `Goblin3F` | `AreaAnchor` 추가 + 3칸 연결 | 5-2 |
+| 각 층 아래 | `Arrivals` 묶음 + `ArrivalPoint` | 5-3 |
+| `Goblin1F` `Goblin2F` 아래 | `Portals` 묶음 + `Blue_Portal` 인스턴스 | 5-4 |
+| `Goblin1F` 아래 | `Monster_Temp` 몇 개 | 5-5 |
 
-**순서대로 하지 않으면 중간에 연결할 대상이 없어 막힌다.** 에셋 → 프리팹 → Boot → 맵 순이다.
+**1~4절은 읽지 않아도 된다.** 이미 되어 있으므로 계층 참고용으로만 남겨 둔다.
 
 ---
 
-## 1. 에셋 먼저
+## 1. 에셋 먼저  ✅ 완료 — 참고용
 
 ### 1-1. `CombatSettings`
 
@@ -79,7 +114,7 @@ Monster  (GameObject · 루트)
 
 ---
 
-## 2. `Boot.unity` 완성형 계층
+## 2. `Boot.unity` 완성형 계층  ✅ 완료 — 참고용
 
 **루트 오브젝트는 `GameRoot` · `UIRoot` · `EventSystem` 셋뿐이다.** 새 루트를 만들지 않는다.
 
@@ -190,7 +225,7 @@ Boot.unity
 
 ---
 
-## 3. `Player.prefab`
+## 3. `Player.prefab`  ✅ 완료 — 참고용
 
 **루트와 `Visual` 둘뿐이다.** 루트에 컴포넌트 하나만 추가한다.
 
@@ -225,10 +260,15 @@ Player  (프리팹 루트)
 
 ---
 
-## 4. 포탈 프리팹 마무리
+## 4. 포탈 프리팹 마무리  ⚠️ Gold·Red 만 남음
 
-지금 `Blue_Portal.prefab` 은 **루트 + 스프라이트 자식 둘뿐이고 콜라이더도 `Portal` 도 없다.**
-루트에 둘을 추가한다.
+`Blue_Portal` 은 **끝났다** — `Portal` + `BoxCollider2D`(Is Trigger 켜짐)가 붙어 있다.
+
+**`Gold_Portal` 과 `Red_Portal` 은 `Is Trigger` 가 꺼져 있다.**
+지금 쓰지 않더라도 켜 두는 편이 낫다 — 나중에 "포탈 앞인데 버튼이 안 뜬다" 로
+나타나면 원인을 찾기 어려운 종류다.
+
+아래는 세 프리팹의 완성형이다.
 
 ```
 Blue_Portal  (프리팹 루트)
@@ -256,12 +296,107 @@ Blue_Portal  (프리팹 루트)
 
 ---
 
-## 5. `Ingame_Horizontal` 완성형 계층
+## 5. `Ingame_Horizontal` — 여기가 남은 작업 전부
 
 이번에는 **Goblin 3개 층만** 붙인다. 검증 후 Orc·Vampire 로 복제한다.
 
-`AreaAnchor` 와 `WalkableArea` 는 **층 루트에 직접** 붙인다. 빈 자식을 따로 만들지 않는다 —
-이 오브젝트를 켜고 끄는 것이 곧 구역 교체이므로 한 단계 내리면 활성 타이밍이 어긋난다.
+### 5-0. 층 끄기 ← 이것부터
+
+Hierarchy 에서 아래 9개를 **비활성**으로 바꾼다. `Goblin1F` 만 켜 둔다.
+
+```
+Map / Goblin  / Goblin2F      ← 끔
+              / Goblin3F      ← 끔
+Map / Orc     / Orc1F         ← 끔
+              / Orc2F         ← 끔
+              / Orc3F         ← 끔
+Map / Vampire / Vampire1F     ← 끔
+              / Vampire2F     ← 끔
+              / Vampire3F     ← 끔
+Map / ... / Dungeon           ← 끔 (Base 맵 프리팹, WalkableArea 가 붙어 있다)
+```
+
+**왜 먼저인가** — `WalkableArea` 는 `OnEnable` 에서 `ServiceRegistry` 에 자기를 등록한다.
+10개가 동시에 켜지면 마지막 하나가 이기고 나머지는 덮어쓰기 경고만 남긴다.
+어느 것이 이길지는 순서에 달려 있어 **플레이어가 선 층과 다른 층의 판정이 쓰일 수 있다.**
+층들이 좌표계를 공유하므로 타일맵도 전부 겹쳐 그려진다.
+
+`AreaRegistry` 는 **켜져 있는 층을 시작 구역으로 인식한다.**
+
+> `Portal_to_3F` 의 목적지인 `Goblin3F` 가 꺼져 있어도 된다.
+> `AreaRegistry` 가 **비활성 층까지 훑기 때문**이며, 그것이 그 컴포넌트의 존재 이유다.
+
+### 5-1. `Map` 에 `AreaRegistry`
+
+| 위치 | `Ingame_Horizontal` / `Map` |
+|---|---|
+| 메뉴 | Inspector → `Add Component` → `Area Registry` |
+| 채울 칸 | `Search Root` → **비움** (자기 자식 전체를 훑는다) |
+
+### 5-2. 3개 층에 `AreaAnchor`
+
+`Goblin1F` · `Goblin2F` · `Goblin3F` **각각의 루트**에 붙인다.
+`WalkableArea` 가 이미 같은 오브젝트에 있으므로 나란히 놓이면 된다.
+
+| 붙이는 곳 | Definition ★ | Floor ★ | Fallback Arrival ★ |
+|---|---|---|---|
+| `Goblin1F` | `Area_Goblin_1F` | `1Floor` 의 Tilemap | `from_entrance` |
+| `Goblin2F` | `Area_Goblin_2F` | `2Floor` 의 Tilemap | `from_1f` |
+| `Goblin3F` | `Area_Goblin_3F` | `3Floor` 의 Tilemap | `from_2f` |
+
+`Walkable` 칸은 비운다 — 같은 오브젝트에서 자동으로 찾는다.
+`Fallback Arrival` 은 5-3 을 먼저 하고 돌아와 채운다.
+
+> `Floor` 를 비우면 자동 탐색이 `1FGuide` 를 집을 수 있다. **직접 연결할 것.**
+> 비면 카메라 경계가 안 잡힌다.
+
+### 5-3. 도착 지점
+
+각 층 아래에 빈 오브젝트 `Arrivals` 를 만들고(`Create Empty`, 컴포넌트 없음)
+그 자식으로 도착 지점을 하나씩 둔다. **그 오브젝트의 위치가 곧 내려서는 좌표다.**
+
+| 부모 | 오브젝트 이름 | `[C] ArrivalPoint` 의 Arrival Id | Facing |
+|---|---|---|---|
+| `Goblin1F/Arrivals` | `from_entrance` | `from_entrance` | (0, -1) |
+| `Goblin2F/Arrivals` | `from_1f` | `from_1f` | (0, -1) |
+| `Goblin3F/Arrivals` | `from_2f` | `from_2f` | (0, -1) |
+
+**오브젝트 이름과 `Arrival Id` 는 다른 것이다.** 코드는 `Arrival Id` 만 보고,
+오브젝트 이름은 Hierarchy 에서 사람이 찾으라고 있는 것이다. 같게 두면 찾기 편할 뿐이다.
+
+이름의 `from_` 은 **어디서 왔는가**를 가리킨다. `Goblin2F` 의 `from_1f` 는
+*1층에서 올라온 사람이 서는 자리*이며, 좌표는 2F 맵 안에서 직접 잡는다.
+
+### 5-4. 포탈 두 개
+
+각 층 아래에 빈 오브젝트 `Portals` 를 만들고 `Blue_Portal.prefab` 을 끌어다 놓는다.
+
+| 부모 | 이름 | Destination ★ | Destination Arrival Id ★ |
+|---|---|---|---|
+| `Goblin1F/Portals` | `Portal_to_2F` | `Area_Goblin_2F` | `from_1f` |
+| `Goblin2F/Portals` | `Portal_to_3F` | `Area_Goblin_3F` | `from_2f` |
+
+`Prompt Label` 은 비운다 — 목적지 이름이 자동으로 들어간다.
+`Goblin3F` 에는 포탈을 두지 않는다. 보스 처치 시 보상 포탈이 열릴 자리다.
+
+> **포탈을 도착 지점 위에 놓아도 된다.** 사용 키를 눌러야 발동하므로 무한 왕복이 없다.
+> 다만 눈으로 구분되게 조금 떨어뜨리는 편이 낫다.
+
+### 5-5. 몬스터 몇 마리
+
+`Goblin1F` 아래에 빈 오브젝트 `Monsters` 를 만들고
+`Monster_Temp.prefab` 을 2~3개 끌어다 **바닥 위에** 놓는다.
+
+| 칸 | 값 |
+|---|---|
+| `MonsterController` → `Definition` ★ | `Monster_goblin_hob` |
+| `Knockback On Hit` | 3 |
+
+벽 안에 놓으면 밀려나며 떤다. `1Floor` 타일이 깔린 자리인지 확인할 것.
+
+---
+
+### 완성형 계층 (참고)
 
 ```
 Ingame_Horizontal.unity
@@ -269,21 +404,20 @@ Ingame_Horizontal.unity
 ├─ Map  (GameObject)
 │    ├─ [C] Transform
 │    ├─ [C] Grid                                   (기존)
-│    ├─ [C] AreaRegistry                           ← 추가
+│    ├─ [C] AreaRegistry                           ← 5-1
 │    │        Search Root → 비움
 │    │
 │    ├─ Goblin  (GameObject)          묶음용. 컴포넌트 없음
 │    │   │
-│    │   ├─ Goblin1F  (GameObject)    ← 시작 시 **켜 두는 유일한 층**
+│    │   ├─ Goblin1F  (GameObject)    ← 켜 두는 유일한 층
 │    │   │    ├─ [C] Transform
-│    │   │    ├─ [C] AreaAnchor                    ← 추가
-│    │   │    │        Definition     → ★ Area_Goblin_1F
-│    │   │    │        Floor          → ★ 1Floor 의 Tilemap
-│    │   │    │        Walkable       → 비움
+│    │   │    ├─ [C] AreaAnchor                    ← 5-2
+│    │   │    │        Definition       → ★ Area_Goblin_1F
+│    │   │    │        Floor            → ★ 1Floor 의 Tilemap
+│    │   │    │        Walkable         → 비움
 │    │   │    │        Fallback Arrival → ★ from_entrance
-│    │   │    ├─ [C] WalkableArea                  ← 추가
-│    │   │    │        Floor → ★ 1Floor  ·  Guide → ★ 1FGuide
-│    │   │    │        Max Attempts → 24
+│    │   │    ├─ [C] WalkableArea                  (기존)
+│    │   │    │        Floor → 1Floor  ·  Guide → 1FGuide
 │    │   │    │
 │    │   │    ├─ 1Floor  (GameObject)              (기존)
 │    │   │    │    ├─ [C] Tilemap
@@ -295,102 +429,76 @@ Ingame_Horizontal.unity
 │    │   │    │    ├─ [C] CompositeCollider2D
 │    │   │    │    └─ [C] Rigidbody2D    Static
 │    │   │    │
-│    │   │    ├─ Arrivals  (GameObject)              묶음용. 컴포넌트 없음
+│    │   │    ├─ Arrivals  (GameObject)            ← 5-3. 묶음용
 │    │   │    │    └─ from_entrance  (GameObject)
-│    │   │    │         ├─ [C] Transform      위치 = 여기 내릴 자리
+│    │   │    │         ├─ [C] Transform    위치 = 내려서는 자리
 │    │   │    │         └─ [C] ArrivalPoint
 │    │   │    │                  Arrival Id → from_entrance
-│    │   │    │                  Facing   → (0, -1)
+│    │   │    │                  Facing     → (0, -1)
 │    │   │    │
-│    │   │    ├─ Portals  (GameObject)             묶음용
-│    │   │    │    └─ Portal_to_2F   Blue_Portal 인스턴스
-│    │   │    │         └─ [C] Portal
-│    │   │    │              Destination          → ★ Area_Goblin_2F
-│    │   │    │              Destination Arrival Id → ★ from_1f   (2F 쪽 지점 이름)
+│    │   │    ├─ Portals  (GameObject)             ← 5-4. 묶음용
+│    │   │    │    └─ Portal_to_2F  (Blue_Portal 인스턴스)
+│    │   │    │         ├─ [C] BoxCollider2D   Size (2,2) · Is Trigger 켬
+│    │   │    │         ├─ [C] Portal
+│    │   │    │         │        Destination            → ★ Area_Goblin_2F
+│    │   │    │         │        Destination Arrival Id → ★ from_1f
+│    │   │    │         └─ portal_blue_..._0  (자식)
+│    │   │    │              ├─ [C] SpriteRenderer
+│    │   │    │              └─ [C] Animator
 │    │   │    │
-│    │   │    └─ Monsters  (GameObject)            묶음용
-│    │   │         └─ Monster  ×2~3   Monster.prefab 인스턴스
-│    │   │              └─ [C] MonsterController  Definition → ★ Monster_goblin_hob
+│    │   │    └─ Monsters  (GameObject)            ← 5-5. 묶음용
+│    │   │         └─ Monster_Temp  ×2~3
+│    │   │              └─ [C] MonsterController
+│    │   │                       Definition → ★ Monster_goblin_hob
 │    │   │
-│    │   ├─ Goblin2F  (GameObject)    ← **꺼 둔다**
+│    │   ├─ Goblin2F  (GameObject)    ← 끔
 │    │   │    ├─ [C] AreaAnchor
-│    │   │    │        Definition     → ★ Area_Goblin_2F
-│    │   │    │        Floor          → ★ 2Floor
+│    │   │    │        Definition       → ★ Area_Goblin_2F
+│    │   │    │        Floor            → ★ 2Floor
 │    │   │    │        Fallback Arrival → ★ from_1f
-│    │   │    ├─ [C] WalkableArea   Floor → ★ 2Floor · Guide → ★ 2FGuide
-│    │   │    │
+│    │   │    ├─ [C] WalkableArea                  (기존)
 │    │   │    ├─ 2Floor  (GameObject)              (기존)
 │    │   │    ├─ 2FGuide  (GameObject)             (기존)
-│    │   │    │
-│    │   │    ├─ Arrivals  (GameObject)              묶음용. 컴포넌트 없음
-│    │   │    │    └─ from_1f  (GameObject)        1F 에서 올라온 사람이 서는 자리
+│    │   │    ├─ Arrivals  (GameObject)
+│    │   │    │    └─ from_1f  (GameObject)
 │    │   │    │         ├─ [C] Transform
 │    │   │    │         └─ [C] ArrivalPoint   Arrival Id → from_1f
-│    │   │    │
-│    │   │    └─ Portals  (GameObject)             묶음용
+│    │   │    └─ Portals  (GameObject)
 │    │   │         └─ Portal_to_3F  (Blue_Portal 인스턴스)
 │    │   │              └─ [C] Portal
-│    │   │                   Destination          → ★ Area_Goblin_3F
+│    │   │                   Destination            → ★ Area_Goblin_3F
 │    │   │                   Destination Arrival Id → ★ from_2f
 │    │   │
-│    │   └─ Goblin3F  (GameObject)    ← **꺼 둔다**
+│    │   └─ Goblin3F  (GameObject)    ← 끔
 │    │        ├─ [C] AreaAnchor
-│    │        │        Definition     → ★ Area_Goblin_3F
-│    │        │        Floor          → ★ 3Floor
+│    │        │        Definition       → ★ Area_Goblin_3F
+│    │        │        Floor            → ★ 3Floor
 │    │        │        Fallback Arrival → ★ from_2f
-│    │        ├─ [C] WalkableArea   Floor → ★ 3Floor · Guide → ★ 3FGuide
-│    │        │
+│    │        ├─ [C] WalkableArea                  (기존)
 │    │        ├─ 3Floor  (GameObject)              (기존)
 │    │        ├─ 3FGuide  (GameObject)             (기존)
-│    │        │
-│    │        └─ Arrivals  (GameObject)              묶음용. 컴포넌트 없음
-│    │             └─ from_2f  (GameObject)        2F 에서 올라온 사람이 서는 자리
+│    │        └─ Arrivals  (GameObject)
+│    │             └─ from_2f  (GameObject)
 │    │                  ├─ [C] Transform
 │    │                  └─ [C] ArrivalPoint   Arrival Id → from_2f
 │    │
-│    ├─ Orc  (GameObject)             ← 3개 층 전부 **꺼 둔다**
-│    └─ Vampire  (GameObject)         ← 3개 층 전부 **꺼 둔다**
+│    ├─ Orc  (GameObject)             ← 3개 층 전부 끔
+│    ├─ Vampire  (GameObject)         ← 3개 층 전부 끔
+│    └─ Dungeon  등 Base 맵           ← 끔 (WalkableArea 가 붙어 있다)
 │
-├─ Player   Player.prefab 인스턴스     Goblin1F 의 바닥 위에 놓는다
+├─ Player   Player.prefab 인스턴스     Goblin1F 의 바닥 위
 │
 └─ Main Camera  (GameObject)
-     ├─ [C] Camera          Projection Orthographic
+     ├─ [C] Camera          Orthographic
      ├─ [C] CameraFollow    Bounds Source → 비움 (구역 전환이 층마다 갈아 끼운다)
      └─ [C] AudioListener
 ```
 
 ### `ArrivalPoint` 는 **플레이어 도착 지점**이다 — 몬스터와 무관하다
 
-이름이 `MonsterSpawner` 와 비슷해 헷갈리지만 하는 일이 다르다.
-몬스터는 층 오브젝트의 자식이라 그 층이 꺼지면 **같이 꺼진 채 제자리에 남는다.**
-
-한 줄에 두 가지가 나오는데 서로 다른 것이다.
-
-| | 정체 | 누가 쓰나 |
-|---|---|---|
-| `from_1f` (오브젝트 이름) | Hierarchy 에서 사람이 찾으려고 붙인 이름 | **사람만** |
-| `Arrival Id = "from_1f"` | 컴포넌트의 문자열 필드 | **코드** — 포탈이 이걸로 찾는다 |
-
-둘이 달라도 동작한다. 코드는 `Arrival Id` 만 본다. 같게 두는 것은 찾기 편해서다.
-
-**이름은 "어디서 왔는가" 를 가리킨다.**
-
-```
-Goblin1F ──[Portal_to_2F]──▶ Goblin2F 의 "from_1f"    1F 에서 올라온 사람이 서는 자리
-Goblin2F ──[Portal_to_3F]──▶ Goblin3F 의 "from_2f"    2F 에서 올라온 사람이 서는 자리
-```
-
-한 구역에 들어오는 길이 여럿일 수 있기 때문이다. 나중에 던전 입구에서 2F 로 바로 오는 길이
-생기면 `Goblin2F` 에 `from_dungeon_entrance` 를 하나 더 두고 `from_1f` 는 그대로 둔다.
-**입구마다 내리는 자리가 다르므로** 지점이 여러 개 필요하다.
-
-**활성 층은 `Goblin1F` 하나뿐이다.** `AreaRegistry` 가 켜져 있는 층을 시작 구역으로 인식한다.
-나머지 8개 층은 전부 꺼 둔다.
-
-> `Portal_to_3F` 의 목적지 `Goblin3F` 는 꺼져 있어도 된다.
-> `AreaRegistry` 가 **비활성 층까지 훑기 때문**이며, 그것이 그 컴포넌트의 존재 이유다.
-
----
+예전 이름이 `SpawnPoint` 라 `MonsterSpawner` 와 헷갈렸다.
+몬스터는 층 오브젝트의 자식이라 **그 층이 꺼지면 같이 꺼진 채 제자리에 남는다.**
+1층 몬스터가 2층으로 옮겨지는 일은 없다.
 
 ## 6. 배치 후 점검 — 재생 전에
 
@@ -449,6 +557,8 @@ Pretty Knights > Data  > 0. 몬스터 정의 점검 (변경 없음)
 | 전환 후 카메라가 엉뚱한 데 갇힌다 | `AreaAnchor` 의 `Floor` 가 비었다 |
 | 페이드가 조이스틱에 가려진다 | `FadeOverlay` 가 Canvas 자식 중 맨 아래가 아니다 |
 | 데미지가 전부 1 | `Model` 이 `Subtract` 이고 DEF 가 높다. `Minimum Damage` 에 걸린 것 |
+| 콘솔에 `이미 등록되어 있어 덮어씁니다` 가 쌓인다 | 층이 둘 이상 켜져 있다. **5-0** 을 안 했다 |
+| 타일맵이 서로 겹쳐 보인다 | 같은 원인. 9개 층이 좌표계를 공유한다 |
 | 몬스터가 벽에 붙어 떤다 | 알려진 문제. 경로 탐색 미구현 (`docs/TODO.md` 4번) |
 
 ---
