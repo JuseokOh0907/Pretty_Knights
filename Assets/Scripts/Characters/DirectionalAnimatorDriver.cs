@@ -93,6 +93,11 @@ namespace PrettyKnights.Characters
                 smoothed = facing;
             }
 
+            // 컨트롤러가 없는 Animator 에 SetFloat 을 걸면 Unity 가 매 프레임 경고를 찍는다.
+            // 몬스터 임시 프리팹처럼 아트가 아직 없는 경우가 정상 상태이므로,
+            // 경고로 콘솔을 채우는 대신 조용히 건너뛴다. 방향(facing)은 그대로 유지된다.
+            if (animator == null || animator.runtimeAnimatorController == null) return;
+
             animator.SetFloat(MoveXParam, smoothed.x);
             animator.SetFloat(MoveYParam, smoothed.y);
             animator.SetFloat(SpeedParam, speed);
