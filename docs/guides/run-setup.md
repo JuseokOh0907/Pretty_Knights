@@ -136,9 +136,16 @@ Boot.unity
 │    │        Debug Destination     → 비움 (검증할 때만 채운다)
 │    │        Debug Arrival Id        → from_1f  (없는 이름이면 대체 지점으로 간다)
 │    │
-│    └─ [C] InteractionHub                                 ← 추가
-│             Input Actions → ★ InputSystem_Actions
-│             Reuse Delay   → 0.3
+│    ├─ [C] InteractionHub                                 ← 추가
+│    │        Input Actions → ★ InputSystem_Actions
+│    │        Reuse Delay   → 0.3
+│    │
+│    └─ [C] SkillIndicatorPool                             ← 추가 (2026-08-08)
+│             Sorting Layer  → Default
+│             Sorting Order  → 50     바닥 타일맵보다 크고 캐릭터보다 작게
+│             Depth          → 0.01
+│             Hostile Color  → 빨강 (알파 0.85)
+│             Prewarm        → 8
 │
 ├─ UIRoot  (GameObject)                            ← 루트 ②
 │    ├─ [C] Transform
@@ -568,6 +575,8 @@ Pretty Knights > Data  > 0. 몬스터 정의 점검 (변경 없음)
 | 데미지가 전부 1 | `Model` 이 `Subtract` 이고 DEF 가 높다. `Minimum Damage` 에 걸린 것 |
 | 콘솔에 `이미 등록되어 있어 덮어씁니다` 가 쌓인다 | 층이 둘 이상 켜져 있다. **5-0** 을 안 했다 |
 | 스폰·도착 보정이 엉뚱한 층 기준으로 돈다 | 같은 원인. 등록된 `WalkableArea` 는 하나뿐이다 |
+| 몬스터가 예고 없이 바로 때린다 | `Boot` 에 `SkillIndicatorPool` 이 없거나 `telegraphDuration` 이 0 |
+| 예고가 캐릭터에 가려진다 | `SkillIndicatorPool` 의 `Sorting Order` 가 캐릭터보다 크다 |
 | 몬스터가 벽에 붙어 떤다 | 알려진 문제. 경로 탐색 미구현 (`docs/TODO.md` 4번) |
 
 ---

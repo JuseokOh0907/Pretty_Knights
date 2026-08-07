@@ -76,14 +76,15 @@ namespace PrettyKnights.EditorTools
         public static void Report()
         {
             var report = new StringBuilder($"[MonsterDefinition] 표 {Rows.Length}종\n");
-            report.AppendLine("  ID              등급    VIT  ATK  DEF   최대HP  이동  감지  공격범위  쿨   경험치");
+            report.AppendLine("  ID              등급    VIT  ATK  DEF   최대HP  이동  감지  공격범위  쿨   예고  경험치");
 
             foreach (Row row in Rows)
             {
                 report.AppendLine(
                     $"  {row.Id,-15} {row.Tier,-6} {row.Vit,4:0} {row.Atk,4:0} {row.Def,4:0} " +
                     $"{row.MaxHp,7:0} {row.MoveSpeed,5:0.0} {row.DetectRange,5:0} " +
-                    $"{row.AttackRange,8:0.0} {row.AttackCooldown,4:0.0} {row.Exp,7}");
+                    $"{row.AttackRange,8:0.0} {row.AttackCooldown,4:0.0} " +
+                    $"{TelegraphFor(row.Tier),5:0.00} {row.Exp,7}");
             }
 
             report.AppendLine();
@@ -206,10 +207,24 @@ namespace PrettyKnights.EditorTools
             Set(so, "knockbackForce", p => p.floatValue = row.Knockback);
             Set(so, "hitStunDuration", p => p.floatValue = row.HitStun);
             Set(so, "expReward", p => p.intValue = row.Exp);
+            Set(so, "telegraphDuration", p => p.floatValue = TelegraphFor(row.Tier));
 
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(asset);
         }
+
+        /// <summary>
+        /// 등급별 예고 시간 (docs/decisions/007-skill-indicator.md).
+        ///
+        /// <b>보스일수록 길다.</b> 범위가 넓고 아프니 피할 여지를 줘야 "패턴 공략" 이 성립한다.
+        /// 짧게 주면 그냥 맞는 공격이 되어 회피의 의미가 사라진다.
+        /// </summary>
+        private static float TelegraphFor(MonsterTier tier) => tier switch
+        {
+            MonsterTier.Boss => 0.70f,
+            MonsterTier.Elite => 0.45f,
+            _ => 0.30f
+        };
 
         private static void Set(SerializedObject so, string path, System.Action<SerializedProperty> write)
         {

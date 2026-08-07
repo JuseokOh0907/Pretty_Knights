@@ -26,6 +26,10 @@ namespace PrettyKnights.Characters
             Idle,
             Wander,
             Chase,
+
+            /// <summary>예고 중. 인디케이터가 떠 있고 아직 판정은 안 났다.</summary>
+            Telegraph,
+
             Attack,
             Dead
         }
@@ -63,6 +67,12 @@ namespace PrettyKnights.Characters
         private Vector2 wanderDestination;
         private float attackCooldownLeft;
 
+        // 예고. 원점과 방향을 시작 시점에 얼려 둔다 —
+        // 예고 중에 범위가 따라오면 피할 방법이 없어진다.
+        private float telegraphLeft;
+        private Vector2 telegraphOrigin;
+        private Vector2 telegraphFacing;
+
         private void Awake()
         {
             if (motor == null) motor = GetComponent<CharacterMotor>();
@@ -97,6 +107,7 @@ namespace PrettyKnights.Characters
             Current = State.Idle;
             target = null;
             attackCooldownLeft = 0f;
+            telegraphLeft = 0f;
             wanderTimer = 0f;
 
             motor.MoveSpeed = definition != null ? definition.MoveSpeed : 0f;
@@ -142,6 +153,17 @@ namespace PrettyKnights.Characters
 
         private void Think()
         {
+            // 예고 중에는 움직이지도 방향을 바꾸지도 않는다.
+            // 이게 "예고를 보고 피한다" 를 성립시키는 유일한 조건이다.
+            if (Current == State.Telegraph)
+            {
+                motor.SetMoveInput(Vector2.zero);
+
+                telegraphLeft -= Time.deltaTime;
+                if (telegraphLeft <= 0f) Strike();
+                return;
+            }
+
             if (target == null)
             {
                 Wander();
@@ -158,7 +180,7 @@ namespace PrettyKnights.Characters
                 // 공격 방향은 이동이 멈춰도 대상을 향해야 한다.
                 animatorDriver?.ForceFacing((Vector2)(target.position - transform.position), snap: false);
 
-                if (attackCooldownLeft <= 0f) PerformAttack();
+                if (attackCooldownLeft <= 0f) BeginTelegraph();
                 return;
             }
 
@@ -194,18 +216,59 @@ namespace PrettyKnights.Characters
             motor.SetMoveInput(toDestination.normalized);
         }
 
-        private void PerformAttack()
+        /// <summary>
+        /// 예고를 시작한다. 원점과 방향을 <b>지금</b> 얼려 인디케이터에 넘긴다.
+        /// 판정도 같은 값을 쓰므로 화면에 보인 자리가 곧 맞는 자리다.
+        /// </summary>
+        private void BeginTelegraph()
         {
-            attackCooldownLeft = definition.AttackCooldown;
+            Current = State.Telegraph;
 
-            // 판정 시스템이 아직 없다. 스킬 판정이 붙으면 여기서 범위 계산을 호출한다
-            // (CLAUDE.md §5 — 판정과 VFX 를 분리한다).
+            telegraphOrigin = transform.position;
+            telegraphFacing = animatorDriver != null
+                ? animatorDriver.FacingVector
+                : (target != null ? (Vector2)(target.position - transform.position) : Vector2.down);
+
+            telegraphLeft = definition.TelegraphDuration;
+
+            // 예고 시간이 0이면 즉시 때린다. 인디케이터를 띄울 필요도 없다.
+            if (telegraphLeft <= 0f)
+            {
+                Strike();
+                return;
+            }
+
+            if (Core.ServiceRegistry.TryGet(out SkillIndicatorPool indicators) && indicators != null)
+            {
+                indicators.Show(
+                    definition.AttackShape, definition.AttackShapeParams,
+                    telegraphOrigin, telegraphFacing, telegraphLeft);
+            }
+        }
+
+        /// <summary>
+        /// 예고가 끝나 실제로 때린다. <b>얼려둔 원점·방향</b>으로 판정한다 —
+        /// 그 사이에 몬스터가 밀려났어도 인디케이터가 있던 자리가 맞는 자리다.
+        /// </summary>
+        private void Strike()
+        {
+            Current = State.Attack;
+            attackCooldownLeft = definition.AttackCooldown;
+            telegraphLeft = 0f;
+
             if (!Core.ServiceRegistry.TryGet(out PlayerController player) || player == null) return;
+
+            // 인디케이터를 구울 때와 같은 함수다. 보인 범위와 맞는 범위가 갈리지 않는다.
+            bool inRange = SkillShape.Contains(
+                definition.AttackShape, definition.AttackShapeParams,
+                telegraphOrigin, telegraphFacing, player.transform.position);
+
+            if (!inRange) return;
 
             // 피해·넉백·경직·무적을 전부 PlayerHitReaction 이 판단한다.
             // 무적 중이면 여기서 알아서 무시된다.
             if (player.HitReaction != null)
-                player.HitReaction.TakeHit(definition, transform.position);
+                player.HitReaction.TakeHit(definition, telegraphOrigin);
             else if (Core.ServiceRegistry.TryGet(out PlayerRuntimeState playerState))
                 playerState.ApplyDamage(definition.Stats.Attack);
         }

@@ -61,6 +61,44 @@ namespace PrettyKnights.World
                 Debug.LogError($"[AreaRegistry] '{root.name}' 아래에서 AreaAnchor 를 하나도 찾지 못했습니다.");
         }
 
+        /// <summary>
+        /// 시작 시 켜진 층을 하나로 줄이고 카메라 경계를 맞춘다.
+        ///
+        /// <b>전환할 때는 <see cref="Activate"/> 가 이미 나머지를 끈다.</b> 빠져 있던 것은
+        /// 시작 시점이다. 씬에 두 층이 켜진 채 저장돼 있으면 첫 포탈을 쓸 때까지
+        /// 아무도 끄지 않아 옛 층이 계속 그려지고 그 몬스터도 계속 돈다.
+        ///
+        /// <see cref="Awake"/> 에서 할 수 없다. 이 컴포넌트는 실행 순서가 -500 이라
+        /// <see cref="CameraFollow"/> 가 아직 <see cref="ServiceRegistry"/> 에 등록되기 전이다.
+        /// </summary>
+        private void Start()
+        {
+            int extra = 0;
+
+            foreach (KeyValuePair<int, AreaAnchor> pair in byId)
+            {
+                AreaAnchor anchor = pair.Value;
+                if (anchor == null || anchor == Active) continue;
+                if (!anchor.gameObject.activeSelf) continue;
+
+                anchor.gameObject.SetActive(false);
+                extra++;
+            }
+
+            if (extra > 0)
+            {
+                // 조용히 끄면 "왜 이 층이 꺼졌지" 가 되므로 남긴다.
+                // WalkableArea 는 OnEnable 에서 자기를 등록하므로 둘 이상 켜져 있으면
+                // 마지막 하나만 살아남아 스폰·도착 보정이 엉뚱한 층 기준으로 돈다.
+                Debug.LogWarning(
+                    $"[AreaRegistry] 시작 시 구역이 {extra + 1}개 켜져 있어 " +
+                    $"'{(Active != null ? Active.name : "?")}' 만 남기고 껐습니다. " +
+                    "씬에는 하나만 켠 상태로 저장하세요.");
+            }
+
+            if (Active != null) ApplyCameraBounds(Active);
+        }
+
         private void OnDestroy()
         {
             if (ServiceRegistry.TryGet(out AreaRegistry current) && current == this)

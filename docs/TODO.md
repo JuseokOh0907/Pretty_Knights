@@ -169,13 +169,17 @@ Goblin·Orc 의 트인 보스방(`1 : 18`)에서는 드러나지 않다가 거�
 방식은 [`docs/decisions/007-skill-indicator.md`](decisions/007-skill-indicator.md).
 **메시가 아니라 런타임 래스터화**다 — 폴리곤의 매끈한 가장자리가 64px 도트 위에서 튄다.
 
-- [ ] `SkillShape` 에 점 포함 검사 추가 (판정과 같은 수학)
-- [ ] 래스터라이저 — 64 px/unit · Point 필터 · 1~2px 테두리
-- [ ] **8방향 캐시** (`스킬 × 방향`). 픽셀 아트는 회전시키면 어긋난다
-- [ ] `MonsterDefinition.telegraphDuration` — Normal 0.30 / Elite 0.45 / Boss 0.70
-- [ ] `MonsterController.PerformAttack` 을 **예고 → 판정 → 경직** 3단계로.
-      `SkillShape` 로 옮기는 아래 5번 항목과 같은 작업이다
-- [ ] 플레이어는 애니메이션으로 예고하므로 `showIndicator` 로 끈다
+- [x] `SkillShape.Contains` · `SkillShape.LocalBounds` (판정과 같은 파일·같은 수학)
+- [x] `SkillIndicatorRasterizer` — 64 px/unit · Point 필터 · 1px 테두리 · **8방향 캐시**
+- [x] `SkillIndicator` · `SkillIndicatorPool` (Boot 상주, 풀링)
+- [x] `MonsterDefinition.telegraphDuration` · `attackShape` · `attackShapeParams`.
+      생성 도구가 등급별 기본값을 넣는다 (Normal 0.30 / Elite 0.45 / Boss 0.70)
+- [x] `MonsterController` 를 **예고 → 판정 → 경직** 3단계로.
+      원점·방향을 예고 시작 시점에 얼린다 — 범위가 따라오면 피할 방법이 없다
+- [ ] **Boot 씬에 `SkillIndicatorPool` 배치**
+      ([`run-setup.md`](guides/run-setup.md) 2절)
+- [ ] `Pretty Knights > Data > 1. MonsterDefinition 생성/갱신` 재실행 — 예고 시간이 들어간다
+- [ ] 플레이어 공격에도 인디케이터를 붙일지 (애니메이션으로 갈 예정이라 보류)
 
 ### 5. 스킬 판정 시스템 (2026-08-05 순서 조정)
 
@@ -220,8 +224,7 @@ Unity 게임플레이는 메인 스레드 단일이라 "동시" 는 같은 프�
 - [ ] **데미지 공식 확정** — 실제로 때려보고 고른다.
       감산 / 비대칭 배율 / 감쇠율. 고른 것이 미결 #3(스탯 공식)의 답이 된다
 - [ ] 플레이어 스킬 3종 — 전방 베기 · 관통 직선 · 광역 폭발
-- [ ] `MonsterController.PerformAttack` 을 `SkillShape` 로 옮기기
-      (지금은 거리 판정으로 직접 때린다)
+- [x] `MonsterController.PerformAttack` 을 `SkillShape` 로 옮김 (4-1 에서 함께 처리)
 - [ ] 다단히트 — `SkillInstance` 가 붙을 때. 매 프레임이 아니라 고정 간격
 - [ ] 몬스터 등급별 스킬
 - [ ] `Destructible` — `IDamageable` 을 구현하면 지금 판정으로 바로 부숴진다

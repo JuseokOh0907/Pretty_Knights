@@ -34,6 +34,21 @@ namespace PrettyKnights.Data
         [SerializeField, Min(0f)] private float attackRange = 0.9f;
         [SerializeField, Min(0.05f)] private float attackCooldown = 1.2f;
 
+        [Header("공격 예고 — 인디케이터가 뜨고 판정까지의 시간")]
+        [SerializeField, Min(0f), Tooltip(
+            "보스일수록 길다. 짧게 주면 그냥 맞는 공격이 되어 회피의 의미가 사라진다. " +
+            "기본값 Normal 0.30 / Elite 0.45 / Boss 0.70")]
+        private float telegraphDuration = 0.3f;
+
+        [Header("공격 범위 — 판정과 인디케이터가 같은 값을 쓴다")]
+        [SerializeField] private Combat.SkillShapeKind attackShape = Combat.SkillShapeKind.Forward;
+
+        [SerializeField, Tooltip("비워 두면 attackRange 로 부채꼴을 만든다")]
+        private Combat.SkillShapeParams attackShapeParams = new Combat.SkillShapeParams
+        {
+            range = 0f, width = 1f, angle = 90f, forwardOffset = 0f
+        };
+
         [Header("피격 반응 — 몬스터마다 손맛을 다르게 한다")]
         [SerializeField, Min(0f), Tooltip("맞은 대상이 밀려나는 세기 (월드 유닛/초)")]
         private float knockbackForce = 4f;
@@ -56,6 +71,24 @@ namespace PrettyKnights.Data
         public float DetectRange => detectRange;
         public float AttackRange => attackRange;
         public float AttackCooldown => attackCooldown;
+        public float TelegraphDuration => telegraphDuration;
+        public Combat.SkillShapeKind AttackShape => attackShape;
+
+        /// <summary>
+        /// 공격 범위. <see cref="attackShapeParams"/> 의 사거리를 비워 두면
+        /// <see cref="attackRange"/> 로 채운다 — 두 곳에 같은 숫자를 넣게 하지 않으려는 것이다.
+        /// </summary>
+        public Combat.SkillShapeParams AttackShapeParams
+        {
+            get
+            {
+                Combat.SkillShapeParams p = attackShapeParams;
+                if (p.range <= 0f) p.range = attackRange;
+                if (p.angle <= 0f) p.angle = 90f;
+                if (p.width <= 0f) p.width = 1f;
+                return p;
+            }
+        }
         public float KnockbackForce => knockbackForce;
         public float HitStunDuration => hitStunDuration;
         public int ExpReward => expReward;

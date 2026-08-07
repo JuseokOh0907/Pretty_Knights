@@ -183,6 +183,107 @@ namespace PrettyKnights.Combat
             Physics2D.OverlapCircle(center, param.range, filter, results);
         }
 
+        /// <summary>
+        /// 한 점이 범위 안인가. <b>인디케이터를 굽는 데 쓴다.</b>
+        ///
+        /// <see cref="Evaluate"/> 와 같은 파일·같은 파라미터를 쓰는 것이 핵심이다.
+        /// 보이는 범위와 맞는 범위가 갈리지 않으려면 계산이 한 곳에 있어야 한다
+        /// (CLAUDE.md §5).
+        /// </summary>
+        public static bool Contains(
+            SkillShapeKind kind, SkillShapeParams param,
+            Vector2 origin, Vector2 facing, Vector2 point)
+        {
+            if (param.range <= 0f) return false;
+
+            Vector2 direction = facing.sqrMagnitude > 0.0001f ? facing.normalized : Vector2.down;
+            Vector2 local = point - origin;
+
+            switch (kind)
+            {
+                case SkillShapeKind.Forward:
+                {
+                    if (local.sqrMagnitude > param.range * param.range) return false;
+
+                    // 원점에 겹치면 각도를 잴 수 없다. 붙어 있으므로 포함으로 친다.
+                    if (local.sqrMagnitude < 0.0001f) return true;
+                    if (param.angle >= 360f) return true;
+
+                    float cosHalf = Mathf.Cos(param.angle * 0.5f * Mathf.Deg2Rad);
+                    return Vector2.Dot(local.normalized, direction) >= cosHalf;
+                }
+
+                case SkillShapeKind.Line:
+                case SkillShapeKind.Dash:
+                    return InLine(param, local, direction);
+
+                case SkillShapeKind.Cross:
+                    for (int i = 0; i < 4; i++)
+                        if (InLine(param, local, Rotate(direction, 90f * i))) return true;
+                    return false;
+
+                case SkillShapeKind.Area:
+                {
+                    Vector2 toCenter = local - direction * param.forwardOffset;
+                    return toCenter.sqrMagnitude <= param.range * param.range;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>원점에서 <paramref name="direction"/> 으로 뻗는 직사각형 안인가.</summary>
+        private static bool InLine(SkillShapeParams param, Vector2 local, Vector2 direction)
+        {
+            float along = Vector2.Dot(local, direction);
+            if (along < 0f || along > param.range) return false;
+
+            Vector2 side = new Vector2(-direction.y, direction.x);
+            return Mathf.Abs(Vector2.Dot(local, side)) <= Mathf.Max(0.1f, param.width) * 0.5f;
+        }
+
+        /// <summary>
+        /// 원점 기준 로컬 경계. 인디케이터 텍스처 크기를 정하는 데 쓴다.
+        /// <b>넉넉하게 잡는다</b> — 조금 큰 것은 투명 픽셀이 늘 뿐이지만 작으면 범위가 잘린다.
+        /// </summary>
+        public static Rect LocalBounds(SkillShapeKind kind, SkillShapeParams param, Vector2 facing)
+        {
+            Vector2 direction = facing.sqrMagnitude > 0.0001f ? facing.normalized : Vector2.down;
+            float half = Mathf.Max(0.1f, param.width) * 0.5f;
+
+            switch (kind)
+            {
+                case SkillShapeKind.Line:
+                case SkillShapeKind.Dash:
+                {
+                    Vector2 side = new Vector2(-direction.y, direction.x) * half;
+                    Vector2 tip = direction * param.range;
+
+                    Vector2 min = Vector2.Min(Vector2.Min(-side, side), Vector2.Min(tip - side, tip + side));
+                    Vector2 max = Vector2.Max(Vector2.Max(-side, side), Vector2.Max(tip - side, tip + side));
+                    return new Rect(min, max - min);
+                }
+
+                case SkillShapeKind.Cross:
+                {
+                    float extent = param.range + half;
+                    return new Rect(-extent, -extent, extent * 2f, extent * 2f);
+                }
+
+                case SkillShapeKind.Area:
+                {
+                    Vector2 center = direction * param.forwardOffset;
+                    return new Rect(center.x - param.range, center.y - param.range,
+                        param.range * 2f, param.range * 2f);
+                }
+
+                default:
+                    // 부채꼴은 반지름 원에 들어간다. 각도로 더 줄일 수 있지만
+                    // 방향마다 경계가 달라지면 텍스처 크기가 8가지가 되어 캐시가 지저분해진다.
+                    return new Rect(-param.range, -param.range, param.range * 2f, param.range * 2f);
+            }
+        }
+
         private static Vector2 Rotate(Vector2 v, float degrees)
         {
             float rad = degrees * Mathf.Deg2Rad;
