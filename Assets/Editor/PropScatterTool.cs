@@ -22,7 +22,7 @@ namespace PrettyKnights.EditorTools
     public static class PropScatterTool
     {
         private const string MenuRoot = "Pretty Knights/Props/";
-        private const string ContainerName = "AutoProps";
+        internal const string ContainerName = "AutoProps";
 
         /// <summary>오브젝트가 차지하는 칸. 128px · PPU 64 라 2 × 2 다.</summary>
         private static readonly Vector2Int PropFootprint = new Vector2Int(2, 2);
