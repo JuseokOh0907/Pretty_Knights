@@ -89,6 +89,12 @@ namespace PrettyKnights.EditorTools
                     continue;
                 }
 
+                if (profile.PropPrefab == null)
+                {
+                    report.AppendLine($"  ✗ #{anchor.AreaId} — 프로필에 Prop Prefab 이 없습니다");
+                    continue;
+                }
+
                 int placed = ScatterFloor(anchor, definition, profile, zones, dryRun, report);
                 totalPlaced += placed;
             }
@@ -159,7 +165,7 @@ namespace PrettyKnights.EditorTools
 
             foreach (FloorScatterProfile.Entry entry in queue)
             {
-                if (entry.definition == null || entry.prefab == null || entry.count <= 0) continue;
+                if (entry.definition == null || entry.count <= 0) continue;
 
                 int want = entry.count;
                 int got = 0;
@@ -180,7 +186,7 @@ namespace PrettyKnights.EditorTools
 
                     if (dryRun) continue;
 
-                    GameObject instance = Place(entry, point, newContainer);
+                    GameObject instance = Place(profile, entry, point, newContainer);
 
                     if (Role(entry) == PropRole.MainTotem)
                         AttachPortal(instance, definition, profile, newContainer);
@@ -248,11 +254,29 @@ namespace PrettyKnights.EditorTools
             return true;
         }
 
-        private static GameObject Place(FloorScatterProfile.Entry entry, Vector2 point, Transform parent)
+        /// <summary>
+        /// 공용 프리팹을 놓고 정의만 꽂는다.
+        /// 겉모습(스프라이트 · 콜라이더 크기 · Visual 오프셋)은 <c>Destructible.Bind</c> 가
+        /// 정의에서 읽어 채우므로 배리언트가 필요 없다.
+        /// </summary>
+        private static GameObject Place(
+            FloorScatterProfile profile, FloorScatterProfile.Entry entry, Vector2 point, Transform parent)
         {
-            var instance = (GameObject)PrefabUtility.InstantiatePrefab(entry.prefab, parent);
+            var instance = (GameObject)PrefabUtility.InstantiatePrefab(profile.PropPrefab, parent);
             instance.transform.position = point;
             instance.name = entry.definition.PropId;
+
+            var destructible = instance.GetComponent<Destructible>();
+            if (destructible != null)
+            {
+                var so = new SerializedObject(destructible);
+                so.FindProperty("definition").objectReferenceValue = entry.definition;
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            // 토템은 컴포넌트가 하나 더 필요하다. 공용 프리팹에는 없으므로 여기서 붙인다.
+            if (entry.definition.IsTotem && instance.GetComponent<SpawnTotem>() == null)
+                instance.AddComponent<SpawnTotem>();
 
             Undo.RegisterCreatedObjectUndo(instance, "오브젝트 뿌리기");
             return instance;

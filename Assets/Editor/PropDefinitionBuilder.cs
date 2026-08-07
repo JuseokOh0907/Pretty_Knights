@@ -12,9 +12,13 @@ namespace PrettyKnights.EditorTools
     /// <see cref="PropDefinition"/> 18종을 만든다.
     ///
     /// 값의 출처는 <c>docs/design/map-objects.md</c> 의 실측표다.
-    /// 접지폭과 <c>Visual</c> Y 는 <b>프리팹에 굽는 값이라 여기 넣지 않는다</b> —
-    /// 에디터에서 눈으로 맞춰야 하는 것이기 때문이다. 대신 로그에 함께 찍어
-    /// 프리팹을 만들 때 옮겨 적을 수 있게 한다.
+    ///
+    /// <b>프리팹이 하나이므로 겉모습도 여기서 결정된다.</b> 접지폭과 <c>Visual</c> Y 가
+    /// 오브젝트마다 다르므로(0.48~1.75 · 0.375~0.891) 배리언트 18개를 만들지 않는 대신
+    /// 그 값들이 에셋으로 들어온다. 실측표가 이미 있어 손으로 맞출 일은 없다.
+    ///
+    /// 스프라이트는 <b>propId 로 경로를 만들어 자동 연결</b>한다 —
+    /// <c>goblin_01_twisted_stump</c> → <c>Assets/Art/Maps/Goblin/Objects/01_twisted_stump_128.png</c>
     ///
     /// HP·경험치·인구 지분은 <b>임시값</b>이다. 플레이어 DPS 가 정해지면 다시 잡는다.
     /// </summary>
@@ -33,7 +37,7 @@ namespace PrettyKnights.EditorTools
             public readonly int Exp;
             public readonly int Share;
 
-            /// <summary>실측값. 에셋에는 안 들어가고 프리팹 제작용으로 로그에만 찍는다.</summary>
+            /// <summary>실측값. 프리팹이 하나이므로 이 둘도 에셋에 들어간다.</summary>
             public readonly float Footprint;
             public readonly float VisualY;
 
@@ -65,7 +69,7 @@ namespace PrettyKnights.EditorTools
             new Row("orc_06_fire_pit",             "화덕",              "Orc",     PropRole.Destructible,   30f,   6,  0,  1.23f, 0.891f),
 
             new Row("vampire_01_dead_tree",        "고사목",            "Vampire", PropRole.Destructible,   55f,   6,  0,  1.27f, 0.859f),
-            new Row("vampire_02_gravestone",       "묘비 무리",         "Vampire", PropRole.Destructible,   65f,   8,  0,  1.55f, 0.766f),
+            new Row("vampire_02_gravestone_cluster", "묘비 무리",       "Vampire", PropRole.Destructible,   65f,   8,  0,  1.55f, 0.766f),
             new Row("vampire_03_sarcophagus",      "석관",              "Vampire", PropRole.SubTotem,      120f,  40,  4,  1.69f, 0.531f),
             new Row("vampire_04_candle_cluster",   "촛대",              "Vampire", PropRole.Destructible,   20f,   4,  0,  0.48f, 0.594f),
             new Row("vampire_05_thorned_roses",    "가시 장미",         "Vampire", PropRole.Destructible,   25f,   4,  0,  1.39f, 0.375f),
@@ -86,8 +90,7 @@ namespace PrettyKnights.EditorTools
             }
 
             report.AppendLine();
-            report.AppendLine("  접지폭·VisualY 는 에셋이 아니라 프리팹에 넣는 값이다.");
-            report.AppendLine("  콜라이더 = 접지폭 × 0.5칸, Visual 자식의 Y = 위 값.");
+            report.AppendLine("  프리팹은 하나다. 콜라이더(접지폭 × 0.5칸)와 Visual Y 는 에셋에 들어간다.");
             report.AppendLine();
             report.Append(BuildDifference());
 
@@ -166,6 +169,7 @@ namespace PrettyKnights.EditorTools
             Debug.Log(
                 $"[PropDefinition] 생성 {created}개 · 갱신 {updated}개 → {TargetFolder}\n" +
                 "  Broken Sprite 와 Drop Table 은 건드리지 않았습니다. 인스펙터에서 채우세요.\n" +
+                "  스프라이트·콜라이더·Visual Y 는 실측표에서 채웠습니다.\n" +
                 "  HP·경험치·지분은 임시값입니다 — 플레이어 DPS 가 정해지면 다시 잡습니다.");
         }
 
@@ -181,8 +185,36 @@ namespace PrettyKnights.EditorTools
             Set(so, "expReward", p => p.intValue = row.Exp);
             Set(so, "populationShare", p => p.intValue = row.Share);
 
+            // 프리팹이 하나라 겉모습도 정의가 들고 있어야 한다.
+            Set(so, "colliderSize", p => p.vector2Value = new Vector2(row.Footprint, 0.5f));
+            Set(so, "visualOffsetY", p => p.floatValue = row.VisualY);
+
+            Sprite sprite = FindSprite(row);
+            if (sprite != null) Set(so, "sprite", p => p.objectReferenceValue = sprite);
+
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(asset);
+        }
+
+        /// <summary>
+        /// propId 에서 경로를 만들어 스프라이트를 찾는다.
+        /// <c>goblin_01_twisted_stump</c> → <c>Assets/Art/Maps/Goblin/Objects/01_twisted_stump_128.png</c>
+        ///
+        /// 파일명 규칙이 일정해서 가능하다. 규칙이 깨진 것은 못 찾고 로그로 알린다 —
+        /// 조용히 비워두면 배치한 뒤에야 "왜 안 보이지" 가 된다.
+        /// </summary>
+        private static Sprite FindSprite(Row row)
+        {
+            string prefix = row.Theme.ToLowerInvariant() + "_";
+            string file = row.Id.StartsWith(prefix) ? row.Id.Substring(prefix.Length) : row.Id;
+            string path = $"Assets/Art/Maps/{row.Theme}/Objects/{file}_128.png";
+
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+
+            if (sprite == null)
+                Debug.LogWarning($"[PropDefinition] '{row.Id}' 의 스프라이트를 찾지 못했습니다 → {path}");
+
+            return sprite;
         }
 
         private static void Set(SerializedObject so, string path, System.Action<SerializedProperty> write)

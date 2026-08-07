@@ -24,15 +24,18 @@ namespace PrettyKnights.Data
         {
             public PropDefinition definition;
 
-            [Tooltip("이 층에 놓을 프리팹. 콜라이더와 Visual 오프셋이 여기 구워져 있다")]
-            public GameObject prefab;
-
             [Min(0), Tooltip("정확히 이 개수를 놓는다. 자리가 없으면 그만큼만")]
             public int count;
         }
 
         [Header("무엇을 몇 개")]
         [SerializeField] private Entry[] entries = Array.Empty<Entry>();
+
+        [Header("공용 프리팹")]
+        [SerializeField, Tooltip(
+            "모든 오브젝트가 이 프리팹 하나를 쓴다. 스프라이트·콜라이더 크기·Visual 오프셋은 " +
+            "PropDefinition 이 결정하므로 배리언트를 18개 만들지 않는다")]
+        private GameObject propPrefab;
 
         [Header("간격")]
         [SerializeField, Min(0f), Tooltip("오브젝트끼리 이만큼은 떨어뜨린다 (월드 유닛)")]
@@ -58,6 +61,7 @@ namespace PrettyKnights.Data
         private int seed = 12345;
 
         public Entry[] Entries => entries;
+        public GameObject PropPrefab => propPrefab;
         public float MinSpacing => minSpacing;
         public float WallClearance => wallClearance;
         public float ProtectedRadius => protectedRadius;

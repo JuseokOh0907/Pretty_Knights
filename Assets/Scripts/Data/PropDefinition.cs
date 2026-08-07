@@ -62,9 +62,22 @@ namespace PrettyKnights.Data
             "메인 토템은 이 값이 기본 점유량이 된다")]
         private int populationShare = 4;
 
-        [Header("표현")]
+        [Header("표현 — 프리팹이 하나라 여기서 결정된다")]
+        [SerializeField, Tooltip("멀쩡할 때의 그림")]
+        private Sprite sprite;
+
         [SerializeField, Tooltip("부서진 뒤 보여줄 스프라이트. 비우면 그냥 감춘다")]
         private Sprite brokenSprite;
+
+        [SerializeField, Tooltip(
+            "지면 충돌 영역. 가로는 실측 접지폭, 세로는 0.5칸이 기본. " +
+            "겉보기 크기가 아니라 발이 닿는 넓이다 (CLAUDE.md §4)")]
+        private Vector2 colliderSize = new Vector2(1.5f, 0.5f);
+
+        [SerializeField, Tooltip(
+            "Visual 자식의 Y 오프셋. 루트가 접지점이고 그림은 그만큼 위로 올라간다. " +
+            "값은 docs/design/map-objects.md §2 의 실측표")]
+        private float visualOffsetY = 0.85f;
 
         public string PropId => propId;
         public string DisplayName => displayName;
@@ -77,7 +90,11 @@ namespace PrettyKnights.Data
         public DropTable Drops => dropTable;
 
         public int PopulationShare => populationShare;
+
+        public Sprite Sprite => sprite;
         public Sprite BrokenSprite => brokenSprite;
+        public Vector2 ColliderSize => colliderSize;
+        public float VisualOffsetY => visualOffsetY;
 
         public bool IsDestructible => role != PropRole.Decoration;
         public bool IsTotem => role == PropRole.SubTotem || role == PropRole.MainTotem;
