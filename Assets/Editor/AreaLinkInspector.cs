@@ -135,12 +135,16 @@ namespace PrettyKnights.EditorTools
                         problems++;
                     }
 
-                    if (anchor.Walkable != null && !anchor.Walkable.IsWalkable(arrival.Position))
+                    string blockage = anchor.Walkable != null
+                        ? anchor.Walkable.DescribeBlockage(arrival.Position)
+                        : null;
+
+                    if (blockage != null)
                     {
                         report.AppendLine(
-                            $"  △ #{id} 도착 지점 '{arrival.ArrivalId}' ({arrival.Position.x:0.#}, {arrival.Position.y:0.#}) " +
-                            "가 바닥 타일 위가 아님 — 런타임에 주변 3유닛에서 설 수 있는 자리를 찾는다. " +
-                            "못 찾으면 그 좌표에 그대로 내려놓으므로 벽에 낄 수 있다");
+                            $"  △ #{id} 도착 지점 '{arrival.ArrivalId}' " +
+                            $"({arrival.Position.x:0.#}, {arrival.Position.y:0.#}) — {blockage}. " +
+                            "런타임에 주변 3유닛에서 설 자리를 찾지만, 못 찾으면 그 좌표에 그대로 내려놓는다");
                     }
                 }
 

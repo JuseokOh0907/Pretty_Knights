@@ -32,6 +32,29 @@ namespace PrettyKnights.World
 
         public Tilemap Floor => floor;
 
+        /// <summary>벽. 점검 도구가 "바닥이 없다" 와 "벽 안이다" 를 갈라 보고하는 데 쓴다.</summary>
+        public Tilemap Guide => guide;
+
+        /// <summary>
+        /// 설 수 없는 이유를 문장으로 돌려준다. 설 수 있으면 <c>null</c>.
+        ///
+        /// <b>"설 수 없다" 만으로는 어디를 고쳐야 할지 알 수 없다.</b>
+        /// 바닥 타일이 없는 것과 벽 타일 위에 있는 것은 고치는 방법이 정반대다 —
+        /// 전자는 바닥을 칠하거나 안쪽으로 옮기고, 후자는 벽에서 비켜야 한다.
+        /// </summary>
+        public string DescribeBlockage(Vector2 world)
+        {
+            if (floor == null) return "WalkableArea 의 Floor 가 비어 있음";
+
+            if (!floor.HasTile(floor.WorldToCell(world)))
+                return "그 칸에 바닥 타일이 없음";
+
+            if (guide != null && guide.HasTile(guide.WorldToCell(world)))
+                return "벽(Guide) 타일 위에 있음";
+
+            return null;
+        }
+
         private void OnEnable()
         {
             // 활성화된 구역이 곧 현재 구역이다. 층을 켜고 끄는 것만으로 교체된다.
