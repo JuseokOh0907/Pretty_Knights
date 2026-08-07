@@ -160,10 +160,14 @@
       → 층별 `FloorScatterProfile` 의 `Prop Prefab` 에 연결
 - [ ] 층별 `FloorScatterProfile` 작성 (9개 층) → `AreaDefinition` 에 연결
 - [ ] `AreaDefinition.nextArea` 연결 (101→102, 102→103)
-- [ ] **파괴 상태 세이브** ← 다음 작업
-      - 오브젝트: `{areaId, index}` — 시드가 같으면 생성 순서가 같으므로 i번째는 언제나 같은 것
-      - 부술 수 있는 벽: `{areaId, cellX, cellY}`
-      - `themeClearCount` — 완전 클리어 횟수. 재배치 시드가 된다
+- [x] **파괴 상태 세이브** — `WorldProgress`
+      - 오브젝트: `{areaId, index, mainTotem}` — 시드가 같으면 생성 순서도 같다
+      - 부술 수 있는 벽: `{areaId, cellX, cellY}` — 손으로 그린 것이라 순서가 없다
+      - `clearCount` — 완전 클리어 횟수가 재배치 시드에 들어간다
+- [x] 테마 경계 정산 — `AreaTransition.SettleDeparture`
+      - 보상방을 나가면 **완전 클리어**: 전부 지우고 클리어 횟수 +1 → 다음 입장 시 재배치
+      - 다른 테마로 넘어가면 **되살리되 메인 토템은 부서진 채**: 포탈은 열려 있고 파밍만 재개
+      - 같은 테마 안 층 이동은 정산하지 않는다
 - [ ] 드랍 — 1단계는 경험치만(`AddExp` 가 이미 있다), 아이템은 시스템 생긴 뒤
 
 **미결** — 서브 토템 층당 개수와 기본/추가 점유량 · `weapon_rack` 용도 · 층당 밀도

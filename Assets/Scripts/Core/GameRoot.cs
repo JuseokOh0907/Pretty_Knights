@@ -41,6 +41,9 @@ namespace PrettyKnights.Core
         /// <summary>마지막으로 있었던 자리. 씬이 올라온 뒤 여기로 몸을 옮긴다.</summary>
         public WorldLocation Location { get; private set; }
 
+        /// <summary>무엇을 부쉈고 어느 테마를 클리어했는지.</summary>
+        public WorldProgress Progress { get; private set; }
+
         /// <summary>이번 실행이 신규 플레이인지 (세이브 파일이 없었는지).</summary>
         public bool IsNewGame { get; private set; }
 
@@ -141,6 +144,7 @@ namespace PrettyKnights.Core
             IsNewGame = !Saves.TryLoad(out SaveData data);
             PlayerState = data.Player;
             Location = data.Location;
+            Progress = data.Progress;
 
             // 공식이 확정되지 않아 SO 로 갈아 끼울 수 있게 두었다.
             // 비어 있어도 감쇠율 기본값으로 동작하므로 게임이 멈추지는 않는다.
@@ -159,6 +163,7 @@ namespace PrettyKnights.Core
 
             ServiceRegistry.Register(this);
             ServiceRegistry.Register(PlayerState);
+            ServiceRegistry.Register(Progress);
             ServiceRegistry.Register(Saves);
             ServiceRegistry.Register(Scenes);
 
@@ -182,6 +187,7 @@ namespace PrettyKnights.Core
                 $"HP {PlayerState.CurrentHp:0.#}/{PlayerState.MaxHp:0.#}\n" +
                 $"  스탯 : {PlayerState.Stats}\n" +
                 $"  위치 : {Location}\n" +
+                $"  진행 : {Progress}\n" +
                 $"  세이브 : {Saves.SavePath}  (존재 {Saves.Exists})";
         }
 
@@ -191,7 +197,7 @@ namespace PrettyKnights.Core
             if (Saves == null || PlayerState == null || suppressAutoSave) return;
 
             CaptureLocation();
-            Saves.TrySave(SaveData.From(PlayerState, Location));
+            Saves.TrySave(SaveData.From(PlayerState, Location, Progress));
         }
 
         public void RequestMode(GameMode mode)
@@ -278,6 +284,7 @@ namespace PrettyKnights.Core
             Saves ??= new SaveService();
             Saves.Delete();
             Location?.Clear();
+            Progress?.Clear();
 
             // 이걸 안 하면 재생을 멈추는 순간 OnApplicationQuit 이 다시 저장해
             // 방금 지운 것이 되살아난다.

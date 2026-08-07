@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using PrettyKnights.Combat;
+using PrettyKnights.Core;
 using PrettyKnights.Data;
+using PrettyKnights.Save;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -43,11 +45,26 @@ namespace PrettyKnights.World
         public event Action<DestructibleTilemap, Vector3Int> CellBroken;
 
         private Tilemap map;
+        private AreaAnchor anchor;
         private readonly Dictionary<Vector3Int, float> damage = new Dictionary<Vector3Int, float>();
 
         public Tilemap Map => map != null ? map : map = GetComponent<Tilemap>();
 
-        private void Awake() => map = GetComponent<Tilemap>();
+        private void Awake()
+        {
+            map = GetComponent<Tilemap>();
+            anchor = GetComponentInParent<AreaAnchor>();
+        }
+
+        private void OnEnable()
+        {
+            // 부숴둔 칸을 되돌린다. 층을 껐다 켤 때마다 벽이 되살아나면
+            // 히든 방을 찾아낸 성과가 사라진다.
+            if (!ServiceRegistry.TryGet(out WorldProgress progress) || progress == null) return;
+            if (anchor == null) return;
+
+            RestoreBroken(progress.BrokenWallsIn(anchor.AreaId));
+        }
 
         // ── IAreaDamageable ───────────────────────────────────────────────
 
@@ -109,7 +126,12 @@ namespace PrettyKnights.World
             map.SetTile(cell, null);
             damage.Remove(cell);
 
-            if (!silent) CellBroken?.Invoke(this, cell);
+            if (silent) return;
+
+            if (anchor != null && ServiceRegistry.TryGet(out WorldProgress progress) && progress != null)
+                progress.MarkWallBroken(anchor.AreaId, cell);
+
+            CellBroken?.Invoke(this, cell);
         }
 
         /// <summary>

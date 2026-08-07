@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using PrettyKnights.Core;
 using PrettyKnights.Data;
+using PrettyKnights.Save;
 using UnityEngine;
 
 namespace PrettyKnights.World
@@ -75,12 +76,32 @@ namespace PrettyKnights.World
             var zones = new List<NoSpawnZone>(GetComponentsInChildren<NoSpawnZone>(includeInactive: true));
             List<Vector2> avoid = PropScatterer.CollectAvoidPoints(anchor, container);
 
-            int seed = profile.Seed + definition.AreaId + seedOffset;
+            ServiceRegistry.TryGet(out WorldProgress progress);
+
+            // 완전 클리어 횟수가 시드에 들어간다. 같은 회차면 몇 번을 들어와도 같은 배치이고,
+            // 클리어할 때마다 새로 뽑힌다 — "새 회차" 라는 경계에서만 지형이 바뀐다.
+            int clears = progress != null ? progress.ClearCountOf(definition.ThemeNumber) : 0;
+            int seed = profile.Seed + definition.AreaId + seedOffset + clears * 7919;
             List<PropScatterer.Placement> plan =
                 PropScatterer.Plan(anchor.Walkable, profile, seed, zones, avoid);
 
-            foreach (PropScatterer.Placement placement in plan)
-                spawned.Add(Create(placement, profile));
+            for (int i = 0; i < plan.Count; i++)
+            {
+                Destructible created = Create(plan[i], profile);
+                spawned.Add(created);
+
+                if (created == null || progress == null) continue;
+
+                bool isMain = plan[i].Definition.Role == PropRole.MainTotem;
+                int index = i;
+
+                // 부순 것을 기록한다. 인덱스는 생성 순서이고 시드가 같으면 순서도 같다.
+                created.Broken += _ => progress.MarkPropDestroyed(definition.AreaId, index, isMain);
+
+                // 이미 부숴둔 것은 조용히 부서진 모습으로 되돌린다.
+                // 보상을 다시 주면 같은 것을 반복해서 벌 수 있다.
+                if (progress.IsPropDestroyed(definition.AreaId, index)) created.Break(grantRewards: false);
+            }
 
             built = true;
 

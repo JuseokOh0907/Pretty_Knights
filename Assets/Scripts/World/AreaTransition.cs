@@ -2,6 +2,7 @@ using System.Collections;
 using PrettyKnights.Characters;
 using PrettyKnights.Core;
 using PrettyKnights.Data;
+using PrettyKnights.Save;
 using PrettyKnights.UI;
 using UnityEngine;
 
@@ -107,7 +108,11 @@ namespace PrettyKnights.World
             // 2) 페이드 아웃
             if (fader != null) yield return fader.FadeOut();
 
-            // 3) 구역 교체. 카메라 경계도 여기서 함께 바뀐다.
+            // 3) 떠나는 구역을 먼저 정산한다. 구역을 바꾸고 나면 어디서 왔는지 알 수 없다.
+            AreaDefinition leaving = registry.Active != null ? registry.Active.Definition : null;
+            SettleDeparture(leaving, destination.Definition);
+
+            // 4) 구역 교체. 카메라 경계도 여기서 함께 바뀐다.
             registry.Activate(destination);
 
             // 4) 도착. 지정 지점이 벽이면 주변에서 설 수 있는 칸을 찾는다.
@@ -157,6 +162,41 @@ namespace PrettyKnights.World
             if (hub != null) hub.Locked = false;
 
             IsTransitioning = false;
+        }
+
+        /// <summary>
+        /// 구역을 떠날 때의 정산.
+        ///
+        /// <b>보상방을 나가면 그 테마를 완전 클리어한 것으로 본다.</b> 파괴 기록을 지우고
+        /// 클리어 횟수를 올리므로 다음에 들어가면 배치가 새로 뽑힌다 — 새 회차다.
+        ///
+        /// <b>다른 테마로 넘어가면 떠난 테마를 되살린다.</b> 단 메인 토템은 부서진 채 둔다 —
+        /// 되살아나면 이미 뚫어둔 포탈이 다시 닫혀 같은 일을 반복해야 한다.
+        /// 이때는 시드가 그대로라 <b>위치도 그대로</b>다.
+        /// </summary>
+        private void SettleDeparture(AreaDefinition leaving, AreaDefinition entering)
+        {
+            if (leaving == null || entering == null) return;
+            if (!ServiceRegistry.TryGet(out WorldProgress progress) || progress == null) return;
+
+            if (leaving.IsRewardRoom)
+            {
+                progress.CompleteTheme(leaving.ThemeNumber);
+
+                if (logTransitions)
+                    Debug.Log($"[AreaTransition] 테마 {leaving.ThemeNumber} 완전 클리어 — " +
+                              $"{progress.ClearCountOf(leaving.ThemeNumber)}회차. 다음 입장 시 재배치됩니다");
+                return;
+            }
+
+            // 테마 안에서 층만 옮기는 것은 정산 대상이 아니다.
+            if (leaving.ThemeNumber == entering.ThemeNumber) return;
+
+            progress.SoftResetTheme(leaving.ThemeNumber);
+
+            if (logTransitions)
+                Debug.Log($"[AreaTransition] 테마 {leaving.ThemeNumber} 을(를) 떠났습니다 — " +
+                          "오브젝트와 서브 토템이 되살아납니다 (포탈은 열린 채)");
         }
 
         // ── 검증용 ────────────────────────────────────────────────────────

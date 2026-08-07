@@ -51,6 +51,11 @@ namespace PrettyKnights.Data
         [SerializeField, Tooltip("보스가 있는 층인지. 보상 포탈과 클리어 기록이 여기에 걸린다")]
         private bool isBossFloor;
 
+        [SerializeField, Tooltip(
+            "보상방인지. 여기를 떠나는 순간 그 테마를 완전 클리어한 것으로 보고 " +
+            "파괴 기록을 지우고 배치를 새로 뽑는다")]
+        private bool isRewardRoom;
+
         [Header("다음 층 — 메인 토템을 부수면 열릴 포탈의 목적지")]
         [SerializeField, Tooltip(
             "메인 토템이 어디에 랜덤 배치되든 그 자리에 열리는 포탈은 여기로 간다. " +
@@ -75,6 +80,9 @@ namespace PrettyKnights.Data
         public string DisplayName => displayName;
         public string Theme => theme;
         public bool IsBossFloor => isBossFloor;
+
+        /// <summary>보상방. 여기를 떠나면 그 테마가 초기화된다.</summary>
+        public bool IsRewardRoom => isRewardRoom;
 
         /// <summary>테마번호. 101~103 은 전부 1 을 돌려준다.</summary>
         public int ThemeNumber => areaId / 100;

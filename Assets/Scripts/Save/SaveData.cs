@@ -22,6 +22,7 @@ namespace PrettyKnights.Save
         [SerializeField] private long savedAtUtcTicks;
         [SerializeField] private PlayerRuntimeState player = new PlayerRuntimeState();
         [SerializeField] private WorldLocation location = new WorldLocation();
+        [SerializeField] private WorldProgress progress = new WorldProgress();
 
         public int Version => version;
         public PlayerRuntimeState Player => player;
@@ -29,20 +30,26 @@ namespace PrettyKnights.Save
         /// <summary>마지막으로 있었던 자리. 옛 세이브에는 없으므로 <c>HasValue</c> 가 false 다.</summary>
         public WorldLocation Location => location;
 
+        /// <summary>무엇을 부쉈고 어느 테마를 클리어했는지. 옛 세이브에는 없어 비어 있다.</summary>
+        public WorldProgress Progress => progress;
+
         public DateTime SavedAtUtc => new DateTime(savedAtUtcTicks, DateTimeKind.Utc);
 
-        public static SaveData CreateNew() => From(new PlayerRuntimeState(), new WorldLocation());
+        public static SaveData CreateNew() =>
+            From(new PlayerRuntimeState(), new WorldLocation(), new WorldProgress());
 
         /// <summary>
         /// 살아 있는 상태를 그대로 감싼다. 복사하지 않고 참조를 들기 때문에
         /// 저장 직전 값이 그대로 직렬화된다.
         /// </summary>
-        public static SaveData From(PlayerRuntimeState state, WorldLocation where) => new SaveData
+        public static SaveData From(
+            PlayerRuntimeState state, WorldLocation where, WorldProgress world) => new SaveData
         {
             version = CurrentVersion,
             savedAtUtcTicks = DateTime.UtcNow.Ticks,
             player = state ?? new PlayerRuntimeState(),
-            location = where ?? new WorldLocation()
+            location = where ?? new WorldLocation(),
+            progress = world ?? new WorldProgress()
         };
 
         public void StampSaveTime() => savedAtUtcTicks = DateTime.UtcNow.Ticks;
