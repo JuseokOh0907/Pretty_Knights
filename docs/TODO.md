@@ -1,6 +1,7 @@
 # 할 일
 
 > 마지막 갱신 2026-08-08.
+> **실행까지 가는 배치 순서는 [`docs/guides/run-setup.md`](guides/run-setup.md) 하나로 묶었다.**
 > 현재 무엇이 동작하는지는 [`CLAUDE.md` §7](../CLAUDE.md) 을 본다.
 > 왜 그렇게 정했는지는 `docs/decisions/` 를 본다.
 
