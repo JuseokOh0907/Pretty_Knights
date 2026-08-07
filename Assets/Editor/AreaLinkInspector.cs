@@ -67,6 +67,10 @@ namespace PrettyKnights.EditorTools
 
             foreach (AreaAnchor anchor in anchors.OrderBy(a => a.AreaId))
             {
+                // 자동 탐색 칸(Floor · Walkable)은 Resolve 가 채운다.
+                // 이걸 먼저 부르지 않고 읽으면 "비어 있으니 없다" 고 잘못 보고한다.
+                anchor.Resolve(force: true);
+
                 if (anchor.Definition == null)
                 {
                     report.AppendLine($"  ✗ '{anchor.name}' — AreaDefinition 이 비어 있음");
@@ -95,6 +99,14 @@ namespace PrettyKnights.EditorTools
                 if (anchor.Walkable == null)
                 {
                     report.AppendLine($"  ✗ #{id} '{anchor.name}' — WalkableArea 없음 (도착 보정이 안 됨)");
+                    problems++;
+                }
+                else if (anchor.Walkable.Floor == null)
+                {
+                    // 이게 비면 IsWalkable 이 항상 false 라 모든 도착 지점이 "바닥 밖" 으로 잡힌다.
+                    report.AppendLine(
+                        $"  ✗ #{id} '{anchor.name}' — WalkableArea 의 Floor 가 비어 있음 " +
+                        "(설 수 있는 자리가 하나도 없다고 판정된다)");
                     problems++;
                 }
 
@@ -126,7 +138,9 @@ namespace PrettyKnights.EditorTools
                     if (anchor.Walkable != null && !anchor.Walkable.IsWalkable(arrival.Position))
                     {
                         report.AppendLine(
-                            $"  △ #{id} 도착 지점 '{arrival.ArrivalId}' 가 바닥 밖 — 런타임에 주변으로 보정됨");
+                            $"  △ #{id} 도착 지점 '{arrival.ArrivalId}' ({arrival.Position.x:0.#}, {arrival.Position.y:0.#}) " +
+                            "가 바닥 타일 위가 아님 — 런타임에 주변 3유닛에서 설 수 있는 자리를 찾는다. " +
+                            "못 찾으면 그 좌표에 그대로 내려놓으므로 벽에 낄 수 있다");
                     }
                 }
 
