@@ -26,6 +26,12 @@ namespace PrettyKnights.World
         [SerializeField, Tooltip("벽. 여기에 타일이 있으면 설 수 없다")]
         private Tilemap guide;
 
+        [SerializeField, Tooltip(
+            "부술 수 있는 벽(히든 방). 부수기 전까지는 벽이므로 여기도 봐야 한다. " +
+            "빠뜨리면 히든 방 안에 몬스터가 스폰되고 도착 지점이 벽 안에 잡힌다. " +
+            "부서지면 타일이 사라져 자동으로 통행 가능이 된다")]
+        private Tilemap breakable;
+
         [Header("탐색")]
         [SerializeField, Min(1), Tooltip("무작위 지점을 몇 번까지 다시 뽑을지")]
         private int maxAttempts = 24;
@@ -34,6 +40,9 @@ namespace PrettyKnights.World
 
         /// <summary>벽. 점검 도구가 "바닥이 없다" 와 "벽 안이다" 를 갈라 보고하는 데 쓴다.</summary>
         public Tilemap Guide => guide;
+
+        /// <summary>부술 수 있는 벽. 히든 방 입구를 막는다.</summary>
+        public Tilemap Breakable => breakable;
 
         /// <summary>
         /// 설 수 없는 이유를 문장으로 돌려준다. 설 수 있으면 <c>null</c>.
@@ -51,6 +60,9 @@ namespace PrettyKnights.World
 
             if (guide != null && guide.HasTile(guide.WorldToCell(world)))
                 return "벽(Guide) 타일 위에 있음";
+
+            if (breakable != null && breakable.HasTile(breakable.WorldToCell(world)))
+                return "부술 수 있는 벽(히든 방) 위에 있음";
 
             return null;
         }
@@ -76,6 +88,9 @@ namespace PrettyKnights.World
 
             if (!floor.HasTile(cell)) return false;
             if (guide != null && guide.HasTile(guide.WorldToCell(world))) return false;
+
+            // 부수기 전까지는 이것도 벽이다.
+            if (breakable != null && breakable.HasTile(breakable.WorldToCell(world))) return false;
 
             return true;
         }

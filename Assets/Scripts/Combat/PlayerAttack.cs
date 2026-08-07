@@ -68,6 +68,9 @@ namespace PrettyKnights.Combat
         /// <summary>한 번의 휘두름에서 이미 맞은 대상. 같은 몸에 콜라이더가 여럿일 때 중복을 막는다.</summary>
         private readonly List<IDamageable> struck = new List<IDamageable>();
 
+        /// <summary>범위를 통째로 받는 대상(부술 수 있는 벽 등). 한 번만 넘긴다.</summary>
+        private readonly List<IAreaDamageable> struckAreas = new List<IAreaDamageable>();
+
         private InputAction attackAction;
         private ContactFilter2D filter;
         private float nextAllowedTime;
@@ -156,10 +159,20 @@ namespace PrettyKnights.Combat
 
             float attack = ResolveAttackPower();
             struck.Clear();
+            struckAreas.Clear();
 
             foreach (Collider2D collider in overlapped)
             {
                 if (collider == null) continue;
+
+                // 타일맵처럼 한 콜라이더가 여러 칸을 대표하는 것은 범위를 통째로 넘긴다.
+                // 어느 칸을 맞았는지는 받는 쪽이 같은 범위 계산으로 고른다.
+                IAreaDamageable area = collider.GetComponentInParent<IAreaDamageable>();
+                if (area != null && !struckAreas.Contains(area))
+                {
+                    struckAreas.Add(area);
+                    area.ApplyAreaDamage(shape, shapeParams, origin, facing, attack);
+                }
 
                 // 콜라이더는 자식(Visual)에 있을 수도 있으므로 부모까지 올라가 찾는다.
                 IDamageable target = collider.GetComponentInParent<IDamageable>();

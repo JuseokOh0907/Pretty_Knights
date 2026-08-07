@@ -199,17 +199,15 @@ Goblin1F
 - [x] 층마다 Breakable 타일맵 하나 (배치 완료)
 - [ ] `Guide` 와 겹친 칸 점검 도구 — 부숴도 안 뚫리는 자리를 미리 잡는다
 - [ ] Sorting Order 를 `Guide` + 1 로
-- [ ] `IAreaDamageable` — 범위를 통째로 받는 인터페이스.
+- [x] `IAreaDamageable` — 범위를 통째로 받는 인터페이스.
       타일맵은 GameObject 하나라 `IDamageable` 로는 **어느 칸을 맞았는지 알 수 없다**
-- [ ] `DestructibleTilemap` — 칸별 HP(`Dictionary<Vector3Int, float>`).
-      범위 ∩ cellBounds 를 `SkillShape.Contains` 로 걸러 한 번에 처리한다
-      (`CLAUDE.md` §5 — 타일마다 데미지 오브젝트를 만들지 않는다)
-- [ ] `PlayerAttack` 이 `IAreaDamageable` 도 찾게 — 한 번의 휘두름이
+- [x] `DestructibleTilemap` — 칸별 HP · 범위 ∩ cellBounds 를 `SkillShape.Contains` 로 거른다
+- [x] `PlayerAttack` 이 `IAreaDamageable` 도 찾는다 — 한 번의 휘두름이
       몬스터·오브젝트·벽을 전부 처리한다
-- [ ] **`WalkableArea` 에 breakable 레이어 추가** ← 없으면 히든 방 안에 몬스터가 스폰되고
-      도착 지점이 벽 안에 잡힌다. 부서지면 타일이 사라져 자동으로 통행 가능이 된다
-- [ ] 손상 표시 — 맞을수록 어두워지게 `Tilemap.SetColor`.
-      **`SetTileFlags(cell, TileFlags.None)` 을 먼저 부르지 않으면 조용히 아무 일도 안 일어난다**
+- [x] **`WalkableArea` 에 breakable 레이어 추가** — 부수기 전까지는 벽이다
+- [x] 손상 표시 — `SetTileFlags(TileFlags.None)` 후 `SetColor`
+- [ ] 층마다 Breakable 타일맵에 `DestructibleTilemap` 부착 + `WalkableArea` 의 `Breakable` 연결
+- [ ] **파괴 칸 세이브** — 아래 "파괴 상태 저장" 과 함께
 - [ ] 벽 파괴 애니메이션 (추후)
 
 > **벽 강도를 방마다 다르게 하고 싶어지면** 타일 에셋 종류로 가르면 된다.
@@ -226,8 +224,20 @@ Goblin1F
 **보상방**은 보스 처치 → 시체 자리에 `Gold_Portal` 생성 → #190.
 `SpawnTotem` 이 메인 토템에서 하는 일과 **완전히 같은 흐름**이라 별도 구조가 필요 없다.
 
-- [ ] 보스 처치 판정 → 그 자리에 보상 포탈
-- [ ] `AreaDefinition` #190/#290/#390 (보상방)
+- [ ] 보스 처치 판정 → 시체 자리에 **Gold** 포탈 (유일한 런타임 생성 포탈)
+- [ ] `AreaDefinition` #190/#290/#390 (보상방) + `isRewardRoom` 플래그
+- [ ] 보상방에 아이템 + 던전 입구(#3)로 가는 **Blue** 포탈 배치
+
+**포탈 3종의 용도** (결정 006 §3-1)
+
+| 구간 | 포탈 | 언제 |
+|---|---|---|
+| 1F → 2F | Blue | 1F 메인 토템 파괴 |
+| 2F → 3F | Red | 2F 메인 토템 파괴 |
+| 3F → 보상방 | Gold | 보스 처치. 시체 자리 |
+| 보상방 → 입구 | Blue | 항상 |
+
+층별 포탈은 `FloorScatterProfile.portalPrefab` 이 이미 층마다 다르므로 그대로 된다.
 
 ### 4. 경로 탐색 (그리드 A*)
 
