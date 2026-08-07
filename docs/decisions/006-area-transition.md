@@ -69,14 +69,14 @@ Goblin 2F 에는 고블린이 두 종류 배치될 예정이고, 배치가 바�
 ```
 AreaDefinition.asset   번호만 선언 (씬 비종속)
         ↕  번호로만 이어진다
-AreaAnchor (씬)        "나는 #102 다" + Floor · WalkableArea · SpawnPoint 들
+AreaAnchor (씬)        "나는 #102 다" + Floor · WalkableArea · ArrivalPoint 들
 ```
 
 | 조각 | 사는 곳 | 책임 |
 |---|---|---|
 | `AreaDefinition` | 에셋 | areaId · 표시명 · 보스 여부 · 탈출 목적지 |
 | `AreaAnchor` | 층 루트 | 그 번호가 씬의 어느 오브젝트인지 |
-| `SpawnPoint` | 층 자식 | 도착 좌표 **와 도착 후 바라볼 방향** |
+| `ArrivalPoint` | 층 자식 | 도착 좌표 **와 도착 후 바라볼 방향** |
 | `AreaRegistry` | `Map` 루트 | 번호 → 층 해석, 활성 층 교체, 카메라 경계 |
 | `AreaTransition` | Boot 상주 | 잠금 · 페이드 · 교체 · 이동 · 저장의 순서 |
 | `Portal` | 층 자식 | "어디로" 만 말한다 |

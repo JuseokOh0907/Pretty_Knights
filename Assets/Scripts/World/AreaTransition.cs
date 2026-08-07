@@ -40,8 +40,8 @@ namespace PrettyKnights.World
                 ServiceRegistry.Unregister<AreaTransition>();
         }
 
-        /// <summary>포탈이 부른다. 목적지 구역의 <paramref name="spawnId"/> 지점으로 옮긴다.</summary>
-        public void Request(AreaDefinition destination, string spawnId)
+        /// <summary>포탈이 부른다. 목적지 구역의 <paramref name="arrivalId"/> 지점으로 옮긴다.</summary>
+        public void Request(AreaDefinition destination, string arrivalId)
         {
             if (destination == null)
             {
@@ -70,7 +70,7 @@ namespace PrettyKnights.World
                 return;
             }
 
-            StartCoroutine(Run(registry, anchor, spawnId));
+            StartCoroutine(Run(registry, anchor, arrivalId));
         }
 
         /// <summary>
@@ -88,11 +88,11 @@ namespace PrettyKnights.World
                 return false;
             }
 
-            Request(here.EscapeTo, here.EscapeSpawnId);
+            Request(here.EscapeTo, here.EscapeArrivalId);
             return true;
         }
 
-        private IEnumerator Run(AreaRegistry registry, AreaAnchor destination, string spawnId)
+        private IEnumerator Run(AreaRegistry registry, AreaAnchor destination, string arrivalId)
         {
             IsTransitioning = true;
 
@@ -112,28 +112,28 @@ namespace PrettyKnights.World
 
             // 4) 도착. 지정 지점이 벽이면 주변에서 설 수 있는 칸을 찾는다.
             //    맵을 다시 그렸을 때 조용히 벽 속에 박히는 것을 막는다.
-            SpawnPoint spawn = destination.ResolveSpawn(spawnId);
-            if (spawn == null)
+            ArrivalPoint arrival = destination.ResolveArrival(arrivalId);
+            if (arrival == null)
             {
                 Debug.LogError(
                     $"[AreaTransition] '{destination.name}' 에 도착 지점이 하나도 없습니다. " +
-                    "SpawnPoint 를 최소 하나 두어야 합니다.");
+                    "ArrivalPoint 를 최소 하나 두어야 합니다.");
             }
             else if (player != null && player.Motor != null)
             {
-                Vector2 landing = spawn.Position;
+                Vector2 landing = arrival.Position;
 
                 WalkableArea area = destination.Walkable;
                 if (area != null && !area.TryFindWalkable(landing, landingSearchRadius, out landing))
                 {
                     Debug.LogWarning(
-                        $"[AreaTransition] 도착 지점 '{spawn.SpawnId}' 주변에서 설 수 있는 자리를 찾지 못했습니다. " +
+                        $"[AreaTransition] 도착 지점 '{arrival.ArrivalId}' 주변에서 설 수 있는 자리를 찾지 못했습니다. " +
                         "지정된 좌표를 그대로 씁니다.");
-                    landing = spawn.Position;
+                    landing = arrival.Position;
                 }
 
                 player.Motor.Warp(landing);
-                player.AnimatorDriver?.ForceFacing(spawn.Facing);
+                player.AnimatorDriver?.ForceFacing(arrival.Facing);
             }
 
             // 5) 카메라를 즉시 붙인다. 보간에 맡기면 페이드 인 후에 화면이 흘러간다.
@@ -148,7 +148,7 @@ namespace PrettyKnights.World
             }
 
             if (logTransitions)
-                Debug.Log($"[AreaTransition] 이동 완료 — {destination.Definition} / 지점 '{spawnId}'");
+                Debug.Log($"[AreaTransition] 이동 완료 — {destination.Definition} / 지점 '{arrivalId}'");
 
             // 7) 페이드 인과 잠금 해제
             if (fader != null) yield return fader.FadeIn();
@@ -168,8 +168,8 @@ namespace PrettyKnights.World
         [SerializeField, Tooltip("아래 컨텍스트 메뉴가 보낼 구역")]
         private AreaDefinition debugDestination;
 
-        [SerializeField, Tooltip("디버그 이동이 쓸 도착 지점")]
-        private string debugSpawnId = "default";
+        [SerializeField, Tooltip("디버그 이동이 쓸 도착 지점. 비우면 그 구역의 대체 지점")]
+        private string debugArrivalId = string.Empty;
 
         [ContextMenu("디버그 이동")]
         private void DebugJump()
@@ -180,7 +180,7 @@ namespace PrettyKnights.World
                 return;
             }
 
-            Request(debugDestination, debugSpawnId);
+            Request(debugDestination, debugArrivalId);
         }
 
         [ContextMenu("디버그 탈출")]

@@ -97,7 +97,7 @@ Assets/Scripts/
 ├── Characters/  CharacterMotor · PlayerController · PlayerHitReaction
 │                DirectionalAnimatorDriver · MonsterController · EightDirection
 ├── World/       CameraFollow · WalkableArea · MonsterSpawner · FloorPopulation
-│                AreaAnchor · SpawnPoint · AreaRegistry · AreaTransition · Portal
+│                AreaAnchor · ArrivalPoint · AreaRegistry · AreaTransition · Portal
 │                IInteractable · InteractableBehaviour · InteractionHub
 └── UI/          UIRoot · ModeSwitchButton · ScreenFader · InteractButton
 ```
@@ -284,7 +284,7 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
 - `MonsterSpawner` — 지점 고정 스폰 (1F 안내 · 3F 보스용)
 - `FloorPopulation` — 층 인구 관리 (2F 파밍용). 분포 3종
 - `MonsterController` — 배회/추격/공격. **임시 프리팹만 있고 몬스터 아트는 없다**
-- **구역 전환 일습** — `AreaDefinition` · `AreaAnchor` · `SpawnPoint` · `AreaRegistry` ·
+- **구역 전환 일습** — `AreaDefinition` · `AreaAnchor` · `ArrivalPoint` · `AreaRegistry` ·
   `AreaTransition` · `Portal` · 상호작용 3종 · `ScreenFader` · `InteractButton`.
   배치 절차는 [`docs/guides/portal-area-setup.md`](docs/guides/portal-area-setup.md),
   설계 근거는 [`docs/decisions/006-area-transition.md`](docs/decisions/006-area-transition.md)

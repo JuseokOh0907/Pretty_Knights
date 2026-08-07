@@ -181,7 +181,7 @@ TotemSite  (빈 GameObject — 여기가 포탈이 생길 자리)
  └─ Portal  [Portal · BoxCollider2D(Trigger) 2×2]         비활성으로 시작
 ```
 
-이유가 둘이다. `Portal` 은 목적지 `AreaDefinition` + spawnId 링크를 들고 있어야 하는데
+이유가 둘이다. `Portal` 은 목적지 `AreaDefinition` + arrivalId 링크를 들고 있어야 하는데
 런타임 생성이면 에디터에서 지정할 데가 없다. 그리고
 `Pretty Knights > Areas > 0. 포탈 링크 점검` 이 **비활성 포탈까지 훑으므로**,
 미리 배치해두면 토템을 부숴보기 전에 링크 오타가 잡힌다.

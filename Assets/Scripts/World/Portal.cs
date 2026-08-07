@@ -24,11 +24,11 @@ namespace PrettyKnights.World
         [SerializeField, Tooltip("이 포탈이 보낼 구역")]
         private AreaDefinition destination;
 
-        [SerializeField, Tooltip("목적지 구역 안의 도착 지점 spawnId")]
-        private string destinationSpawnId = "default";
+        [SerializeField, Tooltip("목적지 구역 안의 도착 지점 arrivalId. 비우면 그 구역의 대체 지점")]
+        private string destinationArrivalId = string.Empty;
 
         public AreaDefinition Destination => destination;
-        public string DestinationSpawnId => destinationSpawnId;
+        public string DestinationArrivalId => destinationArrivalId;
 
         public override bool CanInteract => base.CanInteract && destination != null;
 
@@ -61,7 +61,7 @@ namespace PrettyKnights.World
                 return;
             }
 
-            transition.Request(destination, destinationSpawnId);
+            transition.Request(destination, destinationArrivalId);
         }
 
         private void OnDrawGizmosSelected()
@@ -74,11 +74,11 @@ namespace PrettyKnights.World
             {
                 if (anchor.AreaId != destination.AreaId) continue;
 
-                SpawnPoint spawn = anchor.ResolveSpawn(destinationSpawnId);
-                if (spawn == null) continue;
+                ArrivalPoint arrival = anchor.ResolveArrival(destinationArrivalId);
+                if (arrival == null) continue;
 
                 Gizmos.color = new Color(0.4f, 0.7f, 1f, 0.8f);
-                Gizmos.DrawLine(transform.position, spawn.transform.position);
+                Gizmos.DrawLine(transform.position, arrival.transform.position);
                 return;
             }
         }

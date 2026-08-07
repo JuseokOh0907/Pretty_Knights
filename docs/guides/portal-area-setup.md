@@ -46,7 +46,7 @@ BoxCollider2D (Is Trigger) 안에 들어감   →   화면에 사용 버튼이 �
 ```
 AreaDefinition.asset   #102 라는 번호만 선언
         ↕  번호로만 이어진다
-AreaAnchor (씬)        "나는 #102 다" + 내 Floor · WalkableArea · SpawnPoint 들
+AreaAnchor (씬)        "나는 #102 다" + 내 Floor · WalkableArea · ArrivalPoint 들
 ```
 
 `AreaRegistry` 가 그 사이를 잇는다. **비활성 층까지 훑는 것이 이 컴포넌트의 존재 이유다** —
@@ -104,7 +104,7 @@ Boot.unity
 │    │        Landing Search Radius → 3
 │    │        Log Transitions       → 켬
 │    │        Debug Destination     → 비움 (재생 중 검증할 때만 채운다)
-│    │        Debug Spawn Id        → default
+│    │        Debug Arrival Id      → 비움 (비우면 대체 지점)
 │    │
 │    └─ [C] InteractionHub                    ← 추가
 │             Input Actions  → InputSystem_Actions   ★ 반드시 연결
@@ -183,7 +183,7 @@ Ingame_Horizontal.unity
           │    │        Definition      → Area_Goblin_1F  ★
           │    │        Floor           → 1Floor 의 Tilemap  ★ 직접 연결할 것
           │    │        Walkable        → 비움 (같은 오브젝트에서 자동)
-          │    │        Fallback Spawn  → from_entrance
+          │    │        Fallback Arrival  → from_entrance
           │    ├─ [C] WalkableArea            ← 추가
           │    │        Floor  → 1Floor 의 Tilemap
           │    │        Guide  → 1FGuide 의 Tilemap
@@ -200,10 +200,10 @@ Ingame_Horizontal.unity
           │    │    ├─ [C] CompositeCollider2D
           │    │    └─ [C] Rigidbody2D        Body Type: Static
           │    │
-          │    ├─ Spawns  (GameObject)        묶음용. 컴포넌트 없음
+          │    ├─ Arrivals  (GameObject)        묶음용. 컴포넌트 없음
           │    │    └─ from_entrance  (GameObject)
           │    │         ├─ [C] Transform
-          │    │         └─ [C] SpawnPoint    Spawn Id → default
+          │    │         └─ [C] ArrivalPoint    Arrival Id → from_entrance
           │    │                              Facing   → (0, -1)
           │    │
           │    └─ Portals  (GameObject)       묶음용. 컴포넌트 없음
@@ -216,14 +216,14 @@ Ingame_Horizontal.unity
           │                       Prompt Label   → 비움 (목적지 이름이 자동으로 들어간다)
           │                       Interactable   → 켬
           │                       Destination    → Area_Goblin_2F  ★
-          │                       Destination Spawn Id → from_1f   ★
+          │                       Destination Arrival Id → from_1f   ★
           │
           ├─ Goblin2F  (GameObject)           위와 같은 구성
           │    ├─ [C] AreaAnchor    Definition → Area_Goblin_2F
           │    ├─ [C] WalkableArea  Floor → 2Floor · Guide → 2FGuide
           │    ├─ 2Floor / 2FGuide  (기존)
-          │    ├─ Spawns
-          │    │    └─ from_1f      [C] SpawnPoint  Spawn Id → from_1f
+          │    ├─ Arrivals
+          │    │    └─ from_1f      [C] ArrivalPoint  Arrival Id → from_1f
           │    └─ Portals
           │         └─ Portal_to_3F  [C] Portal  → Area_Goblin_3F / from_2f
           │
@@ -231,8 +231,8 @@ Ingame_Horizontal.unity
                ├─ [C] AreaAnchor    Definition → Area_Goblin_3F
                ├─ [C] WalkableArea  Floor → 3Floor · Guide → 3FGuide
                ├─ 3Floor / 3FGuide  (기존)
-               ├─ Spawns
-               │    └─ from_2f      [C] SpawnPoint  Spawn Id → from_2f
+               ├─ Arrivals
+               │    └─ from_2f      [C] ArrivalPoint  Arrival Id → from_2f
                └─ Portals
                     └─ Portal_reward  [C] Portal
                              Interactable → **끔**    보스를 잡아야 열린다
@@ -269,9 +269,9 @@ Pretty Knights > Areas > 1. AreaDefinition 번호 목록
 - `AreaDefinition` 이 비어 있는 층
 - areaId 번호 중복
 - 바닥 타일맵 · `WalkableArea` 누락
-- `SpawnPoint` 가 하나도 없는 층 · spawnId 중복 · spawnId 공백
+- `ArrivalPoint` 가 하나도 없는 층 · arrivalId 중복 · arrivalId 공백
 - 포탈의 목적지가 비었거나 그 번호의 층이 씬에 없음
-- 포탈의 목적지 spawnId 가 그 층에 없음
+- 포탈의 목적지 arrivalId 가 그 층에 없음
 - `Is Trigger` 가 꺼진 포탈
 - 도착 지점이 바닥 밖 (경고만 — 런타임에 주변으로 보정된다)
 

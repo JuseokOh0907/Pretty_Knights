@@ -85,7 +85,7 @@
 배치 절차는 [`docs/guides/portal-area-setup.md`](guides/portal-area-setup.md).
 
 - [x] AreaID 체계 — `테마번호 × 100 + 층` (Goblin 101~103 · Orc 201~203 · Vampire 301~303)
-- [x] `AreaDefinition`(SO) · `AreaAnchor` · `SpawnPoint` · `AreaRegistry` · `AreaTransition` · `Portal`
+- [x] `AreaDefinition`(SO) · `AreaAnchor` · `ArrivalPoint` · `AreaRegistry` · `AreaTransition` · `Portal`
 - [x] 상호작용 계층 — `IInteractable` · `InteractableBehaviour` · `InteractionHub`
       (히든 상자·아이템이 같은 흐름을 쓴다)
 - [x] `WorldLocation` 에 `areaId` 추가 + `GameRoot` 복원 시 구역 먼저 켜기
@@ -94,7 +94,7 @@
 - [ ] **`Assets/Data/Areas/` 에 `AreaDefinition` 3개 생성** (101 · 102 · 103)
 - [ ] **Boot 씬** — `AreaTransition` · `InteractionHub` · `InteractButton` · `FadeOverlay` 배치
 - [ ] **Ingame_Horizontal** — `Map` 에 `AreaRegistry`, Goblin 3개 층에 `AreaAnchor` + `WalkableArea`,
-      `SpawnPoint` · `Portal` 배치
+      `ArrivalPoint` · `Portal` 배치
 - [ ] Orc · Vampire 로 복제 (Goblin 검증 후)
 
 > 포탈은 **단방향**이다. 되돌아오는 길은 탈출 스킬뿐이며

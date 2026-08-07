@@ -55,8 +55,8 @@ namespace PrettyKnights.Data
         [SerializeField, Tooltip("이 구역에서 탈출하면 도착할 구역. 보통 그 던전의 입구")]
         private AreaDefinition escapeTo;
 
-        [SerializeField, Tooltip("탈출 도착 지점의 spawnId")]
-        private string escapeSpawnId = "default";
+        [SerializeField, Tooltip("탈출 도착 지점의 arrivalId. 비우면 그 구역의 대체 지점")]
+        private string escapeArrivalId = string.Empty;
 
         public int AreaId => areaId;
         public string DisplayName => displayName;
@@ -71,7 +71,7 @@ namespace PrettyKnights.Data
 
         /// <summary>던전 탈출 목적지. 없으면 탈출할 수 없는 구역이다 (거점 등).</summary>
         public AreaDefinition EscapeTo => escapeTo;
-        public string EscapeSpawnId => escapeSpawnId;
+        public string EscapeArrivalId => escapeArrivalId;
         public bool CanEscape => escapeTo != null;
 
         public override string ToString() => $"{theme} {displayName} (#{areaId})";

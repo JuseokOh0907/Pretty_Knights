@@ -11,7 +11,7 @@ namespace PrettyKnights.EditorTools
     /// <summary>
     /// 포탈 링크를 점검한다. <b>씬을 바꾸지 않는다.</b>
     ///
-    /// 구역은 areaId(숫자)와 spawnId(문자열)로만 이어져 있어
+    /// 구역은 areaId(숫자)와 arrivalId(문자열)로만 이어져 있어
     /// 오타를 컴파일러가 잡아주지 못한다. 게다가 잘못된 링크는
     /// <b>그 포탈을 실제로 밟아 보기 전까지 드러나지 않는다.</b>
     /// 층이 9개라 전부 걸어서 확인하는 것은 현실적이지 않으므로 정적으로 훑는다.
@@ -98,41 +98,41 @@ namespace PrettyKnights.EditorTools
                     problems++;
                 }
 
-                SpawnPoint[] spawns = anchor.AllSpawns;
+                ArrivalPoint[] arrivals = anchor.AllArrivals;
 
-                if (spawns == null || spawns.Length == 0)
+                if (arrivals == null || arrivals.Length == 0)
                 {
-                    report.AppendLine($"  ✗ #{id} '{anchor.name}' — SpawnPoint 가 하나도 없음");
+                    report.AppendLine($"  ✗ #{id} '{anchor.name}' — ArrivalPoint 가 하나도 없음");
                     problems++;
                     continue;
                 }
 
-                var seenSpawnIds = new HashSet<string>();
-                foreach (SpawnPoint spawn in spawns)
+                var seenArrivalIds = new HashSet<string>();
+                foreach (ArrivalPoint arrival in arrivals)
                 {
-                    if (spawn == null) continue;
+                    if (arrival == null) continue;
 
-                    if (string.IsNullOrWhiteSpace(spawn.SpawnId))
+                    if (string.IsNullOrWhiteSpace(arrival.ArrivalId))
                     {
-                        report.AppendLine($"  ✗ #{id} '{spawn.name}' — spawnId 가 비어 있음");
+                        report.AppendLine($"  ✗ #{id} '{arrival.name}' — arrivalId 가 비어 있음");
                         problems++;
                     }
-                    else if (!seenSpawnIds.Add(spawn.SpawnId))
+                    else if (!seenArrivalIds.Add(arrival.ArrivalId))
                     {
-                        report.AppendLine($"  ✗ #{id} — spawnId '{spawn.SpawnId}' 가 구역 안에서 중복");
+                        report.AppendLine($"  ✗ #{id} — arrivalId '{arrival.ArrivalId}' 가 구역 안에서 중복");
                         problems++;
                     }
 
-                    if (anchor.Walkable != null && !anchor.Walkable.IsWalkable(spawn.Position))
+                    if (anchor.Walkable != null && !anchor.Walkable.IsWalkable(arrival.Position))
                     {
                         report.AppendLine(
-                            $"  △ #{id} 도착 지점 '{spawn.SpawnId}' 가 바닥 밖 — 런타임에 주변으로 보정됨");
+                            $"  △ #{id} 도착 지점 '{arrival.ArrivalId}' 가 바닥 밖 — 런타임에 주변으로 보정됨");
                     }
                 }
 
                 report.AppendLine(
-                    $"  · #{id} {anchor.Definition.DisplayName} — 도착 지점 {spawns.Length}개 " +
-                    $"[{string.Join(", ", spawns.Where(s => s != null).Select(s => s.SpawnId))}]");
+                    $"  · #{id} {anchor.Definition.DisplayName} — 도착 지점 {arrivals.Length}개 " +
+                    $"[{string.Join(", ", arrivals.Where(a => a != null).Select(a => a.ArrivalId))}]");
             }
 
             return problems;
@@ -175,13 +175,13 @@ namespace PrettyKnights.EditorTools
                     continue;
                 }
 
-                bool spawnFound = target.AllSpawns != null &&
-                                  target.AllSpawns.Any(s => s != null && s.SpawnId == portal.DestinationSpawnId);
+                bool arrivalFound = target.AllArrivals != null &&
+                                    target.AllArrivals.Any(a => a != null && a.ArrivalId == portal.DestinationArrivalId);
 
-                if (!spawnFound)
+                if (!arrivalFound)
                 {
                     report.AppendLine(
-                        $"  ✗ {where} — 목적지 #{targetId} 에 도착 지점 '{portal.DestinationSpawnId}' 가 없음");
+                        $"  ✗ {where} — 목적지 #{targetId} 에 도착 지점 '{portal.DestinationArrivalId}' 가 없음");
                     problems++;
                     continue;
                 }
@@ -194,7 +194,7 @@ namespace PrettyKnights.EditorTools
                 }
 
                 report.AppendLine(
-                    $"  · {where} → #{targetId} '{portal.DestinationSpawnId}'");
+                    $"  · {where} → #{targetId} '{portal.DestinationArrivalId}'");
             }
 
             return problems;
