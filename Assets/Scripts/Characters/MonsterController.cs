@@ -1,4 +1,5 @@
 using System;
+using PrettyKnights.Combat;
 using PrettyKnights.Data;
 using UnityEngine;
 
@@ -18,7 +19,7 @@ namespace PrettyKnights.Characters
     /// </summary>
     [RequireComponent(typeof(CharacterMotor))]
     [DisallowMultipleComponent]
-    public sealed class MonsterController : MonoBehaviour
+    public sealed class MonsterController : MonoBehaviour, IDamageable
     {
         public enum State
         {
@@ -41,6 +42,10 @@ namespace PrettyKnights.Characters
         private float wanderRadius = 3f;
         [SerializeField, Min(0.1f)] private float wanderIntervalMin = 1.5f;
         [SerializeField, Min(0.1f)] private float wanderIntervalMax = 3.5f;
+
+        [Header("피격 반응")]
+        [SerializeField, Min(0f), Tooltip("맞았을 때 밀려나는 세기. VIT 가 높을수록 덜 밀린다")]
+        private float knockbackOnHit = 3f;
 
         /// <summary>죽는 순간 발생한다. 스포너가 이걸 듣고 리스폰 쿨타임을 시작한다.</summary>
         public event Action<MonsterController> Died;
@@ -216,6 +221,38 @@ namespace PrettyKnights.Characters
                 target = player.transform;
 
             if (CurrentHp <= 0f) Die();
+        }
+
+        // ── IDamageable ───────────────────────────────────────────────────
+        // 스킬 판정이 "몬스터인가 오브젝트인가" 를 묻지 않게 하려는 것이다.
+        // 광역 폭발 한 번이 몬스터 셋과 토템 하나를 함께 때리는 것이 자연스러워야 한다.
+
+        bool IDamageable.IsAlive => !IsDead;
+
+        float IDamageable.Defense => definition != null ? definition.Stats.Defense : 0f;
+
+        Transform IDamageable.Transform => transform;
+
+        /// <summary>
+        /// 이미 공식을 거친 최종 피해량을 받는다.
+        /// 넉백은 몬스터를 밀어내는 쪽이므로 <b>때린 쪽의 정의가 아니라 이 몬스터가 감당한다.</b>
+        /// </summary>
+        void IDamageable.ApplyDamage(float amount, Vector2 sourcePosition)
+        {
+            if (IsDead) return;
+
+            TakeDamage(amount);
+
+            if (IsDead || motor == null) return;
+
+            Vector2 away = (Vector2)transform.position - sourcePosition;
+            if (away.sqrMagnitude < 0.0001f) return;
+
+            // 무게가 있는 몬스터일수록 덜 밀린다. VIT 를 무게로 읽는다.
+            float vitality = definition != null ? Mathf.Max(1f, definition.Stats.Vitality) : 10f;
+            float force = knockbackOnHit * Mathf.Clamp(10f / vitality, 0.2f, 1f);
+
+            motor.ApplyKnockback(away.normalized, force);
         }
 
         private void Die()

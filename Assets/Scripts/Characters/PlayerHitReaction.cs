@@ -60,7 +60,11 @@ namespace PrettyKnights.Characters
 
             if (ServiceRegistry.TryGet(out PlayerRuntimeState state))
             {
-                float damage = attacker.Stats.Attack;
+                // 데미지 공식이 아직 확정되지 않아 CombatSettings 가 고른 모델로 계산한다.
+                // 플레이어를 때리는 쪽이므로 비대칭 모델에서 다른 배율이 적용된다.
+                float defense = state.IsBound ? state.Stats.Defense : 0f;
+                float damage = CombatSettings.Damage(attacker.Stats.Attack, defense, targetIsPlayer: true);
+
                 state.ApplyDamage(damage);
                 Damaged?.Invoke(damage);
             }

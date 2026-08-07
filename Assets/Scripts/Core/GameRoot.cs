@@ -19,6 +19,9 @@ namespace PrettyKnights.Core
         [Header("정의 에셋")]
         [SerializeField] private PlayerStatsDefinition playerStats;
 
+        [SerializeField, Tooltip("데미지 공식. 비우면 감쇠율 기본값으로 동작한다")]
+        private CombatSettings combatSettings;
+
         [Header("시작 설정")]
         [SerializeField, Tooltip("신규 플레이일 때의 시작 모드. 저장된 위치가 있으면 그쪽이 우선한다")]
         private GameMode startMode = GameMode.Horizontal;
@@ -138,6 +141,10 @@ namespace PrettyKnights.Core
             IsNewGame = !Saves.TryLoad(out SaveData data);
             PlayerState = data.Player;
             Location = data.Location;
+
+            // 공식이 확정되지 않아 SO 로 갈아 끼울 수 있게 두었다.
+            // 비어 있어도 감쇠율 기본값으로 동작하므로 게임이 멈추지는 않는다.
+            CombatSettings.Bind(combatSettings);
 
             if (playerStats == null)
             {

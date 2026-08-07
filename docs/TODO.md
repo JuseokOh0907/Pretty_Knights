@@ -26,6 +26,9 @@
 - [ ] `Assets/Data/Monsters/` 에 `.asset` 10종 생성
 - [ ] 임시 몬스터 프리팹에 연결해 배회·추격·공격 검증
 
+> **에셋 생성 도구는 만들어졌다.** `Pretty Knights > Data > 1. MonsterDefinition 생성/갱신`
+> 시트의 값이 코드 표에 들어 있고, 이미 있는 에셋은 지우지 않고 값만 덮어쓴다.
+
 **② 몬스터 아트가 없다**
 
 `Maps/` 의 Goblin·Orc·Vampire 는 **맵 테마**이지 몬스터가 아니다.
@@ -188,14 +191,21 @@ SkillInstance                시전마다 하나. 여기만 상태를 갖는다
 Unity 게임플레이는 메인 스레드 단일이라 "동시" 는 같은 프레임 안의 순차 실행이다.
 경합 조건은 없고 위 셋만 지키면 된다. 무상태 코어는 나중에 Jobs/Burst 로 그대로 옮겨간다.
 
-- [ ] 범위 패턴 `Forward` / `Line` / `Cross` / `Area` / `Dash`
-- [ ] **데미지 공식 확정** — 여기서 함께 정한다. 후보는
-      감산 `ATK − DEF×1.5` / 비대칭 배율 / 감쇠율 `ATK × 100/(100+DEF×1.5)`
-      (플레이어 Lv1 ATK 20 · DEF 40 기준으로 세 안의 결과가 크게 갈린다)
+- [x] 범위 패턴 `Forward` / `Line` / `Cross` / `Area` / `Dash` — `SkillShape`(무상태)
+- [x] `IDamageable` — 몬스터와 파괴 가능 오브젝트가 함께 쓴다
+- [x] **플레이어 기본 공격** — `PlayerAttack` + `AttackButton`(쿨타임 표시).
+      키와 버튼이 같은 경로를 탄다
+- [x] `CombatSettings` — 세 공식을 **재생 중에 바꿔가며 비교**할 수 있게 SO 로.
+      배선은 [`docs/guides/player-attack-setup.md`](guides/player-attack-setup.md)
+- [ ] **데미지 공식 확정** — 실제로 때려보고 고른다.
+      감산 / 비대칭 배율 / 감쇠율. 고른 것이 미결 #3(스탯 공식)의 답이 된다
 - [ ] 플레이어 스킬 3종 — 전방 베기 · 관통 직선 · 광역 폭발
+- [ ] `MonsterController.PerformAttack` 을 `SkillShape` 로 옮기기
+      (지금은 거리 판정으로 직접 때린다)
+- [ ] 다단히트 — `SkillInstance` 가 붙을 때. 매 프레임이 아니라 고정 간격
 - [ ] 몬스터 등급별 스킬
 - [ ] 공격 버튼 UI
-- [ ] `Destructible` 연결 — 오브젝트·토템도 같은 판정으로 부순다
+- [ ] `Destructible` — `IDamageable` 을 구현하면 지금 판정으로 바로 부숴진다
 
 ---
 
