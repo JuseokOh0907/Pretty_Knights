@@ -99,7 +99,7 @@ Boot.unity
 │    │        Landing Search Radius → 3
 │    │        Log Transitions       → 켬
 │    │        Debug Destination     → 비움 (검증할 때만 채운다)
-│    │        Debug Spawn Id        → default
+│    │        Debug Spawn Id        → from_1f  (없는 이름이면 대체 지점으로 간다)
 │    │
 │    └─ [C] InteractionHub                                 ← 추가
 │             Input Actions → ★ InputSystem_Actions
@@ -295,33 +295,58 @@ Ingame_Horizontal.unity
 │    │   │    │    ├─ [C] CompositeCollider2D
 │    │   │    │    └─ [C] Rigidbody2D    Static
 │    │   │    │
-│    │   │    ├─ Spawns  (GameObject)              묶음용
+│    │   │    ├─ Spawns  (GameObject)              묶음용. 컴포넌트 없음
 │    │   │    │    └─ from_entrance  (GameObject)
-│    │   │    │         ├─ [C] Transform
-│    │   │    │         └─ [C] SpawnPoint   Spawn Id → default · Facing (0,-1)
+│    │   │    │         ├─ [C] Transform      위치 = 여기 내릴 자리
+│    │   │    │         └─ [C] SpawnPoint
+│    │   │    │                  Spawn Id → from_entrance
+│    │   │    │                  Facing   → (0, -1)
 │    │   │    │
 │    │   │    ├─ Portals  (GameObject)             묶음용
 │    │   │    │    └─ Portal_to_2F   Blue_Portal 인스턴스
 │    │   │    │         └─ [C] Portal
 │    │   │    │              Destination          → ★ Area_Goblin_2F
-│    │   │    │              Destination Spawn Id → ★ from_1f
+│    │   │    │              Destination Spawn Id → ★ from_1f   (2F 쪽 지점 이름)
 │    │   │    │
 │    │   │    └─ Monsters  (GameObject)            묶음용
 │    │   │         └─ Monster  ×2~3   Monster.prefab 인스턴스
 │    │   │              └─ [C] MonsterController  Definition → ★ Monster_goblin_hob
 │    │   │
 │    │   ├─ Goblin2F  (GameObject)    ← **꺼 둔다**
-│    │   │    ├─ [C] AreaAnchor     Definition → ★ Area_Goblin_2F · Floor → ★ 2Floor
+│    │   │    ├─ [C] AreaAnchor
+│    │   │    │        Definition     → ★ Area_Goblin_2F
+│    │   │    │        Floor          → ★ 2Floor
+│    │   │    │        Fallback Spawn → ★ from_1f
 │    │   │    ├─ [C] WalkableArea   Floor → ★ 2Floor · Guide → ★ 2FGuide
-│    │   │    ├─ 2Floor / 2FGuide                  (기존)
-│    │   │    ├─ Spawns   └ from_1f   [C] SpawnPoint  Spawn Id → **from_1f**
-│    │   │    └─ Portals  └ Portal_to_3F  → ★ Area_Goblin_3F / from_2f
+│    │   │    │
+│    │   │    ├─ 2Floor  (GameObject)              (기존)
+│    │   │    ├─ 2FGuide  (GameObject)             (기존)
+│    │   │    │
+│    │   │    ├─ Spawns  (GameObject)              묶음용. 컴포넌트 없음
+│    │   │    │    └─ from_1f  (GameObject)        1F 에서 올라온 사람이 서는 자리
+│    │   │    │         ├─ [C] Transform
+│    │   │    │         └─ [C] SpawnPoint   Spawn Id → from_1f
+│    │   │    │
+│    │   │    └─ Portals  (GameObject)             묶음용
+│    │   │         └─ Portal_to_3F  (Blue_Portal 인스턴스)
+│    │   │              └─ [C] Portal
+│    │   │                   Destination          → ★ Area_Goblin_3F
+│    │   │                   Destination Spawn Id → ★ from_2f
 │    │   │
 │    │   └─ Goblin3F  (GameObject)    ← **꺼 둔다**
-│    │        ├─ [C] AreaAnchor     Definition → ★ Area_Goblin_3F · Floor → ★ 3Floor
+│    │        ├─ [C] AreaAnchor
+│    │        │        Definition     → ★ Area_Goblin_3F
+│    │        │        Floor          → ★ 3Floor
+│    │        │        Fallback Spawn → ★ from_2f
 │    │        ├─ [C] WalkableArea   Floor → ★ 3Floor · Guide → ★ 3FGuide
-│    │        ├─ 3Floor / 3FGuide                  (기존)
-│    │        └─ Spawns   └ from_2f   [C] SpawnPoint  Spawn Id → **from_2f**
+│    │        │
+│    │        ├─ 3Floor  (GameObject)              (기존)
+│    │        ├─ 3FGuide  (GameObject)             (기존)
+│    │        │
+│    │        └─ Spawns  (GameObject)              묶음용. 컴포넌트 없음
+│    │             └─ from_2f  (GameObject)        2F 에서 올라온 사람이 서는 자리
+│    │                  ├─ [C] Transform
+│    │                  └─ [C] SpawnPoint   Spawn Id → from_2f
 │    │
 │    ├─ Orc  (GameObject)             ← 3개 층 전부 **꺼 둔다**
 │    └─ Vampire  (GameObject)         ← 3개 층 전부 **꺼 둔다**
@@ -333,6 +358,31 @@ Ingame_Horizontal.unity
      ├─ [C] CameraFollow    Bounds Source → 비움 (구역 전환이 층마다 갈아 끼운다)
      └─ [C] AudioListener
 ```
+
+### `SpawnPoint` 는 **플레이어 도착 지점**이다 — 몬스터와 무관하다
+
+이름이 `MonsterSpawner` 와 비슷해 헷갈리지만 하는 일이 다르다.
+몬스터는 층 오브젝트의 자식이라 그 층이 꺼지면 **같이 꺼진 채 제자리에 남는다.**
+
+한 줄에 두 가지가 나오는데 서로 다른 것이다.
+
+| | 정체 | 누가 쓰나 |
+|---|---|---|
+| `from_1f` (오브젝트 이름) | Hierarchy 에서 사람이 찾으려고 붙인 이름 | **사람만** |
+| `Spawn Id = "from_1f"` | 컴포넌트의 문자열 필드 | **코드** — 포탈이 이걸로 찾는다 |
+
+둘이 달라도 동작한다. 코드는 `Spawn Id` 만 본다. 같게 두는 것은 찾기 편해서다.
+
+**이름은 "어디서 왔는가" 를 가리킨다.**
+
+```
+Goblin1F ──[Portal_to_2F]──▶ Goblin2F 의 "from_1f"    1F 에서 올라온 사람이 서는 자리
+Goblin2F ──[Portal_to_3F]──▶ Goblin3F 의 "from_2f"    2F 에서 올라온 사람이 서는 자리
+```
+
+한 구역에 들어오는 길이 여럿일 수 있기 때문이다. 나중에 던전 입구에서 2F 로 바로 오는 길이
+생기면 `Goblin2F` 에 `from_dungeon_entrance` 를 하나 더 두고 `from_1f` 는 그대로 둔다.
+**입구마다 내리는 자리가 다르므로** 지점이 여러 개 필요하다.
 
 **활성 층은 `Goblin1F` 하나뿐이다.** `AreaRegistry` 가 켜져 있는 층을 시작 구역으로 인식한다.
 나머지 8개 층은 전부 꺼 둔다.
