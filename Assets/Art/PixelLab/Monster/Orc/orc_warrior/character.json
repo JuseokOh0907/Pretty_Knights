@@ -1,0 +1,10 @@
+﻿{
+    "job_id":  "f7fa493f-65bb-422d-99d2-478e8ec35af1",
+    "view":  "low top-down",
+    "reference":  "C:\\Git\\Pretty_Knights\\Assets\\Art\\Monsters\\Orc\\orc_warrior_front.png",
+    "character_id":  "42c0ab0e-1c66-4221-8cde-6c3ec623fa12",
+    "description":  "green orc warrior, black spiked plate armor, red loincloth, long-handled steel battle axe held in right hand, tusks, top-knot",
+    "seed":  20260809,
+    "size":  256,
+    "template":  "mannequin"
+}

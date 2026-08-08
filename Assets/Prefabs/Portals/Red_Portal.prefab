@@ -49,7 +49,7 @@ MonoBehaviour:
   promptLabel: 
   interactable: 1
   destination: {fileID: 0}
-  destinationSpawnId: default
+  destinationArrivalId: 
 --- !u!61 &-4327833389804385365
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -80,7 +80,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
