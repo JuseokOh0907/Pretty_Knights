@@ -161,12 +161,8 @@ namespace PrettyKnights.World
         private void GrantRewards()
         {
             if (definition == null) return;
-            if (!ServiceRegistry.TryGet(out PlayerRuntimeState state) || state == null) return;
 
-            int exp = definition.ExpReward;
-            if (definition.Drops != null) exp += definition.Drops.Roll();
-
-            if (exp > 0) state.AddExp(exp);
+            RewardGrant.Grant(definition.DisplayName, definition.ExpReward, definition.Drops);
         }
 
         [ContextMenu("부수기 (검증용)")]

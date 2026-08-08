@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace PrettyKnights.Data
@@ -32,6 +33,26 @@ namespace PrettyKnights.Data
             public string label;
         }
 
+        /// <summary>
+        /// 굴려서 나온 것 하나. <b>지금은 이름과 경험치뿐이다</b> —
+        /// 아이템 시스템이 붙으면 여기에 아이템 참조가 더해지고,
+        /// 이걸 받는 쪽은 바뀌지 않는다.
+        /// </summary>
+        public readonly struct Drop
+        {
+            public readonly string Label;
+            public readonly int Exp;
+
+            public Drop(string label, int exp)
+            {
+                Label = label;
+                Exp = exp;
+            }
+
+            public override string ToString() =>
+                string.IsNullOrEmpty(Label) ? $"경험치 {Exp}" : $"{Label} {Exp}";
+        }
+
         [SerializeField] private Entry[] entries = Array.Empty<Entry>();
 
         /// <summary>
@@ -39,7 +60,17 @@ namespace PrettyKnights.Data
         /// 하나만 나오게 하려면 가중 추첨으로 바꿔야 하는데,
         /// "희귀한 것과 흔한 것이 같이 나온다" 가 파밍에서는 더 자연스럽다.
         /// </summary>
-        public int Roll()
+        public int Roll() => Roll(null);
+
+        /// <summary>
+        /// 굴리면서 <b>무엇이 나왔는지</b>도 담는다.
+        /// 합계만 돌려주면 화면에서 "표가 도는지" 를 확인할 방법이 없다 —
+        /// 경험치가 들쭉날쭉 오르는 것과 구분되지 않는다.
+        ///
+        /// <paramref name="hits"/> 는 <b>비우지 않는다.</b> 부르는 쪽이 재사용 목록을
+        /// 넘길 수 있게 하려는 것이다. 필요하면 넘기기 전에 비운다.
+        /// </summary>
+        public int Roll(List<Drop> hits)
         {
             int exp = 0;
 
@@ -48,7 +79,10 @@ namespace PrettyKnights.Data
                 if (entry.chance <= 0f) continue;
                 if (UnityEngine.Random.value > entry.chance) continue;
 
-                exp += UnityEngine.Random.Range(entry.minExp, Mathf.Max(entry.minExp, entry.maxExp) + 1);
+                int rolled = UnityEngine.Random.Range(entry.minExp, Mathf.Max(entry.minExp, entry.maxExp) + 1);
+
+                exp += rolled;
+                hits?.Add(new Drop(entry.label, rolled));
             }
 
             return exp;

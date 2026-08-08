@@ -345,12 +345,8 @@ namespace PrettyKnights.Characters
         private void GrantRewards()
         {
             if (definition == null) return;
-            if (!Core.ServiceRegistry.TryGet(out PlayerRuntimeState playerState) || playerState == null) return;
 
-            int exp = definition.ExpReward;
-            if (definition.Drops != null) exp += definition.Drops.Roll();
-
-            if (exp > 0) playerState.AddExp(exp);
+            RewardGrant.Grant(definition.DisplayName, definition.ExpReward, definition.Drops);
         }
 
         private void OnDrawGizmosSelected()

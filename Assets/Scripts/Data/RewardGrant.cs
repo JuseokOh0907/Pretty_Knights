@@ -1,0 +1,77 @@
+using System.Collections.Generic;
+using System.Text;
+using PrettyKnights.Core;
+using UnityEngine;
+
+namespace PrettyKnights.Data
+{
+    /// <summary>
+    /// 잡거나 부순 것의 보상을 준다. <b>몬스터와 오브젝트가 같은 경로를 탄다.</b>
+    ///
+    /// 두 곳에 같은 계산을 두면 파밍의 결이 갈리고, 아이템 시스템이 붙을 때
+    /// 고칠 자리가 둘이 된다. 계산은 한 줄뿐이지만 <b>한 줄이라서 갈라지기 쉽다.</b>
+    ///
+    /// <code>
+    /// 확정 경험치  +  표를 굴린 값   →  AddExp
+    /// </code>
+    ///
+    /// <b>무엇이 나왔는지 로그로 남긴다.</b> 아이템이 아직 없어 드랍은 경험치로만
+    /// 나타나는데, 그러면 화면에서 "표가 도는지" 를 확인할 방법이 없다 —
+    /// 경험치가 그냥 들쭉날쭉 오르는 것과 구분되지 않는다.
+    /// </summary>
+    public static class RewardGrant
+    {
+        /// <summary>드랍 로그를 남길지. <c>GameRoot</c> 의 Log Lifecycle 이 정한다.</summary>
+        public static bool LogDrops = true;
+
+        /// <summary>굴린 결과를 담는 재사용 목록. 메인 스레드 단일이고 중첩 호출이 없다.</summary>
+        private static readonly List<DropTable.Drop> Hits = new List<DropTable.Drop>();
+
+        private static readonly StringBuilder Line = new StringBuilder();
+
+        /// <summary>
+        /// <paramref name="who"/> 를 잡아 얻은 것을 준다. 준 경험치 총합을 돌려준다.
+        /// </summary>
+        public static int Grant(string who, int baseExp, DropTable table)
+        {
+            Hits.Clear();
+
+            int rolled = table != null ? table.Roll(Hits) : 0;
+            int total = baseExp + rolled;
+
+            // 로그를 먼저 만든다. AddExp 가 Changed 이벤트를 쏘므로
+            // 그 안에서 무언가가 또 보상을 주면 Hits 가 갈린다.
+            string message = LogDrops ? Describe(who, baseExp, total) : null;
+
+            if (total > 0 && ServiceRegistry.TryGet(out PlayerRuntimeState state) && state != null)
+                state.AddExp(total);
+
+            if (message != null) Debug.Log(message);
+
+            return total;
+        }
+
+        private static string Describe(string who, int baseExp, int total)
+        {
+            Line.Clear();
+            Line.Append("[보상] ").Append(who).Append(" — 경험치 ").Append(baseExp);
+
+            if (Hits.Count == 0)
+            {
+                Line.Append(" (드랍 없음)");
+                return Line.ToString();
+            }
+
+            Line.Append(" + ");
+
+            for (int i = 0; i < Hits.Count; i++)
+            {
+                if (i > 0) Line.Append(", ");
+                Line.Append(Hits[i]);
+            }
+
+            Line.Append(" = ").Append(total);
+            return Line.ToString();
+        }
+    }
+}

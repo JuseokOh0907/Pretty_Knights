@@ -197,6 +197,10 @@ namespace PrettyKnights.Core
             // 슬롯이 하나였던 시절의 세이브를 모드별 슬롯으로 옮긴다.
             Location.MigrateLegacy();
 
+            // 드랍 로그를 라이프사이클 로그와 같은 스위치에 묶는다.
+            // 검증 중에는 켜 두고, 손맛을 볼 때는 꺼야 콘솔이 조용하다.
+            RewardGrant.LogDrops = logLifecycle;
+
             // 공식이 확정되지 않아 SO 로 갈아 끼울 수 있게 두었다.
             // 비어 있어도 감쇠율 기본값으로 동작하므로 게임이 멈추지는 않는다.
             CombatSettings.Bind(combatSettings);
