@@ -159,6 +159,37 @@ Prop  (GameObject · 루트)
 
 각 층의 `Escape To` 도 이 `Area_Dungeon_Entrance` 로 채우면 탈출 스킬이 붙을 때 바로 동작한다.
 
+#### 씬 쪽도 함께 만들어야 한다
+
+`AreaDefinition` 만 만들면 등록되지 않는다. `Map/Dungeon` 에 붙일 것이 셋 더 있다.
+
+```
+Dungeon  (GameObject)
+ ├─ [C] AreaAnchor                  ← 추가
+ │        Definition       → ★ Area_Dungeon_Entrance
+ │        Floor            → ★ BasicFloor 의 Tilemap
+ │        Fallback Arrival → ★ from_reward
+ ├─ [C] WalkableArea                (기존)
+ │
+ ├─ BasicFloor · Guide              (기존)
+ │
+ ├─ Arrivals  (GameObject)          ← 추가
+ │    └─ from_reward  (GameObject)
+ │         └─ [C] ArrivalPoint   Arrival Id → from_reward
+ │
+ └─ Portals  (GameObject)           ← 추가. 테마 선택 포탈 3개
+      ├─ Portal_to_Goblin   → Area_Goblin_1F  / from_entrance
+      ├─ Portal_to_Orc      → Area_Orc_1F     / from_entrance
+      └─ Portal_to_Vampire  → Area_Vampire_1F / from_entrance
+```
+
+> ⚠ **도착 지점 이름은 "어디서 왔는가" 다.** 던전 입구에 내려서는 사람은 **보상방에서 온 것**이므로
+> `from_reward` 다. `from_entrance` 로 지으면 "입구에서 와서 입구에 도착했다" 가 되어 읽을 수 없다.
+>
+> 각 테마 1F 의 `from_entrance` 는 맞다 — 그쪽은 **던전 입구에서** 온 자리다.
+> 같은 이름이 두 구역에 있어도 동작에는 문제가 없지만(id 는 구역 안에서만 유일하면 된다)
+> 나중에 어느 쪽을 가리키는지 헷갈린다.
+
 ---
 
 ## 5. 씬 — `Ingame_Horizontal`
@@ -206,7 +237,7 @@ Rewards  (GameObject)
  │    └─ Portal_to_entrance  (Blue_Portal 인스턴스)
  │         └─ [C] Portal
  │              Destination            → ★ Area_Dungeon_Entrance
- │              Destination Arrival Id → ★ from_reward
+ │              Destination Arrival Id → ★ from_reward   ← 4-3 에서 만든 지점
  │
  └─ Items  (GameObject)         보상 아이템은 여기에 손으로 배치
 ```
@@ -305,6 +336,7 @@ Pretty Knights > Areas > 0. 포탈 링크 점검 (변경 없음)
 | 층에 들어갈 때마다 부순 것이 되살아난다 | `FloorProps` 의 `Rebuild On Enable` 이 켜져 있다 |
 | 나갔다 오면 경험치를 또 준다 | 복원이 `Break(grantRewards: false)` 를 안 탔다 — 코드 문제이니 알릴 것 |
 | **디버그 이동이 아무 반응이 없다** | 목적지 층의 `AreaAnchor` 에 `AreaDefinition` 이 안 꽂혀 있다 |
+| 이동은 되는데 엉뚱한 자리에 선다 | 포탈의 `Destination Arrival Id` 가 그 구역에 없어 대체 지점으로 갔다. 콘솔에 경고가 있다 |
 | 포탈을 눌러도 그 층으로 안 간다 | 같은 원인 |
 
 ### `AreaDefinition` 이 비면 그 구역은 존재하지 않는 것과 같다
