@@ -87,8 +87,20 @@ namespace PrettyKnights.World
         private int totemShare;
         private bool hasTotems;
 
-        /// <summary>지금 목표 인구. 토템이 있으면 지분 합, 없으면 인스펙터 값.</summary>
-        public int CurrentTarget => hasTotems ? Mathf.Max(0, totemShare) : targetPopulation;
+        /// <summary>
+        /// 메인 토템이 부서졌는가. <b>지분을 0으로 만드는 대신 걸쇠로 둔다.</b>
+        /// 0으로 밀면 그 뒤에 등록되는 서브 토템이 다시 채워 넣어 순서에 따라 답이 달라진다 —
+        /// 복원 경로에서는 실제로 그 순서가 섞인다.
+        /// </summary>
+        private bool mainTotemBroken;
+
+        /// <summary>
+        /// 지금 목표 인구. 메인 토템이 부서졌으면 0, 토템이 있으면 지분 합,
+        /// 토템이 없는 층이면 인스펙터 값.
+        /// </summary>
+        public int CurrentTarget =>
+            mainTotemBroken ? 0 :
+            hasTotems ? Mathf.Max(0, totemShare) : targetPopulation;
 
         /// <summary>
         /// 토템이 자기 지분을 얹거나 뺀다. <paramref name="amount"/> 가 음수면 부서진 것이다.
@@ -107,7 +119,33 @@ namespace PrettyKnights.World
         public void ClearTarget()
         {
             hasTotems = true;
-            totemShare = 0;
+            mainTotemBroken = true;
+        }
+
+        /// <summary>
+        /// 지금 상태를 한 줄로. <b>HUD 가 없어 인구를 볼 방법이 이것뿐이다</b> —
+        /// 재생 중 인스펙터에서 이 컴포넌트를 우클릭한다.
+        /// </summary>
+        [ContextMenu("인구 상태")]
+        public void LogPopulation()
+        {
+            if (!Application.isPlaying)
+            {
+                Debug.LogWarning("[FloorPopulation] 재생 중에만 의미가 있습니다.");
+                return;
+            }
+
+            alive.RemoveAll(m => m == null || !m.gameObject.activeSelf);
+
+            string source =
+                mainTotemBroken ? "메인 토템이 부서져 0" :
+                hasTotems ? $"토템 지분 합 {totemShare}" :
+                $"인스펙터 값 {targetPopulation} (토템 없음)";
+
+            Debug.Log(
+                $"[FloorPopulation] '{name}' — 살아 있음 {alive.Count} / 목표 {CurrentTarget}\n" +
+                $"  목표의 출처 : {source}\n" +
+                $"  종류 {entries.Length}가지 · 가중치 합 {totalWeight:0.#}", this);
         }
 
         private void OnEnable()

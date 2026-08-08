@@ -71,7 +71,13 @@ namespace PrettyKnights.World
                     "부숴도 다음 층으로 갈 길이 생기지 않습니다.");
 
             // 층 인구는 살아 있는 토템의 합이다. 시작 시 자기 지분을 얹는다.
-            if (population != null) population.AddShare(definition.PopulationShare);
+            //
+            // ⚠ 이미 부서진 채로 복원된 토템은 얹지 않는다. 세이브에서 되돌릴 때
+            // FloorProps 가 OnEnable 에서 Break 를 부르는데 그건 이 Start 보다 먼저다.
+            // 조건 없이 얹으면 부숴 둔 토템이 지분을 되살려, 층을 나갔다 오면
+            // 메인 토템이 부서졌는데도 몬스터가 다시 차오른다.
+            if (population != null && destructible != null && !destructible.IsBroken)
+                population.AddShare(definition.PopulationShare);
         }
 
         private void OnBroken(Destructible source)
