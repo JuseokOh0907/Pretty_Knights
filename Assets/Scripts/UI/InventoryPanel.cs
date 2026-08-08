@@ -47,9 +47,6 @@ namespace PrettyKnights.UI
 
         [SerializeField] private Button discardButton;
 
-        [SerializeField, Tooltip("아무것도 고르지 않았을 때 켜지는 안내")]
-        private GameObject emptyHint;
-
         [Header("표시")]
         [SerializeField, Range(0f, 1f)] private float disabledAlpha = 0.35f;
 
@@ -189,8 +186,8 @@ namespace PrettyKnights.UI
         {
             ItemDefinition item = bag != null ? bag.ItemAt(selected) : null;
 
-            if (emptyHint != null) emptyHint.SetActive(item == null);
-
+            // 아무것도 안 골랐으면 오른쪽을 통째로 비운다.
+            // 흐려진 사용·버리기 버튼이 "고른 것이 없다" 를 이미 말해 준다.
             if (item == null)
             {
                 if (detailIcon != null) detailIcon.enabled = false;

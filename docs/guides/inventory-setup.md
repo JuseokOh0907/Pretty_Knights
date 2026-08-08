@@ -117,7 +117,6 @@ Canvas
  │    │        Slot Root     → 아래 SlotGrid       ★
  │    │        Detail Icon / Name / Category / Description → 오른쪽 것들  ★
  │    │        Use Button / Discard Button        ★
- │    │        Empty Hint    → 아래 EmptyHint
  │    │        Group         → 비워도 자동
  │    │
  │    ├─ SlotGrid  (GameObject)                   ← 왼쪽
@@ -153,7 +152,6 @@ Canvas
  │         │    ├─ [C] Image · Button
  │         │    └─ Label  [C] TextMeshProUGUI  "사용"
  │         ├─ DiscardButton  (GameObject)   위와 같은 구성 · "버리기"
- │         ├─ EmptyHint  (GameObject)   [C] TextMeshProUGUI  "아이템을 고르세요"
  │         │
  │         └─ PotionSettings  (GameObject)        ← 오른쪽 아래. 7절
  │              ├─ [C] RectTransform  Anchor 아래쪽 스트레치 · Height 160
