@@ -7,51 +7,75 @@
 
 ---
 
-## 지금 막혀 있는 것
+## 바로 다음에 할 일
 
 > **Goblin 테마 한 바퀴가 돈다** (2026-08-08). 1F → 2F → 3F → 보상방 → 던전 입구.
-> 남은 것은 Orc·Vampire 복제, 던전 입구의 테마 선택 포탈 3개, 보스 처치 판정.
+> 에셋(몬스터 10 · 오브젝트 18 · 구역 5 · 배치 프로필 3)과 `Prop.prefab` 은 전부 생성되어 있다.
+> 아래 네 가지가 **순환을 닫고 진행을 만드는** 나머지다.
 
-**① `MonsterDefinition` 에셋이 하나도 없다** ← 이게 없으면 스폰해도 아무것도 안 나온다
+### ① Orc · Vampire 로 복제 — 씬의 구역 8개가 등록조차 안 된다
 
-임시값을 [`docs/design/monster-definitions.xlsx`](design/monster-definitions.xlsx) 로 정리해 두었다.
-확정본이 나오면 `.asset` **10종**(Goblin 4 · Orc 3 · Vampire 3)으로 변환한다.
+Goblin 만 되어 있다. 나머지 6개 층 + 보상방 2개가 남았다.
+지금 씬의 `AreaAnchor` 13개 중 **8개가 `definition` 이 비어 있다** (Orc 4 · Vampire 4).
+재생하면 `[AreaRegistry] AreaDefinition 이 비어 등록되지 않은 구역이 8개` 경고가 뜬다.
 
-**데미지 공식이 먼저 정해져야 한다.** 시트에 `DAMAGE = ATK − DEF×1.5` 가 들어왔는데,
-플레이어 Lv1 ATK 20 · DEF 40 을 그대로 넣으면 양쪽 다 무너진다.
+- [ ] `AreaDefinition` — 201~203 / 301~303 · 290 / 390 (**8개**)
+- [ ] 씬의 `AreaAnchor` 8개에 정의 연결
+- [ ] `FloorScatterProfile` 6개 작성 → `AreaDefinition` 에 연결
+- [ ] 6개 층에 `FloorProps` 부착
 
-| 방향 | 결과 |
-|---|---|
-| 플레이어 → 몬스터 | DEF 14 이상이면 **데미지 0**. 10종 중 5종(2F 정예 2 · 3F 보스 3)이 기본공격 무적 |
-| 몬스터 → 플레이어 | 감산량이 60 인데 최대 ATK 가 50 이라 **10종 전부 데미지 0** |
+절차는 [`guides/prop-scatter-setup.md`](guides/prop-scatter-setup.md) 와
+[`guides/portal-area-setup.md`](guides/portal-area-setup.md).
 
-세 안을 재생 중에 바꿔가며 비교할 수 있게 `CombatSettings`(SO)로 빼두었다.
-**실제로 때려보고 고른다** — 배선은 [`docs/guides/player-attack-setup.md`](guides/player-attack-setup.md).
+### ② 던전 입구의 테마 선택 포탈 3개
 
-- [x] 에셋 생성 도구 — `Pretty Knights > Data > 1. MonsterDefinition 생성/갱신`.
-      시트의 값이 코드 표에 있고, 기존 에셋은 지우지 않고 값만 덮어써 참조를 끊지 않는다
-- [ ] 도구 실행해 `Assets/Data/Monsters/` 에 `.asset` 10종 생성
+`Map/Dungeon` 은 `AreaAnchor` + `Area_Dungeon_Entrance`(#3) + `Arrivals/from_reward` 까지 되어 있다.
+**각 테마 1F 로 가는 포탈 3개가 없어 순환이 아직 닫히지 않았다.**
+
+- [ ] `Portal_to_Goblin` / `Portal_to_Orc` / `Portal_to_Vampire` → #101 / #201 / #301
+- [ ] 각 테마 1F 에 `from_entrance` 도착 지점 (Goblin 은 이미 있다)
+- [ ] `AreaDefinition.EscapeTo` 를 #3 으로 채운다 (지금 전부 비어 있어 탈출이 무효)
+
+### ③ 보스 처치 → Gold 포탈
+
+보스 처치 판정이 없어 **3F 에서 보상방으로 갈 정상 경로가 없다.**
+지금은 `AreaTransition` 우클릭 → 디버그 이동으로만 들어간다.
+`SpawnTotem` 이 메인 토템에서 하는 일과 같은 흐름이라 구조는 그대로 쓴다
+(유일한 차이: 포탈을 미리 두지 않고 **시체 자리에 생성**한다).
+
+### ④ 데미지 숫자
+
+부술 수 있는 벽의 **발견성이 여기 걸려 있다** — 때렸을 때 숫자가 뜨는 것이
+"이 벽은 부술 수 있다" 는 유일한 신호다. VFX 3요소의 "반응" 이기도 하다.
+
+---
+
+## 아직 정하지 않은 것
+
+- **데미지 공식** — `CombatSettings` 에 세 안(감산 / 비대칭 배율 / 감쇠율)이 들어 있고
+  재생 중에 바꿔가며 비교할 수 있다. **실제로 때려보고 고른다.**
+  고른 것이 미결 #3(스탯 공식)의 답이 된다 — 배선은 [`guides/player-attack-setup.md`](guides/player-attack-setup.md)
+
+  시트에 들어온 `DAMAGE = ATK − DEF×1.5` 를 그대로 쓰면 양쪽이 무너진다는 것까지는 확인했다.
+
+  | 방향 | 결과 |
+  |---|---|
+  | 플레이어 → 몬스터 | DEF 14 이상이면 **데미지 0**. 10종 중 5종(2F 정예 2 · 3F 보스 3)이 기본공격 무적 |
+  | 몬스터 → 플레이어 | 감산량이 60 인데 최대 ATK 가 50 이라 **10종 전부 데미지 0** |
+
+- **서브 토템 층당 개수와 기본/추가 점유량** — 지금 프로필의 값은 임시다
+- **층당 오브젝트 밀도** — 바닥 100~150칸당 1개로 시작했다
+- **정렬** — 마지막에 한 번에 잡기로 했다 (아래 "정렬 일괄 지정")
+
+## 남아 있는 제약
+
+**몬스터 아트가 없다.** `Maps/` 의 Goblin·Orc·Vampire 는 **맵 테마**이지 몬스터가 아니다.
+지금은 Knights 스프라이트를 색만 바꿔 쓰는 임시 프리팹(`Monster_Temp`)뿐이다.
+
+- [x] `Assets/Data/Monsters/` 에 `.asset` 10종 생성 (Goblin 4 · Orc 3 · Vampire 3)
 - [ ] 공식 확정 — 감산 / 비대칭 배율 / 감쇠율 중 하나
 - [ ] 시트 갱신 (플레이어 DEF 40 반영 + 검증 열 수식 · 낡은 문구 정리)
 - [ ] 임시 몬스터 프리팹에 연결해 배회·추격·공격 검증
-
-**② 몬스터 아트가 없다**
-
-`Maps/` 의 Goblin·Orc·Vampire 는 **맵 테마**이지 몬스터가 아니다.
-지금은 Knights 스프라이트를 색만 바꿔 쓰는 임시 프리팹뿐이다.
-
-**③ ~~플레이어 공격이 없다~~ — 기본 공격이 붙었다 (2026-08-08). 씬 배선만 남음**
-
-| 막힌 것 | 원인 |
-|---|---|
-| 몬스터 HP 밸런싱 | 플레이어 DPS 를 계산할 수 없다 |
-| 데미지 공식 확정 (①) | 실제로 때려볼 수 없다 |
-| 메인 토템 파괴 → 포탈 개방 | 부술 수단이 없다 |
-| 서브 토템 파괴 → 인구 감소 | 부술 수단이 없다 |
-| 오브젝트 파괴 → 드랍 | 부술 수단이 없다 |
-
-순서를 재조정해 5번 스킬 판정을 먼저 했고, `PlayerAttack` 이 위 다섯을 전부 연다.
-**남은 것은 씬 배선뿐이다** — [`docs/guides/player-attack-setup.md`](guides/player-attack-setup.md).
 
 ---
 
@@ -443,3 +467,5 @@ B 가 더 싸지만 8/8 아트 교체가 선행 조건이다. 그때까지는 A 
 - Goblin 오브젝트 6장만 PPU 128 (배치 시점에 64로)
 - 방향별 Animator Controller 24개 제거 (승인 후)
 - `Gamble_Yuusha.slnx` 잔재
+- [ ] `Map/Goblin/Rewards/Guide` 에 방 밖으로 멀리 뻗은 타일이 있다 (셀 x −572 · y 472 까지).
+      실수로 칠한 것으로 보이며 지워도 될 것 같다. **카메라 경계가 `Floor` 기준이라 아직 증상은 없다**

@@ -226,6 +226,8 @@ Base body → Hair/Head → Top/Armor → Weapon → Secondary → Foreground FX
 - **방향·상태 애니메이션은 블렌드 트리 방식으로 간다** (2026-08-01 확정, `docs/decisions/001-animator-blend-tree.md`).
   현재 Walking은 방향마다 Animator Controller가 따로 있어 `동작 × 8` 로 증가한다. 컨트롤러를 늘리지 말 것.
 - 결정이 내려질 때마다 `docs/decisions/` 에 기록한다. 다음 세션이 같은 질문을 반복하지 않도록.
+- **증상만 봐서는 원인을 알 수 없던 문제를 겪으면 [`docs/pitfalls.md`](docs/pitfalls.md) 에 한 항목 추가한다.**
+  조용히 무시되는 API, Unity 특유의 널 처리처럼 두 번째로 밟으면 또 같은 시간이 드는 것들.
 
 ### 가이드 작성 규칙 (2026-08-05 확정)
 
@@ -286,14 +288,27 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
 
 **만들어졌지만 아직 씬에 다 붙지 않은 것**
 
-- `MonsterSpawner` · `FloorPopulation` — 스폰. `MonsterDefinition` 10종은 있고
-  **몬스터 아트가 없다** (임시 프리팹 `Monster_Temp`)
-- **오브젝트 자동 배치 일습** — `PropDefinition`(18종) · `DropTable` ·
+씬에는 구역이 **13개**(Goblin 3층+보상방 · Orc 4 · Vampire 4 · 던전 입구) 있고
+`AreaAnchor` · `WalkableArea` 는 13개 전부에 붙어 있다. **아래는 Goblin·던전 입구만 된 상태다.**
+
+| | 되어 있는 곳 | 남은 곳 |
+|---|---|---|
+| `AreaAnchor.definition` | 5 (Goblin 4 · 던전 입구) | **8 (Orc 4 · Vampire 4)** — 비면 `AreaRegistry` 가 등록조차 안 한다 |
+| `FloorProps` | 3 (Goblin 1~3F) | 6 |
+| `FloorScatterProfile` | 3 (Goblin) | 6 |
+| `DestructibleTilemap` | 2 | 나머지 히든 방 |
+| 던전 입구 → 각 테마 포탈 | 0 | **3** — 순환이 닫히지 않은 지점 |
+
+- `MonsterSpawner` · `FloorPopulation` — 스폰. 씬에 **하나도 안 붙었다**.
+  `MonsterDefinition` 10종은 생성되어 있고 **몬스터 아트가 없다** (임시 프리팹 `Monster_Temp`)
+- **오브젝트 자동 배치 일습** — `PropDefinition`(18종 생성 완료) · `DropTable` ·
   `FloorScatterProfile` · `PropScatterer`(계산) · `FloorProps`(런타임 생성) ·
-  `Destructible` · `SpawnTotem` · `NoSpawnZone`.
+  `Destructible` · `SpawnTotem` · `NoSpawnZone` · `Prop.prefab`.
   절차는 [`docs/guides/prop-scatter-setup.md`](docs/guides/prop-scatter-setup.md)
 - **부술 수 있는 벽** — `DestructibleTilemap`. 층마다 붙이고
   `WalkableArea.Breakable` 에 연결해야 한다
+
+**전 구역 배선 절차는 [`docs/guides/all-maps-setup.md`](docs/guides/all-maps-setup.md) 하나로 묶여 있다.**
 
 **에디터 도구** — `Assets/Editor/` 8종. 전부 "점검(변경 없음)" 메뉴가 따로 있다
 
@@ -313,6 +328,9 @@ Pretty Knights > Areas > 포탈 링크 점검 · AreaDefinition 번호 목록
 - **맵** — 3테마 × (3층 + 보상방) + 던전 입구. `Ingame_Horizontal` 한 씬에 전부.
   1F·2F 에 히든 방 벽 타일맵(`HiddenRewards`)이 있다
 - **오브젝트** — 18종 전부 PPU 64 · Pivot Center · 2×2칸
+- **데이터(SO)** — `Assets/Data/` 아래 `Monsters` 10 · `Props` 18 ·
+  `Areas` 5(101·102·103·190·3) · `Scatter` 3(Goblin) · `CombatSettings` · `PlayerStatsDefinition`
+- **프리팹** — `Player` · `Prop` · `Monster_Temp` · 포탈 3색(`Blue`/`Red`/`Gold`)
 
 ### 남은 잡무 / 기술 부채
 
