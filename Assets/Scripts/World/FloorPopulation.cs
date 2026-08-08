@@ -115,11 +115,36 @@ namespace PrettyKnights.World
             totemShare += amount;
         }
 
-        /// <summary>메인 토템이 부서졌다. 할당의 밑동이 사라져 더는 채우지 않는다.</summary>
+        /// <summary>
+        /// 메인 토템이 부서졌다. 할당의 밑동이 사라져 더는 채우지 않고,
+        /// <b>남아 있던 것도 그 자리에서 거둔다</b> (2026-08-09 변경).
+        ///
+        /// 처음에는 살아 있는 개체를 남겼다 — 부수는 순간 증발하면 그 행동이
+        /// 공짜가 된다는 이유였다. 그런데 <b>그 약속이 층을 나가는 순간 어차피 깨졌다</b>.
+        /// <see cref="OnDisable"/> 이 전부 거둬가므로, 다른 층에 갔다 오면
+        /// 남겨둔 몬스터가 사라져 있었다. 같은 상황에서 답이 둘인 셈이라
+        /// <b>즉시 거두는 쪽으로 통일했다.</b>
+        /// </summary>
         public void ClearTarget()
         {
             hasTotems = true;
             mainTotemBroken = true;
+
+            DismissAll();
+        }
+
+        /// <summary>보상 없이 전부 거둔다. 죽인 것이 아니므로 경험치도 드랍도 없다.</summary>
+        private void DismissAll()
+        {
+            foreach (MonsterController m in alive)
+            {
+                if (m == null) continue;
+
+                m.Died -= OnMonsterDied;
+                m.Dismiss();
+            }
+
+            alive.Clear();
         }
 
         /// <summary>

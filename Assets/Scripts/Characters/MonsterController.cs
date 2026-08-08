@@ -384,6 +384,25 @@ namespace PrettyKnights.Characters
         }
 
         /// <summary>
+        /// <b>보상 없이 거둬들인다.</b> 메인 토템이 부서져 소환이 풀릴 때 쓴다.
+        ///
+        /// 죽는 것과 다르다 — 경험치도 드랍도 없고 <see cref="Died"/> 도 쏘지 않는다.
+        /// 스포너가 그걸 들으면 리스폰 쿨타임을 시작하는데, 여기서는 다시 채울 일이 없다.
+        ///
+        /// <b>시체를 남기지 않고 즉시 끈다.</b> 열여섯이 한꺼번에 흐려지는 동안
+        /// 층이 꺼지면 알파가 중간인 채로 남아, 다시 켤 때 반투명한 몬스터가 살아난다.
+        /// </summary>
+        public void Dismiss()
+        {
+            if (motor != null) motor.Stop();
+
+            corpseLeft = 0f;
+            RestoreAlpha();
+
+            gameObject.SetActive(false);
+        }
+
+        /// <summary>
         /// 시체가 잠깐 남았다가 흐려지며 사라진다.
         ///
         /// <b>즉시 지우지 않는 이유는 타격이 읽히지 않기 때문이다.</b>

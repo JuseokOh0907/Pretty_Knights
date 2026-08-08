@@ -85,14 +85,20 @@ namespace PrettyKnights.World
             PropDefinition definition = source != null ? source.Definition : null;
             if (definition == null) return;
 
-            if (population != null)
+            if (definition.Role != PropRole.MainTotem)
             {
-                // 메인은 할당의 밑동이라 부서지면 그 위의 지분도 함께 풀린다.
-                if (definition.Role == PropRole.MainTotem) population.ClearTarget();
-                else population.AddShare(-definition.PopulationShare);
+                if (population != null) population.AddShare(-definition.PopulationShare);
+                return;
             }
 
-            if (definition.Role != PropRole.MainTotem) return;
+            // 메인은 할당의 밑동이라 부서지면 그 위의 지분도 함께 풀리고
+            // 남아 있던 몬스터도 그 자리에서 거둬진다.
+            if (population != null) population.ClearTarget();
+
+            // 1층은 FloorPopulation 이 아니라 MonsterSpawner 를 쓴다.
+            // 컴포넌트가 다를 뿐 "메인 토템을 부수면 그 층이 끝난다" 는 같은 약속이므로
+            // 한쪽만 멈추면 층에 따라 결과가 달라진다.
+            ShutDownSpawners();
 
             if (portalToOpen == null)
             {
@@ -101,6 +107,20 @@ namespace PrettyKnights.World
             }
 
             portalToOpen.SetActive(true);
+        }
+
+        /// <summary>
+        /// 이 층의 고정 스포너를 전부 멈춘다.
+        /// <b>층 루트에서 훑는다</b> — 토템은 배치로 뽑혀 <c>AutoProps</c> 아래에 있고
+        /// 스포너는 그 형제라, 부모를 거슬러 올라가야 같은 층의 것들을 만난다.
+        /// </summary>
+        private void ShutDownSpawners()
+        {
+            AreaAnchor anchor = GetComponentInParent<AreaAnchor>();
+            if (anchor == null) return;
+
+            foreach (MonsterSpawner spawner in anchor.GetComponentsInChildren<MonsterSpawner>(includeInactive: true))
+                if (spawner != null) spawner.ShutDown();
         }
     }
 }

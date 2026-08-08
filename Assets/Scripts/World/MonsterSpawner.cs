@@ -43,6 +43,32 @@ namespace PrettyKnights.World
         private float checkTimer;
         private float cooldownLeft;
 
+        /// <summary>메인 토템이 부서져 멈췄는가. 그 층의 스폰이 통째로 끝난 상태다.</summary>
+        private bool shutDown;
+
+        /// <summary>
+        /// 메인 토템이 부서졌다. <b>더 뽑지 않고 남은 것도 거둔다.</b>
+        ///
+        /// <see cref="FloorPopulation"/> 과 같은 규칙이어야 한다 —
+        /// 1층은 스포너, 2층은 인구 관리라 컴포넌트가 다를 뿐
+        /// "메인 토템을 부수면 그 층이 끝난다" 는 같은 약속이다.
+        /// 한쪽만 멈추면 층에 따라 결과가 달라진다.
+        /// </summary>
+        public void ShutDown()
+        {
+            shutDown = true;
+
+            foreach (MonsterController m in spawned)
+            {
+                if (m == null) continue;
+
+                m.Died -= OnMonsterDied;
+                m.Dismiss();
+            }
+
+            spawned.Clear();
+        }
+
         private void OnDisable()
         {
             // 층이 꺼지면 데려간다. 다시 켜질 때 새로 채운다.
@@ -61,6 +87,8 @@ namespace PrettyKnights.World
 
         private void Update()
         {
+            if (shutDown) return;
+
             if (cooldownLeft > 0f) cooldownLeft -= Time.deltaTime;
 
             checkTimer -= Time.deltaTime;
