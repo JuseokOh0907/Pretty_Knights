@@ -71,13 +71,27 @@ namespace PrettyKnights.World
         /// </summary>
         private static readonly List<NoSpawnZone> Active = new List<NoSpawnZone>();
 
+        /// <summary>한 번의 퍼뜨리기가 덮을 수 있는 칸의 상한. 실수로 층 전체를 칠했을 때의 방어선.</summary>
+        private const int MaxRegionCells = 4096;
+
         private AreaAnchor anchor;
         private float pollTimer;
 
-        /// <summary>들켰는가. 들키면 몬스터가 다시 뿌려진다.</summary>
+        /// <summary>
+        /// 타일맵 마스크에서 이미 들킨 칸들.
+        ///
+        /// <b>해제가 칸 단위인 이유</b> — 한 타일맵에 층의 히든 방을 전부 칠하면
+        /// 컴포넌트 하나가 방 여럿을 덮는다. 해제를 컴포넌트 단위로 두면
+        /// <b>A 방에 들어간 것만으로 B 방까지 열린다.</b>
+        /// 그래서 들어간 자리에서 <b>이어진 칸만</b> 퍼뜨려 연다 —
+        /// 떨어져 있는 방은 자연히 따로 남는다.
+        /// </summary>
+        private readonly HashSet<Vector3Int> revealedCells = new HashSet<Vector3Int>();
+
+        /// <summary>사각형 방식에서 들켰는가. 사각형 하나는 방 하나이므로 통째로 열린다.</summary>
         public bool Revealed { get; private set; }
 
-        public bool BlocksMonsters => blocksMonsters && !Revealed;
+        public bool BlocksMonsters => blocksMonsters;
 
         /// <summary>배치는 그 층의 지형이므로 들켜도 풀리지 않는다.</summary>
         public bool BlocksProps => blocksProps;
@@ -100,24 +114,40 @@ namespace PrettyKnights.World
 
             // 이미 들킨 방은 다시 봉인되지 않는다. 층을 껐다 켤 때마다 되살아나면
             // 뚫고 들어간 성과가 사라진다.
-            if (ServiceRegistry.TryGet(out WorldProgress progress) && progress != null && anchor != null)
+            if (!ServiceRegistry.TryGet(out WorldProgress progress) || progress == null || anchor == null) return;
+
+            if (mask == null)
+            {
                 Revealed = progress.IsZoneRevealed(anchor.AreaId, SaveKey);
+                return;
+            }
+
+            // 저장된 것은 방마다 씨앗 한 칸이다. 거기서 다시 퍼뜨려 방을 되살린다.
+            revealedCells.Clear();
+
+            foreach (Vector2Int seed in progress.RevealedZonesIn(anchor.AreaId))
+                RevealRegion(new Vector3Int(seed.x, seed.y, 0), record: false);
         }
 
         private void OnDisable() => Active.Remove(this);
 
         private void Update()
         {
-            if (Revealed || !revealOnPlayerEnter) return;
+            if (!revealOnPlayerEnter) return;
+
+            // 사각형은 한 번 열리면 끝이다. 타일맵은 방마다 따로 열리므로 계속 본다.
+            if (mask == null && Revealed) return;
 
             pollTimer -= Time.deltaTime;
             if (pollTimer > 0f) return;
             pollTimer = PollInterval;
 
             if (!ServiceRegistry.TryGet(out PlayerController player) || player == null) return;
-            if (!Contains(player.transform.position)) return;
 
-            Reveal();
+            Vector2 where = player.transform.position;
+            if (!BlocksMonsterHere(where)) return;
+
+            Reveal(where);
         }
 
         // ── 모양 ──────────────────────────────────────────────────────────
@@ -134,6 +164,22 @@ namespace PrettyKnights.World
             return WorldRect.Contains(world);
         }
 
+        /// <summary>
+        /// 지금 <b>몬스터를 막는</b> 자리인가. 도형 안이면서 아직 안 들킨 곳이다.
+        ///
+        /// 오브젝트 쪽은 이걸 쓰지 않는다 — 들켜도 계속 막는다.
+        /// 배치는 그 층의 지형이라 다시 왔을 때 없던 바위가 생기면 안 된다.
+        /// </summary>
+        private bool BlocksMonsterHere(Vector2 world)
+        {
+            if (!blocksMonsters) return false;
+
+            if (mask == null) return !Revealed && WorldRect.Contains(world);
+
+            Vector3Int cell = mask.WorldToCell(world);
+            return mask.HasTile(cell) && !revealedCells.Contains(cell);
+        }
+
         // ── 봉인 해제 ─────────────────────────────────────────────────────
 
         /// <summary>
@@ -144,8 +190,22 @@ namespace PrettyKnights.World
         /// 사각형 여러 개로 한 방을 덮었을 때 들어간 칸만 풀리면
         /// 나머지 절반에는 계속 몬스터가 안 나온다.
         /// </summary>
-        public void Reveal()
+        public void Reveal() => Reveal(transform.position);
+
+        /// <summary>
+        /// <paramref name="where"/> 에 있는 방의 봉인을 푼다.
+        ///
+        /// <b>타일맵 마스크에서는 그 자리에서 이어진 칸만 연다.</b>
+        /// 층의 히든 방을 한 타일맵에 다 칠했더라도 떨어져 있는 방은 따로 남는다.
+        /// </summary>
+        public void Reveal(Vector2 where)
         {
+            if (mask != null)
+            {
+                RevealRegion(mask.WorldToCell(where), record: true);
+                return;
+            }
+
             RevealSelf();
 
             if (string.IsNullOrEmpty(roomId)) return;
@@ -154,6 +214,51 @@ namespace PrettyKnights.World
                 if (zone != null && zone != this && zone.roomId == roomId)
                     zone.RevealSelf();
         }
+
+        /// <summary>
+        /// 씨앗 칸에서 이어진 칸을 전부 연다. 상하좌우로만 퍼진다 —
+        /// 대각선까지 이으면 모서리만 닿은 두 방이 하나로 묶인다.
+        /// 방을 가르고 싶으면 <b>한 칸 띄워 칠한다.</b>
+        /// </summary>
+        private void RevealRegion(Vector3Int seed, bool record)
+        {
+            if (mask == null || !mask.HasTile(seed) || revealedCells.Contains(seed)) return;
+
+            var frontier = new Queue<Vector3Int>();
+
+            frontier.Enqueue(seed);
+            revealedCells.Add(seed);
+
+            while (frontier.Count > 0 && revealedCells.Count < MaxRegionCells)
+            {
+                Vector3Int cell = frontier.Dequeue();
+
+                for (int i = 0; i < Neighbours.Length; i++)
+                {
+                    Vector3Int next = cell + Neighbours[i];
+
+                    if (!mask.HasTile(next) || !revealedCells.Add(next)) continue;
+
+                    frontier.Enqueue(next);
+                }
+            }
+
+            if (revealedCells.Count >= MaxRegionCells)
+                Debug.LogWarning(
+                    $"[NoSpawnZone] '{name}' 의 방이 {MaxRegionCells}칸을 넘어 멈췄습니다. " +
+                    "마스크 타일맵에 통로나 바닥까지 칠하지 않았는지 확인하세요.", this);
+
+            if (!record || anchor == null) return;
+            if (!ServiceRegistry.TryGet(out WorldProgress progress) || progress == null) return;
+
+            // 방 전체가 아니라 씨앗 한 칸만 남긴다. 복원할 때 여기서 다시 퍼뜨린다.
+            progress.MarkZoneRevealed(anchor.AreaId, new Vector2Int(seed.x, seed.y));
+        }
+
+        private static readonly Vector3Int[] Neighbours =
+        {
+            Vector3Int.right, Vector3Int.left, Vector3Int.up, Vector3Int.down
+        };
 
         private void RevealSelf()
         {
@@ -184,7 +289,7 @@ namespace PrettyKnights.World
             for (int i = 0; i < Active.Count; i++)
             {
                 NoSpawnZone zone = Active[i];
-                if (zone != null && zone.BlocksMonsters && zone.Contains(world)) return true;
+                if (zone != null && zone.BlocksMonsterHere(world)) return true;
             }
 
             return false;

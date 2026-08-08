@@ -123,6 +123,17 @@ namespace PrettyKnights.Save
             revealedZones.Add(new ZoneRecord { areaId = areaId, x = key.x, y = key.y });
         }
 
+        /// <summary>
+        /// 그 구역에서 들킨 자리들. 층을 켤 때 복원에 쓴다.
+        /// <b>타일맵 마스크에서는 이것이 방마다 하나씩인 씨앗 칸</b>이다 —
+        /// 방 전체를 저장하지 않고 씨앗에서 다시 퍼뜨린다.
+        /// </summary>
+        public IEnumerable<Vector2Int> RevealedZonesIn(int areaId)
+        {
+            foreach (ZoneRecord record in revealedZones)
+                if (record.areaId == areaId) yield return new Vector2Int(record.x, record.y);
+        }
+
         // ── 테마 ──────────────────────────────────────────────────────────
 
         /// <summary>완전 클리어 횟수. 재배치 시드가 된다.</summary>
