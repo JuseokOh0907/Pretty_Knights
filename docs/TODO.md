@@ -125,9 +125,9 @@ Goblin 만 되어 있다. 나머지 6개 층 + 보상방 2개, 그리고 던전 
       `ArrivalPoint` · `Portal` 배치
 - [ ] Orc · Vampire 로 복제 (Goblin 검증 후)
 
-> 포탈은 **단방향**이다. 되돌아오는 길은 탈출 스킬뿐이며
-> `AreaTransition.RequestEscape()` 는 만들어져 있으나 부르는 쪽이 아직 없다.
-> `AreaDefinition.EscapeTo` 는 던전 입구 구역(#3)이 생긴 뒤 채운다.
+> 포탈은 **단방향**이다. 되돌아오는 길은 탈출뿐이며
+> `AreaTransition.RequestEscape()` 를 `EscapeButton` 이 부른다 (2026-08-09).
+> `AreaDefinition.EscapeTo` 는 `Areas > 3` 도구가 #3 으로 채운다.
 
 ### 3-1. 맵 오브젝트와 토템
 
@@ -352,6 +352,12 @@ Unity 게임플레이는 메인 스레드 단일이라 "동시" 는 같은 프�
 - [ ] 다단히트 — `SkillInstance` 가 붙을 때. 매 프레임이 아니라 고정 간격
 - [ ] 몬스터 등급별 스킬
 - [ ] `Destructible` — `IDamageable` 을 구현하면 지금 판정으로 바로 부숴진다
+- [x] **HUD 자리 확보** — `SkillButton` 4슬롯 · `EscapeButton` · `InteractButton` 흐림 처리.
+      배치는 [`guides/hud-layout.md`](guides/hud-layout.md). **스킬보다 UI 를 먼저 잡았다** —
+      나중에 넣으면 화면 전체를 다시 재야 한다
+- [ ] **`ISkillBar` 구현체** — `Player.prefab` 에 붙여 `ServiceRegistry` 에 등록.
+      이게 붙기 전까지 스킬 버튼 4개는 잠김으로 그려진다. 붙으면 HUD 는 그대로 두고 동작한다
+- [ ] 스킬 키 입력 — 버튼과 **같은 `TryCast` 경로**를 타야 한다 (`InputSystem_Actions` 에 액션 추가)
 - [ ] **데미지 숫자** — 가해·피격 양쪽. 수치에 따라 표시를 다르게 한다.
       VFX 3요소의 "반응" 이고, **부술 수 있는 벽의 발견성도 이것이 해결한다** (3-2 참조)
 - [ ] VFX 3요소 나머지 — 임팩트(4~8프레임) · 플래시 · 사운드 · 햅틱

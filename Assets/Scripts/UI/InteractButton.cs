@@ -17,6 +17,11 @@ namespace PrettyKnights.UI
     /// 자기 자신을 끄면 <c>Update</c> 가 멈춰 다시 켤 주체가 사라진다.
     /// <see cref="CanvasGroup"/> 의 알파와 레이캐스트로만 감춘다.
     ///
+    /// <b>쓸 대상이 없어도 사라지지 않고 흐려질 뿐이다</b> (2026-08-09 확정).
+    /// 완전히 숨기면 버튼이 나타났다 사라지기를 반복해 화면이 들썩이고,
+    /// 무엇보다 <b>처음 하는 사람이 그런 버튼이 있다는 것 자체를 모른다.</b>
+    /// 자리를 늘 지키면 "가까이 가면 켜지는 것" 이라고 읽힌다.
+    ///
     /// <c>UIRoot</c> 의 <b>가로 전용</b> 패널에 둔다. 세로는 자동 사냥이라 사용 버튼이 필요 없다.
     /// </summary>
     [DisallowMultipleComponent]
@@ -29,8 +34,12 @@ namespace PrettyKnights.UI
         [SerializeField] private TMP_Text label;
 
         [Header("표시")]
-        [SerializeField, Tooltip("대상이 라벨을 비워뒀을 때 쓸 기본 문구")]
+        [SerializeField, Tooltip("대상이 라벨을 비워뒀을 때, 그리고 쓸 대상이 없을 때 쓸 문구")]
         private string fallbackLabel = "사용";
+
+        [SerializeField, Range(0f, 1f), Tooltip(
+            "쓸 대상이 없을 때의 알파. 0 으로 두면 예전처럼 완전히 사라진다")]
+        private float disabledAlpha = 0.35f;
 
         private InteractionHub hub;
 
@@ -92,22 +101,29 @@ namespace PrettyKnights.UI
 
         private void Apply(IInteractable target)
         {
-            bool show = target != null;
-            Show(show);
+            bool usable = target != null;
+            Show(usable);
 
-            if (!show || label == null) return;
+            if (label == null) return;
 
-            string text = target.PromptLabel;
+            // 대상이 없을 때도 라벨을 되돌린다. 버튼이 계속 보이므로
+            // 그냥 두면 방금 떠나온 포탈의 이름이 화면에 남는다.
+            string text = usable ? target.PromptLabel : null;
             label.text = string.IsNullOrWhiteSpace(text) ? fallbackLabel : text;
         }
 
-        private void Show(bool visible)
+        /// <summary>
+        /// 쓸 수 있으면 또렷하게, 없으면 흐리게. <b>어느 쪽이든 자리는 지킨다.</b>
+        /// 누를 수 없다는 것은 알파와 <c>blocksRaycasts</c> 둘 다로 말한다 —
+        /// 흐리기만 하고 눌리면 "눌렀는데 아무 일도 없다" 가 된다.
+        /// </summary>
+        private void Show(bool usable)
         {
             if (group == null) return;
 
-            group.alpha = visible ? 1f : 0f;
-            group.blocksRaycasts = visible;
-            group.interactable = visible;
+            group.alpha = usable ? 1f : disabledAlpha;
+            group.blocksRaycasts = usable;
+            group.interactable = usable;
         }
     }
 }

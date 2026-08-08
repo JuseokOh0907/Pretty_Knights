@@ -85,21 +85,28 @@ Assets/
 └── Settings/
 ```
 
-### `Assets/Scripts/` (2026-08-05 기준)
+### `Assets/Scripts/` (2026-08-09 기준)
 
 ```
 Assets/Scripts/
 ├── PrettyKnights.asmdef   어셈블리 하나 (Unity.InputSystem 참조)
 ├── Core/        GameRoot · SceneFlow · ServiceRegistry · GameMode
-├── Data/        StatBlock · PlayerStatsDefinition · MonsterDefinition
-│                AreaDefinition · PlayerRuntimeState
-├── Save/        SaveData · SaveService · WorldLocation
+├── Data/        StatBlock · PlayerStatsDefinition · PlayerRuntimeState
+│                MonsterDefinition · AreaDefinition · PropDefinition
+│                FloorScatterProfile · DropTable · CombatSettings
+├── Save/        SaveData · SaveService · WorldLocation · WorldProgress
 ├── Characters/  CharacterMotor · PlayerController · PlayerHitReaction
 │                DirectionalAnimatorDriver · MonsterController · EightDirection
+├── Combat/      SkillShape(무상태) · PlayerAttack · IDamageable · IAreaDamageable
+│                SkillIndicator · SkillIndicatorPool · SkillIndicatorRasterizer
+│                ISkillBar ← 스킬 버튼이 바라보는 창구. **구현체가 아직 없다**
 ├── World/       CameraFollow · WalkableArea · MonsterSpawner · FloorPopulation
 │                AreaAnchor · ArrivalPoint · AreaRegistry · AreaTransition · Portal
 │                IInteractable · InteractableBehaviour · InteractionHub
-└── UI/          UIRoot · ModeSwitchButton · ScreenFader · InteractButton
+│                FloorProps · PropScatterer · Destructible · DestructibleTilemap
+│                SpawnTotem · NoSpawnZone
+└── UI/          UIRoot · ModeSwitchButton · ScreenFader
+                 InteractButton · AttackButton · SkillButton · EscapeButton
 ```
 
 **씬에 있는 것을 찾을 때는 `ServiceRegistry`.** 몸(`PlayerController`)·카메라·구역은
@@ -299,6 +306,10 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
 | `DestructibleTilemap` | 2 | 나머지 히든 방 |
 | 던전 입구 → 각 테마 포탈 | 0 | **3** — 순환이 닫히지 않은 지점 |
 
+- **HUD 재배치** — `SkillButton`(4슬롯) · `EscapeButton` 이 만들어졌고
+  `InteractButton` 은 쓸 대상이 없어도 흐려질 뿐 사라지지 않는다.
+  **Boot 씬 배치가 남았다** — [`docs/guides/hud-layout.md`](docs/guides/hud-layout.md).
+  스킬 버튼은 `ISkillBar` 구현체가 없어 지금은 전부 잠김으로 그려진다
 - `MonsterSpawner` · `FloorPopulation` — 스폰. 씬에 **하나도 안 붙었다**.
   `MonsterDefinition` 10종은 생성되어 있고 **몬스터 아트가 없다** (임시 프리팹 `Monster_Temp`)
 - **오브젝트 자동 배치 일습** — `PropDefinition`(18종 생성 완료) · `DropTable` ·

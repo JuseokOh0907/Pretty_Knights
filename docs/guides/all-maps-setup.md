@@ -336,8 +336,8 @@ Boot 씬에서 재생한다.
   `MonsterDefinition` 10종은 있으나 **아트가 없어** 임시 프리팹(`Monster_Temp`)뿐이다
 - **보스 처치 → Gold 포탈** — 3F 에서 보상방으로 갈 정상 경로가 아직 없다.
   `AreaDefinition #x03` 의 `Next Area` 가 이미 보상방을 가리키므로 배선은 준비되어 있다
-- **탈출 스킬** — `AreaTransition.RequestEscape()` 는 있으나 부르는 쪽이 없다.
-  `Escape To` 와 `from_escape` 는 이번에 채웠으므로 스킬만 붙이면 된다
+- **탈출** — 부르는 쪽은 `EscapeButton` 이 되었다 ([`hud-layout.md`](hud-layout.md)).
+  `Escape To` 와 `from_escape` 를 이번에 채우면 바로 동작한다
 - **정렬(Sorting)** — 마지막에 한 번에 잡는다 ([`../TODO.md`](../TODO.md) "정렬 일괄 지정")
 
 ---
