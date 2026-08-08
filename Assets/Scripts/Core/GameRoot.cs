@@ -81,19 +81,12 @@ namespace PrettyKnights.Core
         /// </summary>
         private void RestorePlayerPosition(GameMode mode)
         {
-            if (!Location.HasValue || Location.Mode != mode) return;
+            // 구역부터 켠다. 저장된 좌표가 없어도 이건 해야 한다 —
+            // 층 13개가 좌표계를 공유하므로 엉뚱한 층이 켜져 있으면
+            // 어디에 서 있든 벽 사이에 끼거나 카메라 경계 밖으로 밀려난다.
+            ActivateSavedArea();
 
-            // 좌표를 되돌리기 전에 구역부터 켠다. 층 9개가 좌표계를 공유하므로
-            // 순서가 바뀌면 옛 구역의 같은 자리에 서게 된다.
-            if (Location.AreaId != 0 && ServiceRegistry.TryGet(out World.AreaRegistry areas) && areas != null)
-            {
-                if (!areas.Activate(Location.AreaId))
-                    Debug.LogWarning(
-                        $"[GameRoot] 저장된 구역 #{Location.AreaId} 을 씬에서 찾지 못했습니다. " +
-                        "켜져 있는 층을 그대로 씁니다.");
-            }
-
-            if (!ServiceRegistry.TryGet(out PlayerController body) || body.Motor == null)
+            if (!ServiceRegistry.TryGet(out PlayerController body) || body == null || body.Motor == null)
             {
                 Debug.LogWarning(
                     "[GameRoot] 씬에서 플레이어를 찾지 못해 위치를 복원하지 못했습니다. " +
@@ -101,39 +94,94 @@ namespace PrettyKnights.Core
                 return;
             }
 
-            // 저장된 좌표가 맵 밖일 수 있다. 구역이 바뀌었거나 맵을 다시 그렸다면 그렇다.
-            Vector2 destination = Location.Position;
-            if (ServiceRegistry.TryGet(out World.WalkableArea area) && area != null)
+            // 자리는 모드마다 따로 든다. 두 씬은 좌표계가 전혀 달라
+            // 한쪽 좌표를 다른 쪽에 쓰면 맵 밖으로 튄다.
+            bool saved = Location.TryGet(mode, out Vector2 destination, out Vector2 facing);
+            if (!saved) destination = body.transform.position;
+
+            if (!ResolveLanding(destination, out Vector2 landing))
             {
-                if (!area.TryFindWalkable(destination, 3f, out destination))
-                {
-                    Debug.LogWarning(
-                        $"[GameRoot] 저장된 자리 {Location.Position} 주변에서 설 수 있는 곳을 찾지 못했습니다. " +
-                        "씬의 기본 위치를 그대로 씁니다.");
-                    return;
-                }
+                Debug.LogError(
+                    $"[GameRoot] {mode} 에서 설 수 있는 자리를 찾지 못했습니다 (기준 {destination}). " +
+                    "그 자리에 그대로 둡니다 — 벽에 끼어 보이면 이 로그가 원인입니다.");
+                return;
             }
 
-            body.Motor.Warp(destination);
+            body.Motor.Warp(landing);
 
             // 바라보던 방향까지 되돌린다. snap 이라 보간 없이 즉시 그 방향으로 선다.
-            // 이게 없으면 재시작 때마다 정면(기본값)을 보게 되어 latch 규칙이 끊긴다.
-            body.AnimatorDriver?.ForceFacing(Location.Facing);
+            // 이게 없으면 돌아올 때마다 정면(기본값)을 보게 되어 latch 규칙이 끊긴다.
+            if (saved) body.AnimatorDriver?.ForceFacing(facing);
 
-            if (logLifecycle) Debug.Log($"[GameRoot] 위치 복원 — {Location}");
+            if (logLifecycle)
+                Debug.Log(
+                    $"[GameRoot] 위치 복원 — {mode} {landing} " +
+                    $"({(saved ? "저장된 자리" : "씬 기본 위치")})");
+        }
+
+        /// <summary>
+        /// 저장된 구역을 켠다. 구역은 가로 모드에만 있으므로 세로에서는 조용히 지나간다.
+        /// </summary>
+        private void ActivateSavedArea()
+        {
+            if (Location.AreaId == 0) return;
+            if (!ServiceRegistry.TryGet(out World.AreaRegistry areas) || areas == null) return;
+
+            if (!areas.Activate(Location.AreaId))
+                Debug.LogWarning(
+                    $"[GameRoot] 저장된 구역 #{Location.AreaId} 을 씬에서 찾지 못했습니다. " +
+                    "켜져 있는 층을 그대로 씁니다.");
+        }
+
+        /// <summary>
+        /// 실제로 설 수 있는 자리를 고른다.
+        ///
+        /// <b>못 찾았을 때 그냥 포기하면 안 된다.</b> 그러면 몸이 씬에 적힌 기본 위치에
+        /// 남는데, 그 자리는 켜져 있는 층 밖일 수 있다. 카메라는 그 층 경계에 묶여 있어
+        /// <b>플레이어가 화면에서 사라진 것처럼 보인다.</b>
+        /// 그래서 마지막 수단으로 그 구역의 도착 지점으로 데려간다.
+        /// </summary>
+        private static bool ResolveLanding(Vector2 wanted, out Vector2 landing)
+        {
+            landing = wanted;
+
+            ServiceRegistry.TryGet(out World.WalkableArea area);
+
+            // 통행 판정이 없는 씬(세로 등)은 원하는 자리를 그대로 쓴다.
+            if (area == null || area.Floor == null) return true;
+
+            if (area.TryFindWalkable(wanted, 3f, out landing)) return true;
+
+            if (!ServiceRegistry.TryGet(out World.AreaRegistry areas) || areas?.Active == null) return false;
+
+            World.ArrivalPoint arrival = areas.Active.ResolveArrival(null);
+            if (arrival == null) return false;
+
+            Debug.LogWarning(
+                $"[GameRoot] {wanted} 주변에 설 자리가 없어 도착 지점 '{arrival.ArrivalId}' 로 보냅니다. " +
+                "저장된 좌표가 지금 켜진 층 밖입니다.");
+
+            landing = area.TryFindWalkable(arrival.Position, 3f, out Vector2 corrected)
+                ? corrected
+                : arrival.Position;
+
+            return true;
         }
 
         /// <summary>현재 몸의 좌표와 방향을 <see cref="Location"/> 에 담는다. 저장 직전에 호출한다.</summary>
         private void CaptureLocation()
         {
             if (Scenes?.CurrentMode == null) return;
-            if (!ServiceRegistry.TryGet(out PlayerController body)) return;
+            if (!ServiceRegistry.TryGet(out PlayerController body) || body == null) return;
+
+            GameMode current = Scenes.CurrentMode.Value;
 
             Vector2 facing = body.AnimatorDriver != null
                 ? body.AnimatorDriver.FacingVector
-                : Location.Facing;
+                : Vector2.down;
 
-            Location.Set(Scenes.CurrentMode.Value, body.transform.position, facing);
+            // 지금 모드의 슬롯에만 쓴다. 반대 모드의 자리는 그대로 남는다.
+            Location.Set(current, body.transform.position, facing);
         }
 
         private void InitializeServices()
@@ -145,6 +193,9 @@ namespace PrettyKnights.Core
             PlayerState = data.Player;
             Location = data.Location;
             Progress = data.Progress;
+
+            // 슬롯이 하나였던 시절의 세이브를 모드별 슬롯으로 옮긴다.
+            Location.MigrateLegacy();
 
             // 공식이 확정되지 않아 SO 로 갈아 끼울 수 있게 두었다.
             // 비어 있어도 감쇠율 기본값으로 동작하므로 게임이 멈추지는 않는다.
