@@ -23,9 +23,17 @@ namespace PrettyKnights.Save
         [SerializeField] private PlayerRuntimeState player = new PlayerRuntimeState();
         [SerializeField] private WorldLocation location = new WorldLocation();
         [SerializeField] private WorldProgress progress = new WorldProgress();
+        [SerializeField] private Inventory inventory = new Inventory();
+        [SerializeField] private PotionSettings potions = new PotionSettings();
 
         public int Version => version;
         public PlayerRuntimeState Player => player;
+
+        /// <summary>가방. 옛 세이브에는 없으므로 빈 칸으로 시작한다.</summary>
+        public Inventory Inventory => inventory;
+
+        /// <summary>포션 자동 사용 설정. 플레이어가 바꾸는 값이라 함께 저장한다.</summary>
+        public PotionSettings Potions => potions;
 
         /// <summary>마지막으로 있었던 자리. 옛 세이브에는 없으므로 <c>HasValue</c> 가 false 다.</summary>
         public WorldLocation Location => location;
@@ -35,21 +43,25 @@ namespace PrettyKnights.Save
 
         public DateTime SavedAtUtc => new DateTime(savedAtUtcTicks, DateTimeKind.Utc);
 
-        public static SaveData CreateNew() =>
-            From(new PlayerRuntimeState(), new WorldLocation(), new WorldProgress());
+        public static SaveData CreateNew() => From(
+            new PlayerRuntimeState(), new WorldLocation(), new WorldProgress(),
+            new Inventory(), new PotionSettings());
 
         /// <summary>
         /// 살아 있는 상태를 그대로 감싼다. 복사하지 않고 참조를 들기 때문에
         /// 저장 직전 값이 그대로 직렬화된다.
         /// </summary>
         public static SaveData From(
-            PlayerRuntimeState state, WorldLocation where, WorldProgress world) => new SaveData
+            PlayerRuntimeState state, WorldLocation where, WorldProgress world,
+            Inventory bag, PotionSettings potionSettings) => new SaveData
         {
             version = CurrentVersion,
             savedAtUtcTicks = DateTime.UtcNow.Ticks,
             player = state ?? new PlayerRuntimeState(),
             location = where ?? new WorldLocation(),
-            progress = world ?? new WorldProgress()
+            progress = world ?? new WorldProgress(),
+            inventory = bag ?? new Inventory(),
+            potions = potionSettings ?? new PotionSettings()
         };
 
         public void StampSaveTime() => savedAtUtcTicks = DateTime.UtcNow.Ticks;

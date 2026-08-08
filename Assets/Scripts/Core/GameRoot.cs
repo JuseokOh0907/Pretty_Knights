@@ -22,6 +22,14 @@ namespace PrettyKnights.Core
         [SerializeField, Tooltip("데미지 공식. 비우면 감쇠율 기본값으로 동작한다")]
         private CombatSettings combatSettings;
 
+        [SerializeField, Tooltip(
+            "아이템 목록. 세이브는 itemId 문자열만 들고 있어 이걸로 다시 에셋을 찾는다. " +
+            "비우면 저장된 아이템을 하나도 못 푼다")]
+        private ItemDatabase itemDatabase;
+
+        [SerializeField, Min(1), Tooltip("가방 칸 수. 6 × 5 격자가 기본")]
+        private int inventorySlots = Inventory.DefaultSlotCount;
+
         [Header("시작 설정")]
         [SerializeField, Tooltip("신규 플레이일 때의 시작 모드. 저장된 위치가 있으면 그쪽이 우선한다")]
         private GameMode startMode = GameMode.Horizontal;
@@ -43,6 +51,12 @@ namespace PrettyKnights.Core
 
         /// <summary>무엇을 부쉈고 어느 테마를 클리어했는지.</summary>
         public WorldProgress Progress { get; private set; }
+
+        /// <summary>가방. 씬이 갈려도 유지된다.</summary>
+        public Inventory Bag { get; private set; }
+
+        /// <summary>포션 자동 사용 설정. 플레이어가 바꾸고 세이브에 남는다.</summary>
+        public PotionSettings Potions { get; private set; }
 
         /// <summary>이번 실행이 신규 플레이인지 (세이브 파일이 없었는지).</summary>
         public bool IsNewGame { get; private set; }
@@ -193,6 +207,11 @@ namespace PrettyKnights.Core
             PlayerState = data.Player;
             Location = data.Location;
             Progress = data.Progress;
+            Bag = data.Inventory;
+            Potions = data.Potions;
+
+            // 세이브는 itemId 문자열만 들고 있다. 여기서 표를 물려야 에셋으로 풀린다.
+            Bag.Bind(itemDatabase, inventorySlots);
 
             // 슬롯이 하나였던 시절의 세이브를 모드별 슬롯으로 옮긴다.
             Location.MigrateLegacy();
@@ -219,6 +238,8 @@ namespace PrettyKnights.Core
             ServiceRegistry.Register(this);
             ServiceRegistry.Register(PlayerState);
             ServiceRegistry.Register(Progress);
+            ServiceRegistry.Register(Bag);
+            ServiceRegistry.Register(Potions);
             ServiceRegistry.Register(Saves);
             ServiceRegistry.Register(Scenes);
 
@@ -252,7 +273,7 @@ namespace PrettyKnights.Core
             if (Saves == null || PlayerState == null || suppressAutoSave) return;
 
             CaptureLocation();
-            Saves.TrySave(SaveData.From(PlayerState, Location, Progress));
+            Saves.TrySave(SaveData.From(PlayerState, Location, Progress, Bag, Potions));
         }
 
         public void RequestMode(GameMode mode)

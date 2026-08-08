@@ -43,12 +43,37 @@ namespace PrettyKnights.Data
             // 그 안에서 무언가가 또 보상을 주면 Hits 가 갈린다.
             string message = LogDrops ? Describe(who, baseExp, total) : null;
 
+            GrantItems();
+
             if (total > 0 && ServiceRegistry.TryGet(out PlayerRuntimeState state) && state != null)
                 state.AddExp(total);
 
             if (message != null) Debug.Log(message);
 
             return total;
+        }
+
+        /// <summary>
+        /// 나온 아이템을 가방에 넣는다.
+        ///
+        /// <b>가방이 차면 그 자리에 떨어뜨리지 않고 알린다.</b> 바닥에 떨어뜨리려면
+        /// 줍는 것과 사라지는 규칙이 필요한데 그게 아직 없다 —
+        /// 조용히 삼키면 "분명 나왔는데 없다" 가 된다.
+        /// </summary>
+        private static void GrantItems()
+        {
+            if (!ServiceRegistry.TryGet(out Inventory bag) || bag == null) return;
+
+            foreach (DropTable.Drop drop in Hits)
+            {
+                if (drop.Item == null || drop.Count <= 0) continue;
+
+                int left = bag.Add(drop.Item, drop.Count);
+                if (left <= 0) continue;
+
+                Debug.LogWarning(
+                    $"[보상] 가방이 가득 차 '{drop.Item.DisplayName}' {left}개를 받지 못했습니다.");
+            }
         }
 
         private static string Describe(string who, int baseExp, int total)

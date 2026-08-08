@@ -61,6 +61,12 @@ namespace PrettyKnights.Save
         [SerializeField] private List<ThemeRecord> themes = new List<ThemeRecord>();
         [SerializeField] private List<ZoneRecord> revealedZones = new List<ZoneRecord>();
 
+        /// <summary>
+        /// 주워간 아이템·연 상자. <b>손으로 놓은 것이라 인덱스가 없다</b> —
+        /// 배치로 뽑힌 오브젝트와 달리 생성 순서라는 개념이 없어 칸 좌표로 짚는다.
+        /// </summary>
+        [SerializeField] private List<ZoneRecord> takenPickups = new List<ZoneRecord>();
+
         // ── 오브젝트 ──────────────────────────────────────────────────────
 
         public bool IsPropDestroyed(int areaId, int index)
@@ -134,6 +140,24 @@ namespace PrettyKnights.Save
                 if (record.areaId == areaId) yield return new Vector2Int(record.x, record.y);
         }
 
+        // ── 주워간 것 ─────────────────────────────────────────────────────
+
+        /// <summary>이미 주웠는가. 층을 다시 와도 같은 아이템이 또 놓여 있으면 안 된다.</summary>
+        public bool IsPickupTaken(int areaId, Vector2Int key)
+        {
+            foreach (ZoneRecord record in takenPickups)
+                if (record.areaId == areaId && record.x == key.x && record.y == key.y) return true;
+
+            return false;
+        }
+
+        public void MarkPickupTaken(int areaId, Vector2Int key)
+        {
+            if (IsPickupTaken(areaId, key)) return;
+
+            takenPickups.Add(new ZoneRecord { areaId = areaId, x = key.x, y = key.y });
+        }
+
         // ── 테마 ──────────────────────────────────────────────────────────
 
         /// <summary>완전 클리어 횟수. 재배치 시드가 된다.</summary>
@@ -171,6 +195,10 @@ namespace PrettyKnights.Save
             // 벽은 막혔는데 그 안에 몬스터가 차 있는 상태가 된다.
             revealedZones.RemoveAll(r => r.areaId / 100 == theme);
 
+            // 새 회차이므로 보물도 다시 놓인다. 봉인된 방에 빈 상자만 남으면
+            // 뚫고 들어갈 이유가 사라진다.
+            takenPickups.RemoveAll(r => r.areaId / 100 == theme);
+
             for (int i = 0; i < themes.Count; i++)
             {
                 if (themes[i].theme != theme) continue;
@@ -190,10 +218,12 @@ namespace PrettyKnights.Save
             brokenWalls.Clear();
             themes.Clear();
             revealedZones.Clear();
+            takenPickups.Clear();
         }
 
         public override string ToString() =>
             $"부순 오브젝트 {destroyedProps.Count} · 부순 벽 {brokenWalls.Count} · " +
-            $"들킨 히든 방 {revealedZones.Count} · 클리어 기록 {themes.Count}";
+            $"들킨 히든 방 {revealedZones.Count} · 주워간 것 {takenPickups.Count} · " +
+            $"클리어 기록 {themes.Count}";
     }
 }

@@ -29,8 +29,21 @@ namespace PrettyKnights.Data
 
             [Min(0)] public int maxExp;
 
-            [Tooltip("사람이 읽기 위한 이름. 나중에 아이템 참조로 대체된다")]
+            [Tooltip("나왔을 때 주는 아이템. 비우면 경험치만 준다")]
+            public ItemDefinition item;
+
+            [Min(1)] public int minCount;
+            [Min(1)] public int maxCount;
+
+            [Tooltip("사람이 읽기 위한 이름. 아이템이 있으면 그 이름을 쓴다")]
             public string label;
+
+            /// <summary>화면과 로그에 보일 이름.</summary>
+            public string Name => item != null ? item.DisplayName : label;
+
+            /// <summary>몇 개 줄지. 범위를 안 채운 옛 에셋은 1개로 읽는다.</summary>
+            public int RollCount() =>
+                UnityEngine.Random.Range(Mathf.Max(1, minCount), Mathf.Max(1, minCount, maxCount) + 1);
         }
 
         /// <summary>
@@ -43,14 +56,24 @@ namespace PrettyKnights.Data
             public readonly string Label;
             public readonly int Exp;
 
-            public Drop(string label, int exp)
+            /// <summary>나온 아이템. 없으면 경험치만 나온 것이다.</summary>
+            public readonly ItemDefinition Item;
+            public readonly int Count;
+
+            public Drop(string label, int exp, ItemDefinition item, int count)
             {
                 Label = label;
                 Exp = exp;
+                Item = item;
+                Count = count;
             }
 
-            public override string ToString() =>
-                string.IsNullOrEmpty(Label) ? $"경험치 {Exp}" : $"{Label} {Exp}";
+            public override string ToString()
+            {
+                if (Item != null) return Count > 1 ? $"{Item.DisplayName} ×{Count}" : Item.DisplayName;
+
+                return string.IsNullOrEmpty(Label) ? $"경험치 {Exp}" : $"{Label} {Exp}";
+            }
         }
 
         [SerializeField] private Entry[] entries = Array.Empty<Entry>();
@@ -80,9 +103,10 @@ namespace PrettyKnights.Data
                 if (UnityEngine.Random.value > entry.chance) continue;
 
                 int rolled = UnityEngine.Random.Range(entry.minExp, Mathf.Max(entry.minExp, entry.maxExp) + 1);
+                int count = entry.item != null ? entry.RollCount() : 0;
 
                 exp += rolled;
-                hits?.Add(new Drop(entry.label, rolled));
+                hits?.Add(new Drop(entry.label, rolled, entry.item, count));
             }
 
             return exp;
