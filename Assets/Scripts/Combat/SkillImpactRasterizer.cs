@@ -38,23 +38,6 @@ namespace PrettyKnights.Combat
         /// <summary>띠의 가장자리. 칼날처럼 한 줄이 또렷해야 방향이 읽힌다.</summary>
         private const byte EdgeAlpha = 255;
 
-        /// <summary>프레임 하나. 잘라낸 조각이라 원점에서의 오프셋을 함께 든다.</summary>
-        public readonly struct Frame
-        {
-            public readonly Sprite Sprite;
-
-            /// <summary>도형 원점에서 이 조각의 중심까지 (월드 유닛).</summary>
-            public readonly Vector2 Offset;
-
-            public Frame(Sprite sprite, Vector2 offset)
-            {
-                Sprite = sprite;
-                Offset = offset;
-            }
-
-            public bool IsEmpty => Sprite == null;
-        }
-
         private readonly struct Key
         {
             private readonly SkillShapeKind kind;
@@ -78,7 +61,7 @@ namespace PrettyKnights.Combat
                 Mathf.Approximately(k.angle, angle) && Mathf.Approximately(k.forwardOffset, forwardOffset);
         }
 
-        private static readonly Dictionary<Key, Frame[]> Cache = new Dictionary<Key, Frame[]>();
+        private static readonly Dictionary<Key, SkillEffectFrame[]> Cache = new Dictionary<Key, SkillEffectFrame[]>();
 
         /// <summary>
         /// 도메인 리로드를 끈 상태에서도 플레이 시작 시 옛 텍스처가 남지 않게 비운다.
@@ -91,15 +74,15 @@ namespace PrettyKnights.Combat
         /// 방향별로 구운 프레임들. 이미 있으면 그대로 돌려준다.
         /// 처음 쓸 때만 굽고 그 뒤로는 위치와 색만 바뀐다.
         /// </summary>
-        public static Frame[] Get(
+        public static SkillEffectFrame[] Get(
             SkillShapeKind kind, SkillShapeParams param, EightDirection direction, int frameCount)
         {
             frameCount = Mathf.Clamp(frameCount, 1, 16);
 
             var key = new Key(kind, param, Canonical(kind, param, direction), frameCount);
-            if (Cache.TryGetValue(key, out Frame[] cached) && cached != null) return cached;
+            if (Cache.TryGetValue(key, out SkillEffectFrame[] cached) && cached != null) return cached;
 
-            Frame[] baked = Bake(kind, param, Canonical(kind, param, direction), frameCount);
+            SkillEffectFrame[] baked = Bake(kind, param, Canonical(kind, param, direction), frameCount);
             Cache[key] = baked;
             return baked;
         }
@@ -129,7 +112,7 @@ namespace PrettyKnights.Combat
             }
         }
 
-        private static Frame[] Bake(
+        private static SkillEffectFrame[] Bake(
             SkillShapeKind kind, SkillShapeParams param, EightDirection direction, int frameCount)
         {
             Vector2 facing = direction.ToVector();
@@ -158,7 +141,7 @@ namespace PrettyKnights.Combat
                 }
             }
 
-            var frames = new Frame[frameCount];
+            var frames = new SkillEffectFrame[frameCount];
             var pixels = new Color32[width * height];
             var drawn = new bool[width * height];
 
@@ -169,7 +152,7 @@ namespace PrettyKnights.Combat
             return frames;
         }
 
-        private static Frame BakeFrame(
+        private static SkillEffectFrame BakeFrame(
             string what, int index, int frameCount, Rect bounds, int width, int height,
             bool[] inside, float[] phase, bool[] drawn, Color32[] pixels)
         {
@@ -219,7 +202,7 @@ namespace PrettyKnights.Combat
             Sprite sprite = PixelSpriteBaker.CreateTrimmed(
                 $"{what}_{index}", bounds, width, height, pixels, out Vector2 offset);
 
-            return new Frame(sprite, offset);
+            return new SkillEffectFrame(sprite, offset);
         }
 
         /// <summary>

@@ -38,9 +38,15 @@ namespace PrettyKnights.Combat
         [Tooltip("광역 폭발의 중심을 앞으로 얼마나 밀지")]
         public float forwardOffset;
 
+        /// <summary>
+        /// 근접 베기 기본값. <b>각도는 반원(180°)</b>이다 (2026-08-09).
+        /// 100° 부채꼴은 예고로 깔았을 때 "칼이 닿는 앞쪽" 이 아니라
+        /// 부채 모양 자체로 읽혀 어디까지 위험한지가 직관적이지 않았다.
+        /// 반원은 "내 앞은 전부" 라는 뜻이라 한눈에 들어온다.
+        /// </summary>
         public static SkillShapeParams Slash => new SkillShapeParams
         {
-            range = 1.6f, width = 1f, angle = 100f, forwardOffset = 0f
+            range = 1.6f, width = 1f, angle = 180f, forwardOffset = 0f
         };
     }
 

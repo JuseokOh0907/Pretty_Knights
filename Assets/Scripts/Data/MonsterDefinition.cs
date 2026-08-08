@@ -43,10 +43,12 @@ namespace PrettyKnights.Data
         [Header("공격 범위 — 판정과 인디케이터가 같은 값을 쓴다")]
         [SerializeField] private Combat.SkillShapeKind attackShape = Combat.SkillShapeKind.Forward;
 
-        [SerializeField, Tooltip("비워 두면 attackRange 로 부채꼴을 만든다")]
+        [SerializeField, Tooltip(
+            "비워 두면 attackRange 로 반원을 만든다. " +
+            "각도 기본값이 180 인 것은 '내 앞은 전부' 가 예고로 읽기 쉬워서다")]
         private Combat.SkillShapeParams attackShapeParams = new Combat.SkillShapeParams
         {
-            range = 0f, width = 1f, angle = 90f, forwardOffset = 0f
+            range = 0f, width = 1f, angle = 180f, forwardOffset = 0f
         };
 
         [Header("피격 반응 — 몬스터마다 손맛을 다르게 한다")]
@@ -84,7 +86,7 @@ namespace PrettyKnights.Data
             {
                 Combat.SkillShapeParams p = attackShapeParams;
                 if (p.range <= 0f) p.range = attackRange;
-                if (p.angle <= 0f) p.angle = 90f;
+                if (p.angle <= 0f) p.angle = 180f;
                 if (p.width <= 0f) p.width = 1f;
                 return p;
             }

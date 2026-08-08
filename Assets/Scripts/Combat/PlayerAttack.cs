@@ -38,6 +38,16 @@ namespace PrettyKnights.Combat
         [SerializeField] private SkillShapeKind shape = SkillShapeKind.Forward;
         [SerializeField] private SkillShapeParams shapeParams = SkillShapeParams.Slash;
 
+        [Header("이펙트")]
+        [SerializeField, Tooltip(
+            "검격 그림. 비우면 판정 범위를 그대로 그리는 임시 표시로 대신한다")]
+        private SkillEffectDefinition attackEffect;
+
+        [SerializeField, Tooltip(
+            "검격 그림이 없을 때 판정 범위를 그려 보여줄지. " +
+            "아트가 들어오면 끈다 — 범위를 그대로 그리면 칼이 아니라 부채로 보인다")]
+        private bool showRangeWhenNoArt = true;
+
         [SerializeField, Tooltip("원점을 앞으로 얼마나 밀지. 0이면 발밑에서 잰다")]
         private float originForwardOffset = 0.3f;
 
@@ -155,11 +165,9 @@ namespace PrettyKnights.Combat
             lastFacing = facing;
             hasSwung = true;
 
-            // 판정과 같은 원점·방향·파라미터로 그린다. 보인 자리가 곧 맞는 자리다.
-            // 판정보다 먼저 띄우는 이유는 대상이 없어도 휘두른 것은 보여야 하기 때문이다 —
+            // 판정보다 먼저 띄운다. 대상이 없어도 휘두른 것은 보여야 한다 —
             // 헛스윙이 조용하면 입력이 씹혔다고 느낀다.
-            if (ServiceRegistry.TryGet(out SkillImpactPool impacts) && impacts != null)
-                impacts.PlayFriendly(shape, shapeParams, origin, facing);
+            ShowSwing(origin, facing);
 
             SkillShape.Evaluate(shape, shapeParams, origin, facing, filter, overlapped);
 
@@ -198,6 +206,29 @@ namespace PrettyKnights.Combat
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// 휘두른 것을 화면에 보여준다.
+        ///
+        /// <b>검격 그림이 있으면 그것을 쓴다.</b> 판정 도형을 그대로 그리면
+        /// 부채꼴 전체가 채워져 칼이 아니라 부채를 휘두르는 것처럼 보인다 (결정 008 §8).
+        /// 그림이 아직 없으면 임시로 범위를 그린다 — 아무것도 안 뜨는 것보다는 낫다.
+        ///
+        /// 검격은 <b>몸을 따라간다.</b> 휘두르는 0.2초 사이에 걸어가면
+        /// 칼자국만 뒤에 남아 몸과 떨어져 보인다. 따라갈지는 이펙트 정의가 정한다.
+        /// </summary>
+        private void ShowSwing(Vector2 origin, Vector2 facing)
+        {
+            if (!ServiceRegistry.TryGet(out SkillImpactPool impacts) || impacts == null) return;
+
+            if (attackEffect != null && attackEffect.HasArt)
+            {
+                impacts.Play(attackEffect, transform, transform.position, facing);
+                return;
+            }
+
+            if (showRangeWhenNoArt) impacts.PlayFriendly(shape, shapeParams, origin, facing);
         }
 
         /// <summary>공격력은 런타임 상태에서 읽는다. 스킬로 오르는 값이 여기 반영된다.</summary>

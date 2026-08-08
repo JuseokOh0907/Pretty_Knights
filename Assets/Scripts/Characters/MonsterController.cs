@@ -256,13 +256,10 @@ namespace PrettyKnights.Characters
             attackCooldownLeft = definition.AttackCooldown;
             telegraphLeft = 0f;
 
-            // 예고가 사라지는 순간 같은 자리에서 터진다. 예고를 구울 때와 같은 값이라
-            // 두 그림의 가장자리가 픽셀 단위로 맞는다.
-            if (Core.ServiceRegistry.TryGet(out SkillImpactPool impacts) && impacts != null)
-                impacts.PlayHostile(
-                    definition.AttackShape, definition.AttackShapeParams,
-                    telegraphOrigin, telegraphFacing);
-
+            // 범위를 그대로 그리는 것은 빨간 예고 하나로 끝낸다 (결정 008 §8).
+            // 예고와 임팩트가 같은 도형을 연달아 그리면 같은 그림을 두 번 보는 것이라
+            // "예고를 보고 피한다" 라는 신호가 오히려 흐려진다.
+            // 몬스터 전용 검격 아트가 생기면 여기에서 SkillImpactPool.Play 를 부른다.
             if (!Core.ServiceRegistry.TryGet(out PlayerController player) || player == null) return;
 
             // 인디케이터를 구울 때와 같은 함수다. 보인 범위와 맞는 범위가 갈리지 않는다.
