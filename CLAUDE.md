@@ -98,7 +98,9 @@ Assets/Scripts/
 ├── Characters/  CharacterMotor · PlayerController · PlayerHitReaction
 │                DirectionalAnimatorDriver · MonsterController · EightDirection
 ├── Combat/      SkillShape(무상태) · PlayerAttack · IDamageable · IAreaDamageable
+│                PixelSpriteBaker ← 도트 규칙(64px·Point)이 여기 한 곳에만 있다
 │                SkillIndicator · SkillIndicatorPool · SkillIndicatorRasterizer
+│                SkillImpact · SkillImpactPool · SkillImpactRasterizer
 │                ISkillBar ← 스킬 버튼이 바라보는 창구. **구현체가 아직 없다**
 ├── World/       CameraFollow · WalkableArea · MonsterSpawner · FloorPopulation
 │                AreaAnchor · ArrivalPoint · AreaRegistry · AreaTransition · Portal
@@ -218,6 +220,10 @@ Base body → Hair/Head → Top/Armor → Weapon → Secondary → Foreground FX
 - **인디케이터는 메시가 아니라 런타임 래스터화로 그린다** (2026-08-08, `docs/decisions/007-skill-indicator.md`).
   폴리곤의 매끈한 가장자리가 64px 도트 위에서 튄다. 판정과 같은 수학으로 64 px/unit 텍스처에 찍고
   Point 필터로 표시하며, 픽셀 아트는 회전시키면 어긋나므로 **8방향으로 구워 캐시**한다.
+- **임팩트도 같은 방식으로 굽는다** (2026-08-09, `docs/decisions/008-impact-vfx.md`).
+  텍셀마다 동작의 **진행도**를 재고 프레임마다 그 값의 좁은 띠만 남긴다 —
+  부채꼴은 훑고(벤다), 직선은 뻗고(꿰뚫는다), 원은 퍼진다(터진다).
+  알파는 3단계로 끊는다. 매끄러운 그라데이션은 도트가 아니라 그림자다.
 - 몬스터 공격은 **예고 → 판정 → 경직** 3단계다. 예고 길이는 `MonsterDefinition.telegraphDuration`.
 
 ---
@@ -306,6 +312,8 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
 | `DestructibleTilemap` | 2 | 나머지 히든 방 |
 | 던전 입구 → 각 테마 포탈 | 0 | **3** — 순환이 닫히지 않은 지점 |
 
+- **타격 이펙트** — `SkillImpactPool` 을 Boot 씬 `GameRoot` 에 붙여야 한다
+  ([`docs/guides/run-setup.md`](docs/guides/run-setup.md) 2절). 없어도 판정은 그대로 되고 그림만 안 뜬다
 - **HUD 재배치** — `SkillButton`(4슬롯) · `EscapeButton` 이 만들어졌고
   `InteractButton` 은 쓸 대상이 없어도 흐려질 뿐 사라지지 않는다.
   **Boot 씬 배치가 남았다** — [`docs/guides/hud-layout.md`](docs/guides/hud-layout.md).

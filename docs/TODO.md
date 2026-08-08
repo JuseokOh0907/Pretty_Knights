@@ -360,7 +360,10 @@ Unity 게임플레이는 메인 스레드 단일이라 "동시" 는 같은 프�
 - [ ] 스킬 키 입력 — 버튼과 **같은 `TryCast` 경로**를 타야 한다 (`InputSystem_Actions` 에 액션 추가)
 - [ ] **데미지 숫자** — 가해·피격 양쪽. 수치에 따라 표시를 다르게 한다.
       VFX 3요소의 "반응" 이고, **부술 수 있는 벽의 발견성도 이것이 해결한다** (3-2 참조)
-- [ ] VFX 3요소 나머지 — 임팩트(4~8프레임) · 플래시 · 사운드 · 햅틱
+- [x] **임팩트(4~8프레임)** — `SkillImpactRasterizer` · `SkillImpact` · `SkillImpactPool`.
+      메시가 아니라 **진행도로 굽는 도트 애니메이션** ([`decisions/008-impact-vfx.md`](decisions/008-impact-vfx.md)).
+      **Boot 씬에 `SkillImpactPool` 배치가 남았다** ([`guides/run-setup.md`](guides/run-setup.md) 2절)
+- [ ] VFX 3요소 나머지 — 플래시 · 사운드 · 햅틱
 
 ---
 
@@ -377,6 +380,7 @@ Unity 게임플레이는 메인 스레드 단일이라 "동시" 는 같은 프�
 | `1FGuide` `2FGuide` `3FGuide` `Guide` | Default | **0** |
 | `1FHiddenRewards` `2FHiddenRewards` (히든방 벽) | Default | **0** |
 | 인디케이터 (`SkillIndicatorPool`) | Default | **50** ← 코드에 박힌 임시값 |
+| 타격 이펙트 (`SkillImpactPool`) | Default | **100** ← 임시값. 캐릭터 위여야 한다 |
 
 **바닥과 벽이 같은 레이어·같은 Order 다.** 그리기 순서가 계층 순서에 의존하므로
 바닥이 벽 위에 그려질 수도 있다. 지금 안 깨져 보이는 것은 우연이다.

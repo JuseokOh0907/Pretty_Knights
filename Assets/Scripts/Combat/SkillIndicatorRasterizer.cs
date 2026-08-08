@@ -22,13 +22,10 @@ namespace PrettyKnights.Combat
     public static class SkillIndicatorRasterizer
     {
         /// <summary>타일과 같은 밀도. 인디케이터 픽셀이 타일 픽셀과 어긋나지 않는다.</summary>
-        public const int PixelsPerUnit = 64;
+        public const int PixelsPerUnit = PixelSpriteBaker.PixelsPerUnit;
 
         /// <summary>안쪽 채움의 알파. 테두리는 항상 1이라 더 진하게 보인다.</summary>
         private const byte FillAlpha = 110;
-
-        /// <summary>한 변의 상한. 사거리가 터무니없이 크면 메모리를 지킨다.</summary>
-        private const int MaxSide = 512;
 
         private readonly struct Key
         {
@@ -80,19 +77,20 @@ namespace PrettyKnights.Combat
             Vector2 facing = direction.ToVector();
             Rect bounds = SkillShape.LocalBounds(kind, param, facing);
 
-            int width = Mathf.Clamp(Mathf.CeilToInt(bounds.width * PixelsPerUnit), 1, MaxSide);
-            int height = Mathf.Clamp(Mathf.CeilToInt(bounds.height * PixelsPerUnit), 1, MaxSide);
+            string what = $"SkillIndicator_{kind}_{direction}";
+            int width = PixelSpriteBaker.SideOf(bounds.width, what);
+            int height = PixelSpriteBaker.SideOf(bounds.height, what);
 
             var inside = new bool[width * height];
 
             // 1) 포함 검사. 텍셀 중심을 월드 좌표로 되돌려 판정과 같은 함수에 넣는다.
             for (int y = 0; y < height; y++)
             {
-                float wy = bounds.yMin + (y + 0.5f) / PixelsPerUnit;
+                float wy = PixelSpriteBaker.TexelCenter(bounds.yMin, y);
 
                 for (int x = 0; x < width; x++)
                 {
-                    float wx = bounds.xMin + (x + 0.5f) / PixelsPerUnit;
+                    float wx = PixelSpriteBaker.TexelCenter(bounds.xMin, x);
                     inside[y * width + x] =
                         SkillShape.Contains(kind, param, Vector2.zero, facing, new Vector2(wx, wy));
                 }
@@ -122,27 +120,10 @@ namespace PrettyKnights.Combat
                 }
             }
 
-            var texture = new Texture2D(width, height, TextureFormat.RGBA32, mipChain: false)
-            {
-                // 도트를 지키는 두 줄이다. Bilinear 면 계단이 뭉개진다.
-                filterMode = FilterMode.Point,
-                wrapMode = TextureWrapMode.Clamp,
-                name = $"SkillIndicator_{kind}_{direction}"
-            };
-
-            texture.SetPixels32(pixels);
-            texture.Apply(updateMipmaps: false);
-
-            // 피벗을 도형 원점에 맞춘다. bounds 는 원점 기준이므로
-            // 원점의 텍스처 내 비율이 그대로 피벗이 된다.
-            var pivot = new Vector2(-bounds.xMin / bounds.width, -bounds.yMin / bounds.height);
-
-            Sprite sprite = Sprite.Create(
-                texture, new Rect(0, 0, width, height), pivot, PixelsPerUnit,
-                extrude: 0, meshType: SpriteMeshType.FullRect);
-
-            sprite.name = texture.name;
-            return sprite;
+            // 피벗을 도형 원점에 맞춘다. 시전자 위치에 그대로 놓으면 맞는다.
+            return PixelSpriteBaker.Create(
+                what, width, height, pixels,
+                PixelSpriteBaker.PivotAtOrigin(bounds, width, height));
         }
 
         /// <summary>구워둔 것이 몇 개인지. 디버그용.</summary>

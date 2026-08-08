@@ -256,6 +256,13 @@ namespace PrettyKnights.Characters
             attackCooldownLeft = definition.AttackCooldown;
             telegraphLeft = 0f;
 
+            // 예고가 사라지는 순간 같은 자리에서 터진다. 예고를 구울 때와 같은 값이라
+            // 두 그림의 가장자리가 픽셀 단위로 맞는다.
+            if (Core.ServiceRegistry.TryGet(out SkillImpactPool impacts) && impacts != null)
+                impacts.PlayHostile(
+                    definition.AttackShape, definition.AttackShapeParams,
+                    telegraphOrigin, telegraphFacing);
+
             if (!Core.ServiceRegistry.TryGet(out PlayerController player) || player == null) return;
 
             // 인디케이터를 구울 때와 같은 함수다. 보인 범위와 맞는 범위가 갈리지 않는다.

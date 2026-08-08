@@ -155,6 +155,12 @@ namespace PrettyKnights.Combat
             lastFacing = facing;
             hasSwung = true;
 
+            // 판정과 같은 원점·방향·파라미터로 그린다. 보인 자리가 곧 맞는 자리다.
+            // 판정보다 먼저 띄우는 이유는 대상이 없어도 휘두른 것은 보여야 하기 때문이다 —
+            // 헛스윙이 조용하면 입력이 씹혔다고 느낀다.
+            if (ServiceRegistry.TryGet(out SkillImpactPool impacts) && impacts != null)
+                impacts.PlayFriendly(shape, shapeParams, origin, facing);
+
             SkillShape.Evaluate(shape, shapeParams, origin, facing, filter, overlapped);
 
             float attack = ResolveAttackPower();

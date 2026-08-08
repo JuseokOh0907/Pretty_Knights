@@ -143,12 +143,20 @@ Boot.unity
 │    │        Input Actions → ★ InputSystem_Actions
 │    │        Reuse Delay   → 0.3
 │    │
-│    └─ [C] SkillIndicatorPool                             ← 추가 (2026-08-08)
+│    ├─ [C] SkillIndicatorPool                             ← 추가 (2026-08-08)
+│    │        Sorting Layer  → Default
+│    │        Sorting Order  → 50     바닥 타일맵보다 크고 캐릭터보다 작게
+│    │        Depth          → 0.01
+│    │        Hostile Color  → 빨강 (알파 0.85)
+│    │        Prewarm        → 8
+│    │
+│    └─ [C] SkillImpactPool                                ← 추가 (2026-08-09)
 │             Sorting Layer  → Default
-│             Sorting Order  → 50     바닥 타일맵보다 크고 캐릭터보다 작게
-│             Depth          → 0.01
-│             Hostile Color  → 빨강 (알파 0.85)
-│             Prewarm        → 8
+│             Sorting Order  → 100    **캐릭터보다 크게.** 맞은 몸을 덮어야 한다
+│             Depth          → -0.01  예고와 부호가 반대다
+│             Frame Count    → 6      CLAUDE.md §5 는 4~8
+│             Frame Duration → 0.03   6 × 0.03 = 0.18초
+│             Friendly Color → 밝은 노랑 · Hostile Color → 주홍
 │
 ├─ UIRoot  (GameObject)                            ← 루트 ②
 │    ├─ [C] Transform
@@ -580,6 +588,9 @@ Pretty Knights > Data  > 0. 몬스터 정의 점검 (변경 없음)
 | 스폰·도착 보정이 엉뚱한 층 기준으로 돈다 | 같은 원인. 등록된 `WalkableArea` 는 하나뿐이다 |
 | 몬스터가 예고 없이 바로 때린다 | `Boot` 에 `SkillIndicatorPool` 이 없거나 `telegraphDuration` 이 0 |
 | 예고가 캐릭터에 가려진다 | `SkillIndicatorPool` 의 `Sorting Order` 가 캐릭터보다 크다 |
+| 때려도 이펙트가 안 뜬다 | `Boot` 에 `SkillImpactPool` 이 없다. **판정은 그대로 된다** |
+| 타격 이펙트가 캐릭터 뒤에 깔린다 | `SkillImpactPool` 의 `Sorting Order` 가 캐릭터보다 작다 |
+| 이펙트가 흐릿하게 번진다 | 있을 수 없다 — 코드가 `FilterMode.Point` 를 강제한다. 다른 원인을 찾을 것 |
 | 몬스터가 벽에 붙어 떤다 | 알려진 문제. 경로 탐색 미구현 (`docs/TODO.md` 4번) |
 
 ---
