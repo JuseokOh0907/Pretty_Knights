@@ -44,9 +44,22 @@ namespace PrettyKnights.Save
             public int clearCount;
         }
 
+        /// <summary>
+        /// 들켜서 봉인이 풀린 히든 방. <b>벽과 같은 방식으로 칸 좌표를 쓴다</b> —
+        /// 손으로 놓은 것이라 순서라는 개념이 없다.
+        /// </summary>
+        [Serializable]
+        public struct ZoneRecord
+        {
+            public int areaId;
+            public int x;
+            public int y;
+        }
+
         [SerializeField] private List<PropRecord> destroyedProps = new List<PropRecord>();
         [SerializeField] private List<WallRecord> brokenWalls = new List<WallRecord>();
         [SerializeField] private List<ThemeRecord> themes = new List<ThemeRecord>();
+        [SerializeField] private List<ZoneRecord> revealedZones = new List<ZoneRecord>();
 
         // ── 오브젝트 ──────────────────────────────────────────────────────
 
@@ -89,6 +102,27 @@ namespace PrettyKnights.Save
                 if (record.areaId == areaId) yield return new Vector3Int(record.x, record.y, 0);
         }
 
+        // ── 히든 방 봉인 ──────────────────────────────────────────────────
+
+        /// <summary>
+        /// 이 방이 이미 들켰는가. 들킨 방은 몬스터 스폰이 다시 열린다 —
+        /// 뚫고 들어간 뒤에도 계속 비어 있으면 층의 일부가 죽은 공간이 된다.
+        /// </summary>
+        public bool IsZoneRevealed(int areaId, Vector2Int key)
+        {
+            foreach (ZoneRecord record in revealedZones)
+                if (record.areaId == areaId && record.x == key.x && record.y == key.y) return true;
+
+            return false;
+        }
+
+        public void MarkZoneRevealed(int areaId, Vector2Int key)
+        {
+            if (IsZoneRevealed(areaId, key)) return;
+
+            revealedZones.Add(new ZoneRecord { areaId = areaId, x = key.x, y = key.y });
+        }
+
         // ── 테마 ──────────────────────────────────────────────────────────
 
         /// <summary>완전 클리어 횟수. 재배치 시드가 된다.</summary>
@@ -122,6 +156,10 @@ namespace PrettyKnights.Save
             destroyedProps.RemoveAll(r => r.areaId / 100 == theme);
             brokenWalls.RemoveAll(r => r.areaId / 100 == theme);
 
+            // 벽이 되살아나므로 방도 다시 봉인된다. 여기를 빠뜨리면
+            // 벽은 막혔는데 그 안에 몬스터가 차 있는 상태가 된다.
+            revealedZones.RemoveAll(r => r.areaId / 100 == theme);
+
             for (int i = 0; i < themes.Count; i++)
             {
                 if (themes[i].theme != theme) continue;
@@ -140,9 +178,11 @@ namespace PrettyKnights.Save
             destroyedProps.Clear();
             brokenWalls.Clear();
             themes.Clear();
+            revealedZones.Clear();
         }
 
         public override string ToString() =>
-            $"부순 오브젝트 {destroyedProps.Count} · 부순 벽 {brokenWalls.Count} · 클리어 기록 {themes.Count}";
+            $"부순 오브젝트 {destroyedProps.Count} · 부순 벽 {brokenWalls.Count} · " +
+            $"들킨 히든 방 {revealedZones.Count} · 클리어 기록 {themes.Count}";
     }
 }
