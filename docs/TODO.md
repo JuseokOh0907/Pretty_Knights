@@ -103,7 +103,8 @@
 
 ### 3-1. 맵 오브젝트와 토템
 
-실측·역할·구조는 [`docs/design/map-objects.md`](design/map-objects.md) 에 정리했다.
+실측·역할·구조는 [`docs/design/map-objects.md`](design/map-objects.md),
+**에셋·씬 세팅 절차는 [`docs/guides/prop-scatter-setup.md`](guides/prop-scatter-setup.md)** 에 있다.
 
 **토템 파괴가 층의 진행을 만든다.** 메인/서브는 서로 다른 자산을 쓴다.
 
