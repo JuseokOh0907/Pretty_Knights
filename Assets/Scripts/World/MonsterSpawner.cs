@@ -46,8 +46,14 @@ namespace PrettyKnights.World
         private void OnDisable()
         {
             // 층이 꺼지면 데려간다. 다시 켜질 때 새로 채운다.
+            // 구독도 끊는다 — 남겨두면 다시 켤 때 같은 몬스터를 두 번 구독한다.
             foreach (MonsterController m in spawned)
-                if (m != null) m.gameObject.SetActive(false);
+            {
+                if (m == null) continue;
+
+                m.Died -= OnMonsterDied;
+                m.gameObject.SetActive(false);
+            }
 
             spawned.Clear();
             cooldownLeft = 0f;
@@ -93,18 +99,23 @@ namespace PrettyKnights.World
                 }
             }
 
-            MonsterController monster = Instantiate(monsterPrefab, point, Quaternion.identity, transform);
+            // 죽은 몸을 다시 꺼내 쓴다. 매번 새로 만들면 시체가 계속 쌓인다.
+            MonsterController monster = MonsterController.Rent(monsterPrefab, transform);
+            if (monster == null) return;
+
             monster.Spawn(definition, point);
             monster.Died += OnMonsterDied;
 
             spawned.Add(monster);
         }
 
+        /// <summary>
+        /// 리스폰 쿨타임만 시작한다. <b>몸을 끄는 것은 몬스터 자신이 한다</b> —
+        /// 여기서 끄면 시체가 남는 시간 없이 즉시 증발해 타격이 읽히지 않는다.
+        /// </summary>
         private void OnMonsterDied(MonsterController monster)
         {
             monster.Died -= OnMonsterDied;
-            monster.gameObject.SetActive(false);
-
             cooldownLeft = respawnCooldown;
         }
 

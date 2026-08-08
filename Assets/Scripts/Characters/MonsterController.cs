@@ -41,6 +41,15 @@ namespace PrettyKnights.Characters
         [SerializeField] private CharacterMotor motor;
         [SerializeField] private DirectionalAnimatorDriver animatorDriver;
 
+        [SerializeField, Tooltip("시체를 흐리게 할 대상. 비우면 자식에서 찾는다")]
+        private SpriteRenderer view;
+
+        [Header("죽음")]
+        [SerializeField, Min(0f), Tooltip(
+            "죽은 뒤 몸이 남아 있는 시간. 0이면 즉시 사라진다. " +
+            "죽는 애니메이션이 생기면 이 값이 그 길이가 된다")]
+        private float corpseDuration = 0.6f;
+
         [Header("배회")]
         [SerializeField, Min(0f), Tooltip("스폰 지점에서 벗어날 수 있는 반경 (월드 유닛)")]
         private float wanderRadius = 3f;
@@ -73,10 +82,37 @@ namespace PrettyKnights.Characters
         private Vector2 telegraphOrigin;
         private Vector2 telegraphFacing;
 
+        /// <summary>시체가 남아 있는 남은 시간. 0이 되면 몸을 끈다.</summary>
+        private float corpseLeft;
+
         private void Awake()
         {
             if (motor == null) motor = GetComponent<CharacterMotor>();
             if (animatorDriver == null) animatorDriver = GetComponentInChildren<DirectionalAnimatorDriver>();
+            if (view == null) view = GetComponentInChildren<SpriteRenderer>();
+        }
+
+        /// <summary>
+        /// 비활성인 것을 재사용하고, 없으면 새로 만든다.
+        ///
+        /// <b>스포너마다 따로 두지 않는다.</b> 죽은 몸은 비활성으로 남는데
+        /// 매번 <c>Instantiate</c> 하면 파밍 한 시간이면 시체가 수백 개 쌓인다.
+        /// <see cref="Spawn"/> 이 정의까지 갈아 끼우므로 재사용이 안전하다.
+        /// </summary>
+        public static MonsterController Rent(MonsterController prefab, Transform parent)
+        {
+            if (prefab == null || parent == null) return null;
+
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                var found = parent.GetChild(i).GetComponent<MonsterController>();
+                if (found == null || found.gameObject.activeSelf) continue;
+
+                found.gameObject.SetActive(true);
+                return found;
+            }
+
+            return Instantiate(prefab, parent);
         }
 
         private void OnEnable()
@@ -103,6 +139,10 @@ namespace PrettyKnights.Characters
 
         private void ResetRuntime()
         {
+            // 시체로 흐려진 채 재사용되면 투명한 몬스터가 나온다.
+            corpseLeft = 0f;
+            RestoreAlpha();
+
             CurrentHp = definition != null ? definition.MaxHp : 1f;
             Current = State.Idle;
             target = null;
@@ -115,7 +155,13 @@ namespace PrettyKnights.Characters
 
         private void Update()
         {
-            if (IsDead || definition == null) return;
+            if (IsDead)
+            {
+                TickCorpse();
+                return;
+            }
+
+            if (definition == null) return;
 
             if (attackCooldownLeft > 0f) attackCooldownLeft -= Time.deltaTime;
 
@@ -329,7 +375,60 @@ namespace PrettyKnights.Characters
 
             GrantRewards();
 
+            // 치우는 책임은 몸이 진다. 스포너에 맡기면 빠뜨린 스포너가 시체를 남긴다 —
+            // 실제로 FloorPopulation 이 Died 를 듣지 않아 2층에 시체가 쌓였다 (2026-08-09).
+            corpseLeft = corpseDuration;
+            if (corpseLeft <= 0f) Vanish();
+
             Died?.Invoke(this);
+        }
+
+        /// <summary>
+        /// 시체가 잠깐 남았다가 흐려지며 사라진다.
+        ///
+        /// <b>즉시 지우지 않는 이유는 타격이 읽히지 않기 때문이다.</b>
+        /// 마지막 일격과 동시에 증발하면 죽인 것인지 놓친 것인지 알 수 없다.
+        /// 죽는 애니메이션이 생기면 이 시간이 그 길이가 된다.
+        /// </summary>
+        private void TickCorpse()
+        {
+            if (corpseLeft <= 0f) return;
+
+            corpseLeft -= Time.deltaTime;
+
+            if (corpseLeft <= 0f)
+            {
+                Vanish();
+                return;
+            }
+
+            if (view != null && corpseDuration > 0f)
+            {
+                Color color = view.color;
+                color.a = Mathf.Clamp01(corpseLeft / corpseDuration);
+                view.color = color;
+            }
+        }
+
+        /// <summary>
+        /// 몸을 치운다. <b>파괴하지 않고 끈다</b> — 스포너가 다시 꺼내 쓴다.
+        /// 알파를 되돌려 두지 않으면 재사용했을 때 투명한 몬스터가 나온다.
+        /// </summary>
+        private void Vanish()
+        {
+            corpseLeft = 0f;
+            RestoreAlpha();
+
+            gameObject.SetActive(false);
+        }
+
+        private void RestoreAlpha()
+        {
+            if (view == null) return;
+
+            Color color = view.color;
+            color.a = 1f;
+            view.color = color;
         }
 
         /// <summary>

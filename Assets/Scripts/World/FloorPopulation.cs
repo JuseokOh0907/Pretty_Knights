@@ -157,9 +157,15 @@ namespace PrettyKnights.World
 
         private void OnDisable()
         {
-            // 층이 꺼지면 전부 데려간다.
+            // 층이 꺼지면 전부 데려간다. 구독도 함께 끊는다 —
+            // 남겨두면 다시 켤 때 같은 몬스터를 두 번 구독한다.
             foreach (MonsterController m in alive)
-                if (m != null) m.gameObject.SetActive(false);
+            {
+                if (m == null) continue;
+
+                m.Died -= OnMonsterDied;
+                m.gameObject.SetActive(false);
+            }
 
             alive.Clear();
             clusterLeft = 0;
@@ -221,10 +227,30 @@ namespace PrettyKnights.World
             MonsterDefinition definition = PickDefinition();
             if (definition == null) return;
 
-            MonsterController monster = Instantiate(monsterPrefab, point, Quaternion.identity, transform);
+            // 죽은 몸을 다시 꺼내 쓴다. 매번 새로 만들면 파밍 한 시간에 시체가 수백 개 쌓인다.
+            MonsterController monster = MonsterController.Rent(monsterPrefab, transform);
+            if (monster == null) return;
+
             monster.Spawn(definition, point);
+            monster.Died += OnMonsterDied;
 
             alive.Add(monster);
+        }
+
+        /// <summary>
+        /// 죽는 즉시 장부에서 뺀다.
+        ///
+        /// <b>이걸 듣지 않아 2층에 시체가 쌓였다</b> (2026-08-09).
+        /// <see cref="Recycle"/> 는 비활성이 된 것만 걷어내는데 아무도 끄지 않았고,
+        /// 죽은 몸이 <see cref="alive"/> 에 남아 인구 상한을 차지해
+        /// <b>충분히 죽이면 리스폰이 아예 멈췄다.</b>
+        ///
+        /// 몸을 끄는 것은 몬스터 자신이 한다. 여기서 끄면 시체가 남는 시간이 사라진다.
+        /// </summary>
+        private void OnMonsterDied(MonsterController monster)
+        {
+            monster.Died -= OnMonsterDied;
+            alive.Remove(monster);
         }
 
         /// <summary>분포 방식에 따라 후보 지점을 고른다.</summary>

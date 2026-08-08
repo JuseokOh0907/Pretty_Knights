@@ -194,5 +194,29 @@ Goblin2F  (GameObject)
 | 목표 출처가 "인스펙터 값" | `FloorPopulation` 이 층 루트에 안 붙었다 |
 | 몬스터가 안 보이는데 로그는 뜬다 | 스폰 거리가 넓다. `Min/Max` 를 8/16 으로 |
 | 몬스터가 벽을 뚫고 다닌다 | 알려진 문제. 경로 탐색 미구현 (`../TODO.md` 4절) |
+| 죽은 몬스터가 그대로 서 있다 | 2026-08-09 이전 버그. `FloorPopulation` 이 `Died` 를 안 들었다 |
+| 어느 순간부터 리스폰이 멈춘다 | 같은 원인. 시체가 인구 상한을 차지했다 |
+| 예고가 너무 짧아 못 피한다 | `MonsterDefinition.Telegraph Duration` — **아래 8절** |
+
+---
+
+## 8. 예고 시간을 조정할 때
+
+`MonsterDefinition` 의 `Telegraph Duration` 이다. 기본값은 등급에서 나온다.
+
+| 등급 | 기본 |
+|---|---|
+| Normal | 0.30 |
+| Elite | 0.45 |
+| Boss | 0.70 |
+
+> ⚠ **`Pretty Knights > Data > 1. MonsterDefinition 생성/갱신` 을 다시 돌리면
+> 손으로 맞춘 값이 등급 기본값으로 덮인다.** 도구가 이 칸을 쓰기 때문이다.
+> 밸런싱한 값을 지키려면 `MonsterDefinitionBuilder` 의 표를 함께 고치거나,
+> 도구를 다시 돌리지 않는다.
+
+예고가 짧아 못 피하는 것은 **길이만의 문제가 아닐 수 있다.**
+`Attack Range` 가 넓고 `Move Speed` 가 빠르면 예고가 떠도 벗어날 거리가 안 나온다.
+셋을 함께 본다.
 | 잡아도 경험치가 안 오른다 | `GameRoot` 에 `PlayerStatsDefinition` 이 안 물렸다 |
 | 토템을 못 부순다 | 공격이 안 닿는다. `Prop` 프리팹의 콜라이더 `Is Trigger` 가 켜져 있는지 |
