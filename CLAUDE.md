@@ -322,8 +322,10 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
   `InteractButton` 은 쓸 대상이 없어도 흐려질 뿐 사라지지 않는다.
   **Boot 씬 배치가 남았다** — [`docs/guides/hud-layout.md`](docs/guides/hud-layout.md).
   스킬 버튼은 `ISkillBar` 구현체가 없어 지금은 전부 잠김으로 그려진다
-- `MonsterSpawner` · `FloorPopulation` — 스폰. 씬에 **하나도 안 붙었다**.
+- `MonsterSpawner` · `FloorPopulation` — 스폰. 씬에 **하나도 안 붙어서 몬스터가 안 나온다**.
+  절차는 [`docs/guides/monster-spawn-setup.md`](docs/guides/monster-spawn-setup.md).
   `MonsterDefinition` 10종은 생성되어 있고 **몬스터 아트가 없다** (임시 프리팹 `Monster_Temp`)
+- `NoSpawnZone` — 씬에 **0개**. 히든 방 안에 몬스터가 뿌려지면 갇힌 채 인구 상한을 차지한다
 - **오브젝트 자동 배치 일습** — `PropDefinition`(18종 생성 완료) · `DropTable` ·
   `FloorScatterProfile` · `PropScatterer`(계산) · `FloorProps`(런타임 생성) ·
   `Destructible` · `SpawnTotem` · `NoSpawnZone` · `Prop.prefab`.
@@ -339,6 +341,7 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
 Pretty Knights > Areas > 0. 포탈 링크 점검 · 1. AreaDefinition 번호 목록
                           2. 구역 정의 점검 · 3. AreaDefinition·배치 프로필 생성/갱신
                 > Data  > 몬스터 정의 점검 · MonsterDefinition 생성/갱신
+                          2. 드랍 표 점검 · 3. 드랍 표 생성/연결
                 > Props > 개수 계산 · 미리보기 · 미리보기 지우기
                           연결성 검사 · 막는 것 치우기
                           오브젝트 정의 점검 · PropDefinition 생성/갱신

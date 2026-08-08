@@ -327,10 +327,30 @@ namespace PrettyKnights.Characters
             Current = State.Dead;
             motor.Stop();
 
-            if (Core.ServiceRegistry.TryGet(out PlayerRuntimeState playerState))
-                playerState.AddExp(definition.ExpReward);
+            GrantRewards();
 
             Died?.Invoke(this);
+        }
+
+        /// <summary>
+        /// 잡은 보상. <b>확정 경험치 + 확률 드랍</b>이다.
+        ///
+        /// <c>Destructible.GrantRewards</c> 와 같은 모양으로 둔다 —
+        /// 몬스터를 잡든 오브젝트를 부수든 파밍의 결이 같아야 하고,
+        /// 아이템 시스템이 붙을 때 고칠 자리가 둘로 갈리지 않는다.
+        ///
+        /// 지금은 표가 경험치만 돌려주지만 <c>DropTable</c> 에 아이템 참조가 더해져도
+        /// 부르는 쪽은 바뀌지 않는다.
+        /// </summary>
+        private void GrantRewards()
+        {
+            if (definition == null) return;
+            if (!Core.ServiceRegistry.TryGet(out PlayerRuntimeState playerState) || playerState == null) return;
+
+            int exp = definition.ExpReward;
+            if (definition.Drops != null) exp += definition.Drops.Roll();
+
+            if (exp > 0) playerState.AddExp(exp);
         }
 
         private void OnDrawGizmosSelected()

@@ -59,7 +59,13 @@ namespace PrettyKnights.Data
         private float hitStunDuration = 0.12f;
 
         [Header("보상")]
-        [SerializeField, Min(0)] private int expReward = 12;
+        [SerializeField, Min(0), Tooltip("잡으면 언제나 주는 경험치")]
+        private int expReward = 12;
+
+        [SerializeField, Tooltip(
+            "확률 드랍. 비우면 위 경험치만 준다. " +
+            "오브젝트(PropDefinition)와 같은 표를 쓰므로 파밍의 결이 같아진다")]
+        private DropTable dropTable;
 
         [Header("표현 — 방향당 프레임 시트 (01~08 순서). 비어 있으면 플레이스홀더")]
         [SerializeField] private Sprite[] frames = System.Array.Empty<Sprite>();
@@ -94,6 +100,9 @@ namespace PrettyKnights.Data
         public float KnockbackForce => knockbackForce;
         public float HitStunDuration => hitStunDuration;
         public int ExpReward => expReward;
+
+        /// <summary>확률 드랍. 없으면 <see cref="ExpReward"/> 만 준다.</summary>
+        public DropTable Drops => dropTable;
         public Sprite[] Frames => frames;
         public bool HasArt => frames != null && frames.Length > 0;
     }
