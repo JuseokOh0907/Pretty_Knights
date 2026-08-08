@@ -185,6 +185,10 @@ Assets/Scripts/
 캐릭터 16장 기준 32 MB → **8 MB** 로 적용 완료.
 타일은 인접 경계 이음새 위험이 있어 아직 적용하지 않았다.
 
+> **이펙트 아트는 Claude Code 에서 PixelLab API 로 만듭니다** (2026-08-09 확정).
+> 절차는 [`docs/guides/skill-effect-art.md`](docs/guides/skill-effect-art.md) 에 명령서로 있습니다.
+> 캐릭터·타일 아트는 아래대로 Codex 산출물입니다.
+>
 > 아트는 현재 **Codex 에서 이미지 생성 방식으로 제작**되고 있으며 `.aseprite` 원본은 없습니다.
 > 나중에 Aseprite Importer 파이프라인을 끼워 넣을 때 재작업이 없도록,
 > Codex 산출물도 **지금부터 위 명명 규칙과 캔버스·피벗 규약을 지킵니다.**
