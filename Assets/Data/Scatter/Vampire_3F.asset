@@ -10,24 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c7944b7460d70a14db5671f0394de2fd, type: 3}
-  m_Name: Goblin_3F
+  m_Name: Vampire_3F
   m_EditorClassIdentifier: PrettyKnights::PrettyKnights.Data.FloorScatterProfile
   entries:
-  - definition: {fileID: 11400000, guid: 02e67c99fafffea4685fe6981a856140, type: 2}
+  - definition: {fileID: 11400000, guid: d5ab3326daf058e46bc896661258db40, type: 2}
     count: 0
-  - definition: {fileID: 11400000, guid: 4478f483a0fbfa84eb771be87c6636dc, type: 2}
+  - definition: {fileID: 11400000, guid: 20c5cedf309830b469aa652ec7d3b121, type: 2}
     count: 0
-  - definition: {fileID: 11400000, guid: 785141cd54e7f394880fa0f647828906, type: 2}
-    count: 6
-  - definition: {fileID: 11400000, guid: 8db2bb4141a6d744085ef98664765681, type: 2}
-    count: 4
-  - definition: {fileID: 11400000, guid: 814194250ddd0904fb40383b880d4d5c, type: 2}
-    count: 5
-  - definition: {fileID: 11400000, guid: 19214ee1628f83d489c9f4e9211fa0fd, type: 2}
-    count: 5
+  - definition: {fileID: 11400000, guid: abd4b300d1e48c042a1b7878be485046, type: 2}
+    count: 2
+  - definition: {fileID: 11400000, guid: b79d916b45ba4c84aaa2415c5ebc5d47, type: 2}
+    count: 1
+  - definition: {fileID: 11400000, guid: b0ed4de97c6edde488478c1fd3f47326, type: 2}
+    count: 2
+  - definition: {fileID: 11400000, guid: 84fbda453015c754cb22ad3ed2605997, type: 2}
+    count: 1
   propPrefab: {fileID: 6713329047649892031, guid: af6993472d38d95488762f1c4784d7b9, type: 3}
   minSpacing: 5
   wallClearance: 2
   protectedRadius: 6
   portalPrefab: {fileID: 5372970666911989824, guid: 8563ee5110130a2489a1db6f12983b0a, type: 3}
-  seed: 2147483647
+  seed: 480783

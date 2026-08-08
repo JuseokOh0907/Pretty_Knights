@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: PrettyKnights::PrettyKnights.Data.AreaDefinition
   areaId: 3
   displayName: "\uB358\uC804 \uC785\uAD6C"
-  theme: Non
+  theme: Base
   isBossFloor: 0
   isRewardRoom: 0
   nextArea: {fileID: 0}

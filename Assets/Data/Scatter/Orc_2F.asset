@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7944b7460d70a14db5671f0394de2fd, type: 3}
+  m_Name: Orc_2F
+  m_EditorClassIdentifier: PrettyKnights::PrettyKnights.Data.FloorScatterProfile
+  entries:
+  - definition: {fileID: 11400000, guid: 13d0de4211913d24181caee4e4db943d, type: 2}
+    count: 1
+  - definition: {fileID: 11400000, guid: 873aa8017106f164a8862c1c3bde6ec2, type: 2}
+    count: 3
+  - definition: {fileID: 11400000, guid: 4b01e5f06a1cd174991d522f6882a1cd, type: 2}
+    count: 11
+  - definition: {fileID: 11400000, guid: 03228530d14e0664ea1d9eea1a53de25, type: 2}
+    count: 8
+  - definition: {fileID: 11400000, guid: a2490de155487e648834ca4b810ff029, type: 2}
+    count: 13
+  - definition: {fileID: 11400000, guid: d9b996157977bae49a317835439ea04c, type: 2}
+    count: 10
+  propPrefab: {fileID: 6713329047649892031, guid: af6993472d38d95488762f1c4784d7b9, type: 3}
+  minSpacing: 3
+  wallClearance: 1
+  protectedRadius: 4
+  portalPrefab: {fileID: 1507921778096770146, guid: 52d6409e1eee7ca40a9213f9474e0a47, type: 3}
+  seed: 480682

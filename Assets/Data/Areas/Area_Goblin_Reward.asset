@@ -20,5 +20,5 @@ MonoBehaviour:
   nextArea: {fileID: 0}
   nextArrivalId: 
   scatterProfile: {fileID: 0}
-  escapeTo: {fileID: 0}
-  escapeArrivalId: 
+  escapeTo: {fileID: 11400000, guid: c32f0171bf854ae4cb6bb15a1ed079cc, type: 2}
+  escapeArrivalId: from_escape

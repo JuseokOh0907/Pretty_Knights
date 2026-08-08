@@ -17,8 +17,8 @@ MonoBehaviour:
   theme: Goblin
   isBossFloor: 1
   isRewardRoom: 0
-  nextArea: {fileID: 0}
-  nextArrivalId: 
+  nextArea: {fileID: 11400000, guid: 4ec0eb4b616cab749b60e7c84264a24a, type: 2}
+  nextArrivalId: from_boss
   scatterProfile: {fileID: 11400000, guid: 15186f40614314e42a907a2b682716af, type: 2}
-  escapeTo: {fileID: 0}
-  escapeArrivalId: 
+  escapeTo: {fileID: 11400000, guid: c32f0171bf854ae4cb6bb15a1ed079cc, type: 2}
+  escapeArrivalId: from_escape

@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fa1cadd10a73968469f39821befbd347, type: 3}
-  m_Name: Area_Goblin_1F
+  m_Name: Area_Orc_1F
   m_EditorClassIdentifier: PrettyKnights::PrettyKnights.Data.AreaDefinition
-  areaId: 101
-  displayName: "\uACE0\uBE14\uB9B0 \uC18C\uAD74 1\uCE35"
-  theme: Goblin
+  areaId: 201
+  displayName: "\uC624\uD06C \uC8FC\uB454\uC9C0 1\uCE35"
+  theme: Orc
   isBossFloor: 0
   isRewardRoom: 0
-  nextArea: {fileID: 11400000, guid: 4bcc8c0568be15d41b196f3f5642c294, type: 2}
+  nextArea: {fileID: 11400000, guid: 40a2ff23335bfbb4c8ba8b01b89de2d7, type: 2}
   nextArrivalId: from_1f
-  scatterProfile: {fileID: 11400000, guid: 072c45fb88fc8024a93d09abaadaed77, type: 2}
+  scatterProfile: {fileID: 11400000, guid: cdfe376cee366654ab2d9dd60d82ae10, type: 2}
   escapeTo: {fileID: 11400000, guid: c32f0171bf854ae4cb6bb15a1ed079cc, type: 2}
   escapeArrivalId: from_escape
