@@ -304,6 +304,30 @@ Pretty Knights > Areas > 0. 포탈 링크 점검 (변경 없음)
 | 히든 방 안에 몬스터가 스폰된다 | `WalkableArea` 의 `Breakable` 이 비었다 |
 | 층에 들어갈 때마다 부순 것이 되살아난다 | `FloorProps` 의 `Rebuild On Enable` 이 켜져 있다 |
 | 나갔다 오면 경험치를 또 준다 | 복원이 `Break(grantRewards: false)` 를 안 탔다 — 코드 문제이니 알릴 것 |
+| **디버그 이동이 아무 반응이 없다** | 목적지 층의 `AreaAnchor` 에 `AreaDefinition` 이 안 꽂혀 있다 |
+| 포탈을 눌러도 그 층으로 안 간다 | 같은 원인 |
+
+### `AreaDefinition` 이 비면 그 구역은 존재하지 않는 것과 같다
+
+`AreaRegistry` 는 **정의가 없는 앵커를 아예 등록하지 않는다.** 등록되지 않으면
+포탈도 디버그 이동도 그 번호를 찾지 못한다. 씬에 오브젝트가 멀쩡히 있어도 그렇다.
+
+재생하면 시작 시 경고가 뜬다.
+
+```
+[AreaRegistry] AreaDefinition 이 비어 등록되지 않은 구역이 9개 있습니다.
+  Orc1F
+  Orc2F
+  ...
+```
+
+이동에 실패하면 **지금 등록된 번호 목록**을 함께 찍는다 — 무엇이 빠졌는지 바로 보인다.
+
+```
+[AreaTransition] areaId #190 (고블린 보상방) 에 해당하는 층 오브젝트를 찾지 못했습니다.
+  그 층의 AreaAnchor 에 이 정의가 연결되어 있는지 확인하세요.
+  지금 등록된 구역: 101, 102, 103
+```
 
 ---
 

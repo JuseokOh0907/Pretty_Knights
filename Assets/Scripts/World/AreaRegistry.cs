@@ -25,6 +25,12 @@ namespace PrettyKnights.World
 
         private readonly Dictionary<int, AreaAnchor> byId = new Dictionary<int, AreaAnchor>();
 
+        /// <summary>
+        /// <c>AreaDefinition</c> 이 비어 등록하지 못한 것들.
+        /// <b>조용히 건너뛰면 "왜 그 구역으로 못 가지" 가 된다</b> — 시작할 때 한 번 알린다.
+        /// </summary>
+        private readonly List<AreaAnchor> unassigned = new List<AreaAnchor>();
+
         /// <summary>지금 켜져 있는 구역. 아직 아무것도 켜지지 않았으면 null.</summary>
         public AreaAnchor Active { get; private set; }
 
@@ -40,7 +46,12 @@ namespace PrettyKnights.World
                 anchor.Resolve();
 
                 int id = anchor.AreaId;
-                if (id == AreaDefinition.NoArea) continue;
+
+                if (id == AreaDefinition.NoArea)
+                {
+                    unassigned.Add(anchor);
+                    continue;
+                }
 
                 if (byId.TryGetValue(id, out AreaAnchor existing))
                 {
@@ -96,8 +107,20 @@ namespace PrettyKnights.World
                     "씬에는 하나만 켠 상태로 저장하세요.");
             }
 
+            if (unassigned.Count > 0)
+            {
+                // 등록되지 않은 구역은 포탈로도 디버그 이동으로도 갈 수 없다.
+                Debug.LogWarning(
+                    $"[AreaRegistry] AreaDefinition 이 비어 등록되지 않은 구역이 {unassigned.Count}개 있습니다. " +
+                    "이 구역들은 포탈·디버그 이동의 목적지가 될 수 없습니다.\n  " +
+                    string.Join("\n  ", unassigned.ConvertAll(a => a != null ? a.name : "(파괴됨)")));
+            }
+
             if (Active != null) ApplyCameraBounds(Active);
         }
+
+        /// <summary>등록된 구역 번호들. 실패 메시지에서 "무엇이 있는지" 를 보여주는 데 쓴다.</summary>
+        public IEnumerable<int> RegisteredIds => byId.Keys;
 
         private void OnDestroy()
         {

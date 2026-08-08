@@ -286,6 +286,7 @@ GameObject:
   - component: {fileID: 85138471}
   - component: {fileID: 85138474}
   - component: {fileID: 85138473}
+  - component: {fileID: 85138475}
   m_Layer: 0
   m_Name: GameRoot
   m_TagString: Untagged
@@ -353,8 +354,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: PrettyKnights::PrettyKnights.World.AreaTransition
   landingSearchRadius: 3
   logTransitions: 1
-  debugDestination: {fileID: 0}
-  debugSpawnId: default
+  debugDestination: {fileID: 11400000, guid: 4ec0eb4b616cab749b60e7c84264a24a, type: 2}
+  debugArrivalId: 
+--- !u!114 &85138475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 85138470}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 499ac51289d801a49959c91bb40384b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrettyKnights::PrettyKnights.Combat.SkillIndicatorPool
+  sortingLayer: Default
+  sortingOrder: 50
+  depth: 0.01
+  hostileColor: {r: 1, g: 0.18, b: 0.16, a: 0.85}
+  prewarm: 8
 --- !u!1 &393750814
 GameObject:
   m_ObjectHideFlags: 0

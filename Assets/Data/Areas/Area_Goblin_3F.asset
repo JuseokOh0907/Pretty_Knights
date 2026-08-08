@@ -16,5 +16,9 @@ MonoBehaviour:
   displayName: "\uACE0\uBE14\uB9B0 \uC18C\uAD74 3\uCE35"
   theme: Goblin
   isBossFloor: 1
+  isRewardRoom: 0
+  nextArea: {fileID: 0}
+  nextArrivalId: 
+  scatterProfile: {fileID: 11400000, guid: 15186f40614314e42a907a2b682716af, type: 2}
   escapeTo: {fileID: 0}
-  escapeSpawnId: default
+  escapeArrivalId: 

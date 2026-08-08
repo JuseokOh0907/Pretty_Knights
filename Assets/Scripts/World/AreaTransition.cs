@@ -65,9 +65,13 @@ namespace PrettyKnights.World
 
             if (!registry.TryGet(destination, out AreaAnchor anchor))
             {
+                // 대개는 그 층의 AreaAnchor 에 AreaDefinition 을 안 꽂은 경우다.
+                // 등록된 번호를 함께 보여주면 무엇이 빠졌는지 바로 보인다.
                 Debug.LogError(
                     $"[AreaTransition] areaId #{destination.AreaId} ({destination.DisplayName}) 에 해당하는 " +
-                    "층 오브젝트를 찾지 못했습니다. 그 층의 AreaAnchor 에 같은 정의가 연결되어 있는지 확인하세요.");
+                    "층 오브젝트를 찾지 못했습니다.\n  " +
+                    "그 층의 AreaAnchor 에 이 정의가 연결되어 있는지 확인하세요.\n  " +
+                    $"지금 등록된 구역: {string.Join(", ", registry.RegisteredIds)}");
                 return;
             }
 

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa1cadd10a73968469f39821befbd347, type: 3}
+  m_Name: Area_Dungeon_Entrance
+  m_EditorClassIdentifier: PrettyKnights::PrettyKnights.Data.AreaDefinition
+  areaId: 3
+  displayName: "\uB358\uC804 \uC785\uAD6C"
+  theme: Non
+  isBossFloor: 0
+  isRewardRoom: 0
+  nextArea: {fileID: 0}
+  nextArrivalId: 
+  scatterProfile: {fileID: 0}
+  escapeTo: {fileID: 0}
+  escapeArrivalId: 
