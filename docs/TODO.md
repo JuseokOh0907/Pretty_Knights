@@ -369,7 +369,7 @@ Unity 게임플레이는 메인 스레드 단일이라 "동시" 는 같은 프�
 |---|---|---|
 | `1Floor` `2Floor` `3Floor` `BasicFloor` `Floor` | Default | **0** |
 | `1FGuide` `2FGuide` `3FGuide` `Guide` | Default | **0** |
-| `1FHIddenReward` (히든방 벽) | Default | **0** |
+| `1FHiddenRewards` `2FHiddenRewards` (히든방 벽) | Default | **0** |
 | 인디케이터 (`SkillIndicatorPool`) | Default | **50** ← 코드에 박힌 임시값 |
 
 **바닥과 벽이 같은 레이어·같은 Order 다.** 그리기 순서가 계층 순서에 의존하므로
@@ -432,8 +432,8 @@ B 가 더 싸지만 8/8 아트 교체가 선행 조건이다. 그때까지는 A 
 
 ### 겸사겸사
 
-- [ ] `1FHIddenReward` 이름 정리 — `HIdden` 오타이고, 히든방 벽인지 보상 관련인지
-      이름만으로 갈리지 않는다. `1FBreakable` 처럼 역할이 드러나는 이름을 권한다
+- [ ] `1FHiddenRewards` 이름 정리 — `HIdden` 오타는 사라졌다 (6개 모두 통일, 2026-08-09 확인).
+      남은 문제는 **"Rewards" 가 보상방과 헷갈린다**는 것. `1FBreakable` 을 권한다
 
 ---
 

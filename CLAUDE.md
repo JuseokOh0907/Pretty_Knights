@@ -348,8 +348,9 @@ Pretty Knights > Areas > 0. 포탈 링크 점검 · 1. AreaDefinition 번호 목
 - `ProjectSettings` 의 `companyName` 이 `DefaultCompany` — 출시 전 변경 필요
 - Unity Cloud 의 `projectName` 이 `Gamble_Yuusha` 로 되돌아온다. 대시보드에서 바꿔야 한다
 - 루트에 옛 이름 잔재 `Gamble_Yuusha.slnx` — 추적되지 않는 생성 파일. 삭제는 승인 후
-- 히든 방 벽 타일맵 이름이 갈려 있다 — `1FHIddenRewards`(Goblin·Orc) vs
-  `1FHiddenRewards`(Vampire). "Rewards" 가 보상방과 헷갈리므로 `Breakable` 계열 권장
+- 히든 방 벽 타일맵 이름이 6개 모두 `1FHiddenRewards` / `2FHiddenRewards` 로 통일됐다
+  (2026-08-09 확인. 옛 `HIdden` 오타는 사라졌다). 다만 **"Rewards" 가 보상방과 헷갈리므로**
+  `1FBreakable` 처럼 역할이 드러나는 이름을 권한다
 - 문 타일 4종(`10~13`)은 사용하지 않기로 하여 `physicsShape` 미생성
 - 방향별 Animator Controller 24개 — 블렌드 트리로 대체됐으므로 제거 가능. 삭제는 승인 후
 - `Ingame_Vertical` 은 옛 테스트 맵이 남아 있다. 세로 모드 설계 시 갈아엎어도 무방
