@@ -4,6 +4,9 @@
 > 기능별 근거는 [`player-attack-setup.md`](player-attack-setup.md) 와
 > [`portal-area-setup.md`](portal-area-setup.md) 에 있고, 이 문서는 **배치 순서만** 다룬다.
 >
+> **Goblin 한 테마를 넘어 Orc·Vampire 와 던전 입구까지 잇는 절차는
+> [`all-maps-setup.md`](all-maps-setup.md) 에 따로 있다.**
+>
 > 표기 — `[C]` 는 컴포넌트, 들여쓰기는 부모-자식. `★` 는 **반드시 손으로 연결**해야 하는 칸.
 > 표시 없는 칸은 비워도 자동으로 찾는다.
 

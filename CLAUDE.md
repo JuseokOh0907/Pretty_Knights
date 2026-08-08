@@ -310,16 +310,21 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
 
 **전 구역 배선 절차는 [`docs/guides/all-maps-setup.md`](docs/guides/all-maps-setup.md) 하나로 묶여 있다.**
 
-**에디터 도구** — `Assets/Editor/` 8종. 전부 "점검(변경 없음)" 메뉴가 따로 있다
+**에디터 도구** — `Assets/Editor/` 9종. 전부 "점검(변경 없음)" 메뉴가 따로 있다
 
 ```
-Pretty Knights > Areas > 포탈 링크 점검 · AreaDefinition 번호 목록
+Pretty Knights > Areas > 0. 포탈 링크 점검 · 1. AreaDefinition 번호 목록
+                          2. 구역 정의 점검 · 3. AreaDefinition·배치 프로필 생성/갱신
                 > Data  > 몬스터 정의 점검 · MonsterDefinition 생성/갱신
                 > Props > 개수 계산 · 미리보기 · 미리보기 지우기
                           연결성 검사 · 막는 것 치우기
                           오브젝트 정의 점검 · PropDefinition 생성/갱신
                 > Tiles · Characters (기존)
 ```
+
+`Areas > 3` 은 **씬을 열어 둔 채로** 실행한다. 배치 개수를 표에 박지 않고
+바닥 칸 수로 계산하기 때문이다 — 층마다 넓이가 1,950~20,035칸으로 10배 넘게 차이 난다.
+밀도는 일반 층 **145칸/개**, 보스 층 **287칸/개** (검증된 Goblin 3층의 개수를 재현하는 값).
 
 **에셋**
 

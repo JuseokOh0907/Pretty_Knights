@@ -13,28 +13,29 @@
 > 에셋(몬스터 10 · 오브젝트 18 · 구역 5 · 배치 프로필 3)과 `Prop.prefab` 은 전부 생성되어 있다.
 > 아래 네 가지가 **순환을 닫고 진행을 만드는** 나머지다.
 
-### ① Orc · Vampire 로 복제 — 씬의 구역 8개가 등록조차 안 된다
+### ①② 전 구역 배선 — **절차는 [`guides/all-maps-setup.md`](guides/all-maps-setup.md) 하나로 묶었다**
 
-Goblin 만 되어 있다. 나머지 6개 층 + 보상방 2개가 남았다.
+Goblin 만 되어 있다. 나머지 6개 층 + 보상방 2개, 그리고 던전 입구의 포탈 3개가 남았다.
 지금 씬의 `AreaAnchor` 13개 중 **8개가 `definition` 이 비어 있다** (Orc 4 · Vampire 4).
 재생하면 `[AreaRegistry] AreaDefinition 이 비어 등록되지 않은 구역이 8개` 경고가 뜬다.
 
-- [ ] `AreaDefinition` — 201~203 / 301~303 · 290 / 390 (**8개**)
-- [ ] 씬의 `AreaAnchor` 8개에 정의 연결
-- [ ] `FloorScatterProfile` 6개 작성 → `AreaDefinition` 에 연결
-- [ ] 6개 층에 `FloorProps` 부착
+**에셋은 도구가 만든다** — `Pretty Knights > Areas > 3. AreaDefinition · 배치 프로필 생성/갱신`.
+씬을 열어 둔 채 실행해야 한다. 배치 개수를 바닥 칸 수로 계산하기 때문이다.
 
-절차는 [`guides/prop-scatter-setup.md`](guides/prop-scatter-setup.md) 와
-[`guides/portal-area-setup.md`](guides/portal-area-setup.md).
+- [x] 생성 도구 — 구역 13개 + 배치 프로필 9개. 다음 층·탈출·프로필 링크를 전부 건다.
+      **기존 프로필의 개수·시드·간격은 건드리지 않는다** (받아들인 배치가 다시 뽑히면 안 된다)
+- [ ] 도구 실행 → `Assets/Data/Areas/` 13개 · `Assets/Data/Scatter/` 9개
+- [ ] 씬의 `AreaAnchor` 8개에 정의 연결 ← **손으로**
+- [ ] Orc·Vampire 6개 층에 `FloorProps` 부착 + `Arrivals` 만들기
+- [ ] Orc·Vampire 보상방 2개 — `WalkableArea` 의 Floor/Guide 가 **둘 다 비어 있다**
+- [ ] 히든 방 벽 — Orc·Vampire 의 `HiddenRewards` 에 콜라이더 3종 + `DestructibleTilemap`
+- [ ] **던전 입구에 포탈 3개** → #101 / #201 / #301, 도착 지점 `from_entrance`.
+      이게 없어 순환이 닫히지 않는다
+- [ ] 던전 입구에 `from_escape` 도착 지점 (`AreaDefinition.EscapeTo` 는 도구가 #3 으로 채운다)
 
-### ② 던전 입구의 테마 선택 포탈 3개
-
-`Map/Dungeon` 은 `AreaAnchor` + `Area_Dungeon_Entrance`(#3) + `Arrivals/from_reward` 까지 되어 있다.
-**각 테마 1F 로 가는 포탈 3개가 없어 순환이 아직 닫히지 않았다.**
-
-- [ ] `Portal_to_Goblin` / `Portal_to_Orc` / `Portal_to_Vampire` → #101 / #201 / #301
-- [ ] 각 테마 1F 에 `from_entrance` 도착 지점 (Goblin 은 이미 있다)
-- [ ] `AreaDefinition.EscapeTo` 를 #3 으로 채운다 (지금 전부 비어 있어 탈출이 무효)
+> **층을 잇는 포탈은 씬에 두지 않는다.** 메인 토템이 뽑힌 자리에 `FloorProps` 가
+> 꺼진 포탈을 함께 만들고 토템을 부수면 켜진다. 손으로 두는 포탈은
+> **던전 입구 3개 + 보상방 3개, 총 6개뿐이다.**
 
 ### ③ 보스 처치 → Gold 포탈
 
