@@ -171,10 +171,10 @@ Canvas
  │    │        Anchor (0.5, 1)~(0.5, 1) · Pivot (0.5, 1)
  │    │        Pos (0, -220)   Size (720, 80)
  │    ├─ [C] CanvasGroup        ★ Alpha 0 으로 저장
- │    ├─ [C] Image              반투명 띠 (선택)
  │    ├─ [C] PotionWarningLabel
  │    │        Hold Duration → 2 · Fade Duration → 0.6
  │    └─ Label  (GameObject)   [C] TextMeshProUGUI  가운데 정렬
+ │                             배경 이미지는 두지 않는다 — 글자만 띄운다
  │
  └─ FadeOverlay                                  (기존) ★ 맨 아래 유지
 ```

@@ -38,8 +38,16 @@ namespace PrettyKnights.UI
             if (group == null) group = GetComponent<CanvasGroup>();
             if (label == null) label = GetComponentInChildren<TMP_Text>(includeInactive: true);
 
+            if (group == null) return;
+
             // 시작하자마자 떠 있으면 안 된다.
-            if (group != null) group.alpha = 0f;
+            group.alpha = 0f;
+
+            // ⚠ 알파 0 이어도 레이캐스트는 막힌다. TextMeshProUGUI 의 Raycast Target 이
+            // 기본으로 켜져 있어, 안 보이는 문구가 화면 위쪽 터치를 계속 삼킨다.
+            // 이 문구는 읽기만 하는 것이라 아예 통과시킨다.
+            group.blocksRaycasts = false;
+            group.interactable = false;
         }
 
         private void OnDisable() => Unbind();
