@@ -9,6 +9,9 @@
 
 ## 지금 막혀 있는 것
 
+> **Goblin 테마 한 바퀴가 돈다** (2026-08-08). 1F → 2F → 3F → 보상방 → 던전 입구.
+> 남은 것은 Orc·Vampire 복제, 던전 입구의 테마 선택 포탈 3개, 보스 처치 판정.
+
 **① `MonsterDefinition` 에셋이 하나도 없다** ← 이게 없으면 스폰해도 아무것도 안 나온다
 
 임시값을 [`docs/design/monster-definitions.xlsx`](design/monster-definitions.xlsx) 로 정리해 두었다.

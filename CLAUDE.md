@@ -263,60 +263,74 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
 
 ## 7. 현재 진행 상태
 
-> 마지막 갱신 2026-08-05. 이 절이 실제와 어긋나면 먼저 고치고 작업할 것.
+> 마지막 갱신 2026-08-08. 이 절이 실제와 어긋나면 먼저 고치고 작업할 것.
 > 할 일 목록은 [`docs/TODO.md`](docs/TODO.md) 를 본다.
 
 **동작하는 것** — 실행해서 확인된 것만 적는다
 
 - **플레이어** — `Player.prefab` (루트: Rigidbody2D · CapsuleCollider2D · CharacterMotor ·
-  PlayerController · PlayerHitReaction / 자식 `Visual`: SpriteRenderer · Animator ·
-  DirectionalAnimatorDriver). 단일 `Knight.controller` 에 Idle/Walk/Run 블렌드 트리.
-  8방향 이동, **손을 떼도 방향 유지**(latch 검증 완료)
-- **Boot 씬** — `GameRoot` + `UIRoot`(Canvas Overlay · EventSystem ·
-  ModeSwitchButton · Controls/JoystickArea/Handle). 두 루트 모두 DontDestroyOnLoad
-- **세이브** — 레벨·경험치·HP + **마지막 위치와 바라보던 방향**까지 복원.
-  원자적 쓰기(임시 → 백업 → 교체), `OnApplicationPause` 에서도 저장
-- **모드 전환** — 버튼으로 세로 ↔ 가로. Additive 로 게임플레이 씬만 교체
-- **조작** — `OnScreenStick` (`<Gamepad>/leftStick`). **스틱 기울기가 곧 속도**라
-  살짝 밀면 걷고 끝까지 밀면 달린다
-- **피격 반응** — 넉백 + 경직 + 무적. 넉백 세기와 경직 시간은 때린 몬스터 정의에서 온다
-- **카메라** — `CameraFollow`. Floor 타일맵 범위로 가둔다
+  PlayerController · PlayerHitReaction · **PlayerAttack** / 자식 `Visual`).
+  단일 `Knight.controller` 에 Idle/Walk/Run 블렌드 트리. 8방향 이동, 손을 떼도 방향 유지
+- **Boot 씬** — `GameRoot`(+ AreaTransition · InteractionHub · SkillIndicatorPool) 와
+  `UIRoot`(Canvas · EventSystem · ModeSwitchButton · Controls · InteractButton ·
+  AttackButton · FadeOverlay). 두 루트 모두 DontDestroyOnLoad
+- **세이브** — 레벨·경험치·HP · 마지막 위치와 방향 · **areaId** ·
+  **부순 오브젝트/벽 · 테마 클리어 횟수**(`WorldProgress`). 원자적 쓰기
+- **구역 전환** — 포탈은 **트리거 안 + 사용 키**로 발동하는 **단방향**.
+  페이드 · 구역 교체 · 카메라 경계 · 도착 보정 · 저장을 `AreaTransition` 이 순서대로 한다.
+  **Goblin 3개 층 + 보상방 왕복 확인 완료**
+- **전투** — `SkillShape`(무상태 범위 계산) · `PlayerAttack` · `IDamageable` ·
+  `IAreaDamageable`. 몬스터는 **예고 → 판정 → 경직** 3단계
+- **인디케이터** — 판정 도형을 픽셀 격자에 찍어 8방향으로 구워 캐시
+- **모드 전환 · 조작 · 피격 반응 · 카메라** — 이전과 같음
 
-**만들어졌지만 아직 씬에 붙지 않은 것**
+**만들어졌지만 아직 씬에 다 붙지 않은 것**
 
-- `WalkableArea` — 바닥 타일 유무로 설 수 있는 자리를 판정
-- `MonsterSpawner` — 지점 고정 스폰 (1F 안내 · 3F 보스용)
-- `FloorPopulation` — 층 인구 관리 (2F 파밍용). 분포 3종
-- `MonsterController` — 배회/추격/공격. **임시 프리팹만 있고 몬스터 아트는 없다**
-- **구역 전환 일습** — `AreaDefinition` · `AreaAnchor` · `ArrivalPoint` · `AreaRegistry` ·
-  `AreaTransition` · `Portal` · 상호작용 3종 · `ScreenFader` · `InteractButton`.
-  배치 절차는 [`docs/guides/portal-area-setup.md`](docs/guides/portal-area-setup.md),
-  설계 근거는 [`docs/decisions/006-area-transition.md`](docs/decisions/006-area-transition.md)
+- `MonsterSpawner` · `FloorPopulation` — 스폰. `MonsterDefinition` 10종은 있고
+  **몬스터 아트가 없다** (임시 프리팹 `Monster_Temp`)
+- **오브젝트 자동 배치 일습** — `PropDefinition`(18종) · `DropTable` ·
+  `FloorScatterProfile` · `PropScatterer`(계산) · `FloorProps`(런타임 생성) ·
+  `Destructible` · `SpawnTotem` · `NoSpawnZone`.
+  절차는 [`docs/guides/prop-scatter-setup.md`](docs/guides/prop-scatter-setup.md)
+- **부술 수 있는 벽** — `DestructibleTilemap`. 층마다 붙이고
+  `WalkableArea.Breakable` 에 연결해야 한다
+
+**에디터 도구** — `Assets/Editor/` 8종. 전부 "점검(변경 없음)" 메뉴가 따로 있다
+
+```
+Pretty Knights > Areas > 포탈 링크 점검 · AreaDefinition 번호 목록
+                > Data  > 몬스터 정의 점검 · MonsterDefinition 생성/갱신
+                > Props > 개수 계산 · 미리보기 · 미리보기 지우기
+                          연결성 검사 · 막는 것 치우기
+                          오브젝트 정의 점검 · PropDefinition 생성/갱신
+                > Tiles · Characters (기존)
+```
 
 **에셋**
 
 - **아트** — Knights 걷기·달리기·Idle 8방향, 클립 24개. ASTC 4×4, 셀 184×232
-- **타일** — 6테마 × 18타일 + **연결 타일 4종(24장)**. `physicsShape` 전량 생성,
-  center 계열은 Collider `None`
-- **맵** — 3테마 9층 **81,373칸** (`Ingame_Horizontal`). 층 오브젝트 단위로 켜고 끈다
-- **에디터 도구 4종** — `Assets/Editor/`. 전부 "점검(변경 없음)" 메뉴가 따로 있다
+- **타일** — 6테마 × 18타일 + 연결 타일 24장. `physicsShape` 전량 생성
+- **맵** — 3테마 × (3층 + 보상방) + 던전 입구. `Ingame_Horizontal` 한 씬에 전부.
+  1F·2F 에 히든 방 벽 타일맵(`HiddenRewards`)이 있다
+- **오브젝트** — 18종 전부 PPU 64 · Pivot Center · 2×2칸
 
 ### 남은 잡무 / 기술 부채
 
-- `ProjectSettings` 의 `companyName` 이 `DefaultCompany` — 출시 전 변경 필요
-- Unity Cloud 의 `projectName` 이 `Gamble_Yuusha` 로 되돌아온다.
-  대시보드에서 바꿔야 하며 로컬 수정은 유지되지 않는다
-- 루트에 옛 이름 잔재 `Gamble_Yuusha.slnx` — 추적되지 않는 생성 파일. 삭제는 승인 후
-- ~~Goblin 오브젝트 6장만 PPU 다름~~ — **해결** (2026-08-05). 18장 전부 PPU 64 ·
-  Pivot Center · 2×2칸. 실측표는 [`docs/design/map-objects.md`](docs/design/map-objects.md)
+- **정렬(Sorting)을 하나도 안 잡았다** — 바닥·벽·인디케이터·캐릭터가 전부 Default/0 이고
+  Y-소팅도 꺼져 있다. **마지막에 한 번에 잡기로 했고** 현재 상태와 임시값을
+  `docs/TODO.md` "정렬 일괄 지정" 에 전부 모아 두었다
 - **오브젝트 접지선이 테마마다 다르다** — Goblin·Vampire 는 캔버스 중앙 정렬,
-  Orc 만 바닥 정렬(하단 여백 7px). 같은 Y 에 놓으면 겉보기 접지점이 최대 0.5칸 어긋나
-  프리팹마다 `Visual` Y 오프셋을 따로 준다. 8/8 아트 교체 때 하단 여백 7px 로 통일하면 사라진다
-- 문 타일 4종(`10~13`)은 사용하지 않기로 하여 `physicsShape` 미생성.
-  전체 교체 가능성이 있어 그대로 둔다
+  Orc 만 바닥 정렬(하단 여백 7px). `PropDefinition.visualOffsetY` 로 흡수하고 있으며
+  8/8 아트 교체 때 하단 여백 7px 로 통일하면 사라진다
+- `ProjectSettings` 의 `companyName` 이 `DefaultCompany` — 출시 전 변경 필요
+- Unity Cloud 의 `projectName` 이 `Gamble_Yuusha` 로 되돌아온다. 대시보드에서 바꿔야 한다
+- 루트에 옛 이름 잔재 `Gamble_Yuusha.slnx` — 추적되지 않는 생성 파일. 삭제는 승인 후
+- 히든 방 벽 타일맵 이름이 갈려 있다 — `1FHIddenRewards`(Goblin·Orc) vs
+  `1FHiddenRewards`(Vampire). "Rewards" 가 보상방과 헷갈리므로 `Breakable` 계열 권장
+- 문 타일 4종(`10~13`)은 사용하지 않기로 하여 `physicsShape` 미생성
 - 방향별 Animator Controller 24개 — 블렌드 트리로 대체됐으므로 제거 가능. 삭제는 승인 후
 - `Ingame_Vertical` 은 옛 테스트 맵이 남아 있다. 세로 모드 설계 시 갈아엎어도 무방
-- `Assets/Art/Reference/` 에 참고용 이미지가 들어 있다. 빌드에는 포함되지 않지만 정리 대상
+- `Assets/Art/Reference/` 에 참고용 이미지가 들어 있다. 빌드 제외이나 정리 대상
 
 ---
 
