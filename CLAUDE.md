@@ -177,13 +177,21 @@ Assets/Scripts/
 
 | 항목 | 값 |
 |---|---|
-| PPU | 캐릭터 256 / 타일 64 / 오브젝트 128 |
+| PPU | 캐릭터 256 / 타일 64 / 오브젝트 128 / **UI 100** / **몬스터 체력바 192** |
 | Filter Mode | Point |
 | Mesh Type | 캐릭터 Tight |
 | Android·iOS 오버라이드 | **RGBA ASTC 4×4**, Max Size 2048 |
 
 캐릭터 16장 기준 32 MB → **8 MB** 로 적용 완료.
 타일은 인접 경계 이음새 위험이 있어 아직 적용하지 않았다.
+
+**UI 아트는 PPU 100 이다** (2026-08-09 확정). Canvas 의 `Reference Pixels Per Unit` 이 100 이라
+`Set Native Size` 가 **아트 1px = 캔버스 1단위**를 준다. Canvas 안에서는 PPU 가 크기를 정하지 않고
+`RectTransform` 이 정하므로, 100 은 "네이티브 크기가 아트 픽셀과 같아지는" 값이다.
+
+**몬스터 체력바만 192 다.** 그건 UI 가 아니라 월드에 붙는 `SpriteRenderer` 라
+PPU 가 실제 월드 크기를 정한다 — `monster_health_frame`(192px)이 정확히 1유닛이 되어
+캐릭터 폭 0.72유닛 아래에 맞는다.
 
 > **이펙트 아트는 Claude Code 에서 PixelLab API 로 만듭니다** (2026-08-09 확정).
 > 절차는 [`docs/guides/skill-effect-art.md`](docs/guides/skill-effect-art.md) 에 명령서로 있습니다.
