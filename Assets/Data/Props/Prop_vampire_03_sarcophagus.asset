@@ -19,7 +19,7 @@ MonoBehaviour:
   maxHp: 120
   defense: 0
   expReward: 40
-  dropTable: {fileID: 0}
+  dropTable: {fileID: 11400000, guid: e1394a8d14d49b949b9016d9401389cf, type: 2}
   populationShare: 4
   sprite: {fileID: 21300000, guid: 200e1bc8a419e0e45ab788da71a5cf43, type: 3}
   brokenSprite: {fileID: 0}

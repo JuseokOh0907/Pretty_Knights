@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d93b0d2c02c722c49886966e252e8044, type: 3}
+  m_Name: ItemDatabase
+  m_EditorClassIdentifier: PrettyKnights::PrettyKnights.Data.ItemDatabase
+  items:
+  - {fileID: 11400000, guid: e46c9902e518860479cc76843895365b, type: 2}
+  - {fileID: 11400000, guid: 46b66ee4a6da9e143836c8c310d6234a, type: 2}
+  - {fileID: 11400000, guid: 82939af110cb15e4690930f627181467, type: 2}
+  - {fileID: 11400000, guid: ccf0164a9646723408a8b7c72fcfb320, type: 2}

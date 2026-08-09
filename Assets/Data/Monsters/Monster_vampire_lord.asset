@@ -26,7 +26,15 @@ MonoBehaviour:
   detectRange: 25
   attackRange: 10
   attackCooldown: 2.5
+  telegraphDuration: 0.3
+  attackShape: 0
+  attackShapeParams:
+    range: 0
+    width: 1
+    angle: 180
+    forwardOffset: 0
   knockbackForce: 5
   hitStunDuration: 0.25
   expReward: 500
+  dropTable: {fileID: 11400000, guid: ee275c50bc0ad2e4f8ddb417809161df, type: 2}
   frames: []

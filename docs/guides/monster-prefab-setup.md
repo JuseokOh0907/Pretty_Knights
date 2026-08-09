@@ -19,15 +19,59 @@ Monster  (GameObject)                   ← 루트가 발밑
    ├─ [C] CharacterMotor       Acceleration 0.08 (Move Speed 는 정의가 덮어씀)
    ├─ [C] MonsterController    Definition ← 4번에서 만들 SO
    │
-   └─ Visual  (GameObject)
-         ├─ [C] Transform            (0, 0.375, 0)   ← 플레이어와 동일
-         ├─ [C] SpriteRenderer       임시 스프라이트
-         ├─ [C] Animator             임시 컨트롤러 (없어도 동작한다)
-         └─ [C] DirectionalAnimatorDriver
+   ├─ Visual  (GameObject)
+   │     ├─ [C] Transform            (0, 0.375, 0)   ← 플레이어와 동일
+   │     ├─ [C] SpriteRenderer       임시 스프라이트
+   │     ├─ [C] Animator             임시 컨트롤러 (없어도 동작한다)
+   │     └─ [C] DirectionalAnimatorDriver
+   │
+   └─ HealthBar  (GameObject)        ← 추가 (2026-08-09). 아래 3절
+         └─ [C] MonsterHealthBar     **이것 하나만 붙이면 된다**
 ```
 
 `DirectionalAnimatorDriver` 는 플레이어 전용이 아니다.
 속도 벡터를 받아 `MoveX` / `MoveY` / `Speed` 를 갱신할 뿐이라 몬스터도 그대로 쓴다.
+
+---
+
+## 1-1. 체력바
+
+`Monster` 루트 아래에 빈 게임오브젝트 `HealthBar` 를 만들고
+**`MonsterHealthBar` 컴포넌트 하나만** 붙인다. 그게 전부다.
+
+```
+[C] MonsterHealthBar
+       Owner / Back / Fill  → 전부 비운다 (코드가 만든다)
+       Offset Y      → -0.3    루트가 접지점이므로 발밑
+       Width         → 0.9
+       Height        → 0.12
+       Back Color    → 어두운 회색 알파 0.85
+       Fill Color    → 붉은색
+       Low Ratio     → 0.3     이 아래면 색이 바뀐다
+       Low Color     → 주황
+       Hide When Full     → 켬
+       Linger After Full  → 1.5
+       Sorting Layer / Order → Default / 90
+```
+
+**자식 오브젝트와 스프라이트를 코드가 만든다.** 아트가 없고 단색 사각형 둘이 전부라
+프리팹에 넣을 것이 없다. 1 × 1 흰 사각형 하나를 모든 몬스터가 나눠 쓰고 색만 입힌다.
+나중에 아트가 생기면 `Back` · `Fill` 칸에 넣어 덮어쓴다.
+
+### 왜 Canvas 가 아닌가
+
+한 층에 **16마리까지** 나온다. 마리마다 월드 스페이스 Canvas 를 두면
+그만큼 배치가 쪼개져 모바일에서 비용이 커진다. `SpriteRenderer` 두 장이면
+다른 스프라이트와 함께 묶여 그려진다.
+
+### 가득이면 숨는다
+
+꽉 찬 바 16개가 늘 떠 있으면 화면이 시끄럽고, 무엇보다 **맞은 놈이 어느 놈인지**
+안 보인다. 회복이 눈에 보이도록 가득 찬 뒤 1.5초는 더 보여준다.
+
+> `Sorting Order 90` 은 임시값이다. 정렬 일괄 지정 때 확정한다
+> ([`../TODO.md`](../TODO.md) "정렬 일괄 지정").
+> 몸(0)보다 크고 타격 이펙트(100)보다 작다.
 
 ## 2. 임시 비주얼
 

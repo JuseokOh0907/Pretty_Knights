@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c16655be73112a44b9bd325d5b1ea1d, type: 3}
+  m_Name: Drop_Prop_Rich
+  m_EditorClassIdentifier: PrettyKnights::PrettyKnights.Data.DropTable
+  entries:
+  - chance: 0.6
+    minExp: 5
+    maxExp: 12
+    label: "\uAD11\uC11D"
+  - chance: 0.1
+    minExp: 15
+    maxExp: 25
+    label: "\uC228\uC740 \uD55C \uC90C"
