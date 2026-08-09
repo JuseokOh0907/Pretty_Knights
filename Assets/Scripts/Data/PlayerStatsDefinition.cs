@@ -51,6 +51,13 @@ namespace PrettyKnights.Data
         public float MaxHpAtLevel(int level) => StatsAtLevel(level).Vitality * hpPerVitality;
 
         /// <summary>
+        /// 임의의 스탯 묶음에서 나오는 최대 HP.
+        /// <b>상점 강화가 올린 생명력도 최대 HP 에 반영되어야</b> 하므로
+        /// 레벨이 아니라 최종 스탯을 받는 창구가 따로 필요하다.
+        /// </summary>
+        public float MaxHpFor(StatBlock stats) => stats.Vitality * hpPerVitality;
+
+        /// <summary>
         /// <paramref name="level"/> 에서 다음 레벨로 가는 데 필요한 경험치.
         /// 최대 레벨에서는 <see cref="int.MaxValue"/> 를 돌려 더 오르지 않게 한다.
         /// </summary>

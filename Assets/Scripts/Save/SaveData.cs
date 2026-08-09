@@ -26,6 +26,7 @@ namespace PrettyKnights.Save
         [SerializeField] private Inventory inventory = new Inventory();
         [SerializeField] private PotionSettings potions = new PotionSettings();
         [SerializeField] private Wallet wallet = new Wallet();
+        [SerializeField] private PlayerUpgrades upgrades = new PlayerUpgrades();
 
         public int Version => version;
         public PlayerRuntimeState Player => player;
@@ -35,6 +36,9 @@ namespace PrettyKnights.Save
 
         /// <summary>재화. 옛 세이브에는 없으므로 0 골드로 시작한다.</summary>
         public Wallet Wallet => wallet;
+
+        /// <summary>상점에서 산 강화 단계. 스탯 보너스는 이걸로 매번 다시 계산한다.</summary>
+        public PlayerUpgrades Upgrades => upgrades;
 
         /// <summary>포션 자동 사용 설정. 플레이어가 바꾸는 값이라 함께 저장한다.</summary>
         public PotionSettings Potions => potions;
@@ -49,7 +53,7 @@ namespace PrettyKnights.Save
 
         public static SaveData CreateNew() => From(
             new PlayerRuntimeState(), new WorldLocation(), new WorldProgress(),
-            new Inventory(), new PotionSettings(), new Wallet());
+            new Inventory(), new PotionSettings(), new Wallet(), new PlayerUpgrades());
 
         /// <summary>
         /// 살아 있는 상태를 그대로 감싼다. 복사하지 않고 참조를 들기 때문에
@@ -57,7 +61,8 @@ namespace PrettyKnights.Save
         /// </summary>
         public static SaveData From(
             PlayerRuntimeState state, WorldLocation where, WorldProgress world,
-            Inventory bag, PotionSettings potionSettings, Wallet purse) => new SaveData
+            Inventory bag, PotionSettings potionSettings, Wallet purse,
+            PlayerUpgrades bought) => new SaveData
         {
             version = CurrentVersion,
             savedAtUtcTicks = DateTime.UtcNow.Ticks,
@@ -66,7 +71,8 @@ namespace PrettyKnights.Save
             progress = world ?? new WorldProgress(),
             inventory = bag ?? new Inventory(),
             potions = potionSettings ?? new PotionSettings(),
-            wallet = purse ?? new Wallet()
+            wallet = purse ?? new Wallet(),
+            upgrades = bought ?? new PlayerUpgrades()
         };
 
         public void StampSaveTime() => savedAtUtcTicks = DateTime.UtcNow.Ticks;

@@ -137,6 +137,31 @@ namespace PrettyKnights.Data
             return left;
         }
 
+        /// <summary>
+        /// 전부 들어갈 자리가 있는가. <b>넣지는 않는다.</b>
+        ///
+        /// 상점처럼 <b>값을 먼저 치르는 곳</b>에 필요하다 —
+        /// 넣어 보고 남으면 되돌리는 방식은 되돌리는 코드가 또 틀릴 수 있고,
+        /// 그 사이에 <c>Changed</c> 가 두 번 나간다.
+        /// </summary>
+        public bool CanAdd(ItemDefinition item, int count)
+        {
+            if (item == null || count <= 0) return false;
+
+            int room = 0;
+            int max = item.MaxStack;
+
+            foreach (Slot slot in slots)
+            {
+                if (slot.IsEmpty) room += max;
+                else if (slot.itemId == item.ItemId) room += Mathf.Max(0, max - slot.count);
+
+                if (room >= count) return true;
+            }
+
+            return room >= count;
+        }
+
         // ── 빼기 ──────────────────────────────────────────────────────────
 
         /// <summary>그 칸에서 <paramref name="count"/> 개 뺀다. 실제로 뺀 개수를 돌려준다.</summary>

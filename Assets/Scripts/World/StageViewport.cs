@@ -21,7 +21,7 @@ namespace PrettyKnights.World
     /// 뷰포트를 줄이면 <b>그리는 픽셀 자체가 줄어</b> 모바일에서 그 차이가 크다.
     ///
     /// <b>띠를 만들면 그림이 작아진다.</b> <c>orthographicSize</c> 는 화면 높이의 절반을
-    /// <b>월드 유닛</b>으로 정하는 값이라, 뷰포트가 30%로 줄어도 그대로 두면
+    /// <b>월드 유닛</b>으로 정하는 값이라, 뷰포트가 25%로 줄어도 그대로 두면
     /// 같은 세로 10유닛을 1/3 높이의 픽셀에 욱여넣게 된다 —
     /// 픽셀당 보이는 세계가 3배 넓어지고 <b>캐릭터가 3분의 1로 작아진다.</b>
     /// (가로도 함께 3배 넓어진다. 찌그러지지는 않는다)
@@ -41,8 +41,10 @@ namespace PrettyKnights.World
         [SerializeField, Range(0f, 0.9f), Tooltip("화면 위쪽에서 얼마를 HUD 에 내주는가")]
         private float topInset = 0.14f;
 
-        [SerializeField, Range(0.05f, 1f), Tooltip("전투 화면이 차지하는 높이. 0.30 이 기준안")]
-        private float heightFraction = 0.30f;
+        [SerializeField, Range(0.05f, 1f), Tooltip(
+            "전투 화면이 차지하는 높이. 0.25 확정 (2026-08-09) — " +
+            "1080×1920 기준 480px, 남는 1440px 을 상점 등 하단 UI 가 쓴다")]
+        private float heightFraction = 0.25f;
 
         [Header("보이는 범위")]
         [SerializeField, Tooltip(
@@ -92,7 +94,7 @@ namespace PrettyKnights.World
             // 여기에 zoom 으로 한 번 더 나눈다 — 나눌수록 같은 픽셀에 담기는 세계가
             // 좁아지므로 그림이 커진다.
             //
-            // 1080 × 1920 · size 5 · h 0.30 · zoom 1.5 → size 1.0
+            // 1080 × 1920 · size 5 · h 0.25 · zoom 1.5 → size 0.833
             //   가로 시야 5.625 ÷ 1.5 = 3.75유닛 · 캐릭터 폭 0.72유닛이 화면의 19%
             stageCamera.orthographicSize =
                 fullScreenOrthographicSize * height / Mathf.Max(0.1f, zoom);

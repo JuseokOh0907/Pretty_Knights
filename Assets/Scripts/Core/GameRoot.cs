@@ -30,6 +30,12 @@ namespace PrettyKnights.Core
         [SerializeField, Min(1), Tooltip("가방 칸 수. 6 × 5 격자가 기본")]
         private int inventorySlots = Inventory.DefaultSlotCount;
 
+        [SerializeField, Tooltip(
+            "상점에 진열할 것. 순서가 곧 화면 순서다. " +
+            "목록에서 뺀 항목도 이미 산 강화는 계속 적용되므로, 값을 0으로 만들지 말고 " +
+            "여기서만 빼면 된다")]
+        private ShopOffer[] shopOffers = System.Array.Empty<ShopOffer>();
+
         [Header("시작 설정")]
         [SerializeField, Tooltip("신규 플레이일 때의 시작 모드. 저장된 위치가 있으면 그쪽이 우선한다")]
         private GameMode startMode = GameMode.Horizontal;
@@ -60,6 +66,12 @@ namespace PrettyKnights.Core
 
         /// <summary>재화. 지금은 골드 하나다.</summary>
         public Wallet Purse { get; private set; }
+
+        /// <summary>상점에서 산 강화 단계.</summary>
+        public PlayerUpgrades Upgrades { get; private set; }
+
+        /// <summary>상점. 골드를 쓰는 곳은 세로 모드에만 있다 (결정 009).</summary>
+        public Shop Store { get; private set; }
 
         /// <summary>이번 실행이 신규 플레이인지 (세이브 파일이 없었는지).</summary>
         public bool IsNewGame { get; private set; }
@@ -213,6 +225,7 @@ namespace PrettyKnights.Core
             Bag = data.Inventory;
             Potions = data.Potions;
             Purse = data.Wallet;
+            Upgrades = data.Upgrades;
 
             // 세이브는 itemId 문자열만 들고 있다. 여기서 표를 물려야 에셋으로 풀린다.
             Bag.Bind(itemDatabase, inventorySlots);
@@ -242,12 +255,22 @@ namespace PrettyKnights.Core
                 PlayerState.Bind(playerStats);
             }
 
+            // 상점은 정의를 물린 뒤에 만든다. 강화 보너스를 스탯에 밀어 넣으려면
+            // PlayerState 가 이미 정의에 묶여 있어야 한다.
+            Store = new Shop(shopOffers, Purse, Upgrades, PlayerState, Bag);
+
+            // 불러온 강화를 스탯에 반영한다. 이게 없으면 산 강화가
+            // 세이브에는 있는데 스탯에는 없다.
+            Store.ApplyUpgrades();
+
             ServiceRegistry.Register(this);
             ServiceRegistry.Register(PlayerState);
             ServiceRegistry.Register(Progress);
             ServiceRegistry.Register(Bag);
             ServiceRegistry.Register(Potions);
             ServiceRegistry.Register(Purse);
+            ServiceRegistry.Register(Upgrades);
+            ServiceRegistry.Register(Store);
             ServiceRegistry.Register(Saves);
             ServiceRegistry.Register(Scenes);
 
@@ -282,7 +305,8 @@ namespace PrettyKnights.Core
             if (Saves == null || PlayerState == null || suppressAutoSave) return;
 
             CaptureLocation();
-            Saves.TrySave(SaveData.From(PlayerState, Location, Progress, Bag, Potions, Purse));
+            Saves.TrySave(
+                SaveData.From(PlayerState, Location, Progress, Bag, Potions, Purse, Upgrades));
         }
 
         public void RequestMode(GameMode mode)

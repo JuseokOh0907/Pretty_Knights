@@ -17,14 +17,19 @@
   │   상단 HUD          │   레벨 · 체력 · 재화        0.14  (269 px)
   ├────────────────────┤  0.86
   │                    │
-  │   전투 화면         │   카메라가 그리는 유일한 띠  0.30  (576 px)
+  │   전투 화면         │   카메라가 그리는 유일한 띠  0.25  (480 px)
   │                    │
-  ├────────────────────┤  0.56
+  ├────────────────────┤  0.61
   │                    │
-  │   하단 조작판       │   스킬 · 메뉴               0.56 (1075 px)
+  │                    │
+  │   하단 — 상점       │   재화 · 상점 6칸 · 메뉴    0.61 (1171 px)
+  │                    │
   │                    │
   └────────────────────┘  0.00
 ```
+
+`Height Fraction 0.25` 는 **2026-08-09 확정**이다. 1080 × 1920 기준으로
+전투 화면이 480px, 남는 **1440px** 을 상점 등 하단 UI 가 쓴다.
 
 세 숫자는 `StageViewport` 의 `Top Inset` 과 `Height Fraction` 두 칸이 정한다.
 하단은 남은 자리이므로 따로 적지 않는다 — **한 곳에서만 정해야 어긋나지 않는다.**
@@ -89,7 +94,7 @@ Ingame_Vertical
  │    │        Background Type   → Solid Color (검정)
  │    ├─ [C] StageViewport
  │    │        Top Inset                     → 0.14
- │    │        Height Fraction               → 0.30
+ │    │        Height Fraction               → 0.25
  │    │        Compensate Orthographic Size  → 켬          ★
  │    │        Full Screen Orthographic Size → 5           ★ 가로 씬과 같은 값
  │    │        Zoom                          → 1.5         ★ 세로는 당겨 본다
@@ -137,8 +142,8 @@ Ingame_Vertical
 타일은 `Art/Maps/Base/Campsite/Tiles` 를 쓴다 — 거점 성격의 배경이라
 끝없이 파밍하는 화면에 맞는다.
 
-**넓이는 카메라가 보는 것보다 조금만 크면 된다.** 위 설정(Zoom 1.5)에서
-화면에 들어오는 것은 가로 **3.75유닛 · 세로 2유닛**(약 4 × 2칸)이다.
+**넓이는 카메라가 보는 것보다 조금만 크면 된다.** 위 설정(0.25 · Zoom 1.5)에서
+화면에 들어오는 것은 가로 **3.75유닛 · 세로 1.67유닛**(약 4 × 2칸)이다.
 `ObstacleField` 가 플레이어 주변 **2.5~7유닛** 고리에 뿌리므로
 **20 × 20칸 정도**면 고리가 넉넉히 들어온다.
 
@@ -152,20 +157,20 @@ Ingame_Vertical
 ## 4. 왜 `orthographicSize` 를 건드려야 하는가
 
 **띠를 만들면 그림이 작아진다.** `Size` 는 화면 높이의 절반을 **월드 유닛**으로 정하는 값이라,
-뷰포트가 30%로 줄어도 5 를 그대로 두면 같은 세로 10유닛을 1/3 높이의 픽셀에 넣게 된다.
+뷰포트가 25%로 줄어도 5 를 그대로 두면 같은 세로 10유닛을 1/4 높이의 픽셀에 넣게 된다.
 
 ```
-전체 화면      1080 × 1920 · size 5     세로 10유닛 / 1920px  = 0.0052 유닛/px
-띠 (보정 없음)  1080 ×  576 · size 5     세로 10유닛 /  576px  = 0.0174 유닛/px  ← 3.3배 작아짐
-띠 (보정 있음)  1080 ×  576 · size 1.5   세로  3유닛 /  576px  = 0.0052 유닛/px  ← 가로와 같다
-띠 (+ Zoom 1.5) 1080 ×  576 · size 1.0   세로  2유닛 /  576px  = 0.0035 유닛/px  ← 1.5배 커진다
+전체 화면       1080 × 1920 · size 5       세로 10유닛 / 1920px  = 0.0052 유닛/px
+띠 (보정 없음)   1080 ×  480 · size 5       세로 10유닛 /  480px  = 0.0208 유닛/px  ← 4배 작아짐
+띠 (보정 있음)   1080 ×  480 · size 1.25    세로 2.5유닛 /  480px = 0.0052 유닛/px  ← 가로와 같다
+띠 (+ Zoom 1.5)  1080 ×  480 · size 0.833   세로 1.67유닛 / 480px = 0.0035 유닛/px  ← 1.5배 커진다
 ```
 
-찌그러지지는 않는다. **작아질 뿐이다** — 가로도 함께 3.3배 넓어지기 때문이다.
-`Compensate Orthographic Size` 를 켜면 `size = 5 × 0.30 = 1.5` 가 되어
+찌그러지지는 않는다. **작아질 뿐이다** — 가로도 함께 4배 넓어지기 때문이다.
+`Compensate Orthographic Size` 를 켜면 `size = 5 × 0.25 = 1.25` 가 되어
 픽셀당 크기가 전체 화면과 같아지고, **가로로 보이는 범위(5.625유닛)까지 그대로**가 된다.
 
-여기에 `Zoom 1.5` 를 곱하면 `size = 1.0` 이 되어 **모든 것이 1.5배로 커진다.**
+여기에 `Zoom 1.5` 를 나누면 `size = 0.833` 이 되어 **모든 것이 1.5배로 커진다.**
 가로 시야는 5.625 ÷ 1.5 = **3.75유닛**(약 4칸)으로 좁아지고,
 캐릭터 폭 0.72유닛이 화면의 29%를 차지한다 (가로에서는 13%).
 
@@ -182,12 +187,12 @@ Ingame_Vertical
 
 1. `Ingame_Vertical` 을 열고 **Game 뷰의 해상도를 1080 × 1920** 으로 맞춘다
 2. 재생하지 않은 상태에서 `Stage Camera` 의 `Viewport Rect` 를 본다 →
-   `Y 0.56 · H 0.30` 으로 **이미 채워져 있어야 한다** (`ExecuteAlways`)
-3. 재생 → 세계가 **화면 위쪽 30% 띠에만** 그려진다
-4. 나머지 70%가 **검게 지워져 있다.** 잔상이 남으면 `Background Camera` 의
+   `Y 0.61 · H 0.25` 로 **이미 채워져 있어야 한다** (`ExecuteAlways`)
+3. 재생 → 세계가 **화면 위쪽 25% 띠(480px)에만** 그려진다
+4. 나머지 75%(1440px)가 **검게 지워져 있다.** 잔상이 남으면 `Background Camera` 의
    Priority 가 Stage 보다 낮은지, Background Type 이 Solid Color 인지 본다
-5. 캐릭터 크기가 **가로 모드와 같아 보인다.** 작아 보이면
-   `Compensate Orthographic Size` 가 꺼져 있다
+5. 캐릭터 크기가 **가로 모드보다 1.5배 커 보인다.** 그대로면
+   `Compensate Orthographic Size` 가 꺼져 있거나 `Zoom` 이 1 로 남아 있다
 6. `Top Inset` 을 0.3 쯤으로 크게 바꿔 본다 → 띠가 **아래로 내려간다**
    (높이는 그대로). 되돌려 놓을 것
 
@@ -232,9 +237,135 @@ Ingame_Vertical
 
 ---
 
-## 7. 이 문서 범위 밖
+## 7. 세로 전용 플레이어 프리팹 — `Player_Vertical`
 
-- **세로 전용 플레이어 프리팹** — `Player_Vertical`. `Visual` 1.5배 · `AutoBattle` 부착
-- **상점** — 하단 조작판을 차지한다. 골드를 쓰는 곳은 세로에만 있다 (결정 009 §4)
+`Player.prefab` 을 복제해 만든다. **원본은 건드리지 않는다** — 캐릭터를 키우는 것은
+카메라가 아니라 프리팹의 일이라, 공용 프리팹을 고치면 가로까지 커진다.
+
+```
+Player_Vertical  (프리팹, Player.prefab 을 복제)
+   ├─ (기존 컴포넌트 전부 그대로)
+   ├─ [C] AutoBattle                     ← 추가
+   │        Active Mode        → Vertical
+   │        Force Always On    → 끔
+   │        Search Radius      → 12
+   │        Engage Distance    → 1.1     ※ 장애물 접지폭(약 1.5)보다 짧게
+   │        Retarget Interval  → 0.35
+   │        Wander Radius      → 4
+   │
+   └─ Visual  (기존 자식)
+         └─ [C] Transform   **Scale (1.5, 1.5, 1.5)**   ★ 이것이 "1.5배" 의 실체
+```
+
+`ISkillBar`(`PlayerSkillBar`)는 **떼지 않는다.** 세로에 스킬 버튼이 없을 뿐,
+가로로 전환하면 그대로 필요하다.
+
+> `AutoBattle.Engage Distance` 를 장애물 접지폭보다 넉넉히 짧게 잡을 것.
+> 길면 사거리 끝에서 멈췄다가 장애물이 없어지는 순간(부서짐) 한 걸음 더 다가가
+> **다음 장애물과 부딪혀 밀리는 것처럼 보인다.**
+
+---
+
+## 8. 상점이 스킬 자리를 대신 채운다
+
+세로 하단에는 스킬 버튼이 없다. **`ShopView` 가 그 자리를 통째로 차지한다**
+(결정 009 §4) — 골드를 쓰는 곳은 세로 모드에만 있다.
+
+### 칸 나누기 — 아래 1440px 안
+
+```
+1440
+ ├─ CurrencyBar    120     골드
+ ├─ (여백)          40
+ ├─ ShopList      1040     카드 2열 × 3행(6칸) 스크롤 없이 다 보인다
+ ├─ (여백)          40
+ └─ MenuBar        200     인벤토리 · 설정 등 (이 문서 범위 밖)
+```
+
+카드 크기 계산: 좌우 여백 32 · 열 간격 24 →
+`(1080 − 32×2 − 24) ÷ 2 = 496` 폭, 세로는 `(1040 − 행간격 24×2) ÷ 3 = 331`.
+
+### 계층 — `PlayerHud` 와 마찬가지로 세로 전용 패널 안에 둔다
+
+```
+ │    ├─ VerticalBottom  (GameObject)          ← UIRoot 의 Portrait Only 에 등록 ★
+ │    │    ├─ [C] RectTransform
+ │    │    │        Anchor (0, 0)~(1, 0.75)     ★ 전투 화면 밑 경계(0.61)보다 낮게 잡아
+ │    │    │                                      여백을 캔버스가 알아서 흡수하게 한다
+ │    │    │        오프셋 0
+ │    │    │
+ │    │    ├─ CurrencyBar  (GameObject)
+ │    │    │    ├─ [C] RectTransform   Anchor (0,1)~(1,1) · Pivot (0.5,1) · Pos (0,0) · H 120
+ │    │    │    ├─ Icon  (GameObject)         [C] Image  골드 아이콘
+ │    │    │    └─ Amount  (GameObject)
+ │    │    │         └─ [C] CurrencyView / TextMeshProUGUI    ★
+ │    │    │
+ │    │    ├─ ShopList  (GameObject)
+ │    │    │    ├─ [C] RectTransform   Anchor (0,1)~(1,1) · Pos (0,-160) · H 1040
+ │    │    │    ├─ [C] GridLayoutGroup
+ │    │    │    │        Cell Size      → (496, 331)
+ │    │    │    │        Spacing        → (24, 24)
+ │    │    │    │        Constraint     → Fixed Column Count = 2
+ │    │    │    ├─ [C] ShopView
+ │    │    │    │        Slots  → 아래 카드 6개                ★
+ │    │    │    │
+ │    │    │    ├─ Slot_1  (GameObject)          ← 아래 5개는 이것을 복제한다
+ │    │    │    │    ├─ [C] RectTransform  (GridLayoutGroup 이 크기·위치를 정한다)
+ │    │    │    │    ├─ [C] CanvasGroup     ★ 필수. 못 사면 알파로 그린다
+ │    │    │    │    ├─ [C] Image           카드 배경 · Raycast Target 켬
+ │    │    │    │    ├─ [C] Button
+ │    │    │    │    ├─ [C] ShopSlotView
+ │    │    │    │    │        Icon                → 아래 Icon 의 Image             ★
+ │    │    │    │    │        Name Label          → 아래 Name 의 TextMeshProUGUI    ★
+ │    │    │    │    │        Description Label   → 아래 Desc 의 TextMeshProUGUI
+ │    │    │    │    │        Level Label         → 아래 Level 의 TextMeshProUGUI
+ │    │    │    │    │        Cost Label          → 아래 Cost 의 TextMeshProUGUI     ★
+ │    │    │    │    │        Group / Buy Button  → 비워도 자동
+ │    │    │    │    │        Unaffordable Alpha  → 0.45
+ │    │    │    │    │
+ │    │    │    │    ├─ Icon    (GameObject)   [C] Image   Raycast Target 끔
+ │    │    │    │    ├─ Name    (GameObject)   [C] TextMeshProUGUI
+ │    │    │    │    ├─ Desc    (GameObject)   [C] TextMeshProUGUI  작은 글자
+ │    │    │    │    ├─ Level   (GameObject)   [C] TextMeshProUGUI  "Lv.2"
+ │    │    │    │    └─ Cost    (GameObject)   [C] TextMeshProUGUI  골드 아이콘 + 숫자
+ │    │    │    │
+ │    │    │    ├─ Slot_2 ~ Slot_6
+ │    │    │
+ │    │    └─ MenuBar  (GameObject)             이 문서 범위 밖
+```
+
+**만드는 메뉴 경로** — `CurrencyBar` `ShopList` `Slot_1` 은 `UI > Image` 로 만들고
+`Label` 류는 `UI > Text - TextMeshPro`.
+
+> **`ShopView.Slots` 배열은 6개 고정이다.** `GameRoot.Shop Offers` 의 목록이
+> 6개를 넘으면 콘솔에 경고가 뜨고 초과분은 화면에 뜨지 않는다.
+> 지금은 스크롤을 만들지 않았다 — 6칸이면 강화 5종 + 포션 1종 정도로 충분하다는 가정이다.
+> 늘어나면 `ShopList` 에 `ScrollRect` 를 씌우는 작업이 별도로 필요하다.
+
+### 못 사는 이유는 카드가 미리 보여준다
+
+`ShopSlotView` 는 버튼을 누르기 전에 이미 흐려져 있다 — 값이 모자라거나
+강화 상한에 닿으면 알파가 낮아지고 버튼이 눌리지 않는다.
+`Cost Label` 은 상한에 닿으면 숫자 대신 `MAX` 를 띄운다.
+
+### 확인할 것
+
+1. `GameRoot` 인스펙터의 `Shop Offers` 에 `ShopOffer` 에셋을 몇 개 넣고 재생한다
+2. 하단에 카드가 진열된다. 순서는 배열 순서와 같다
+3. 장애물을 부숴 골드를 모은다 → 카드가 **살 수 있게 되는 순간 알파가 올라간다**
+4. 강화 카드를 누른다 → 골드가 빠지고 `Lv.` 숫자가 오른다.
+   상단 `PlayerHudView` 의 스탯 숫자도 함께 오른다
+   (`Shop.ApplyUpgrades()` 가 `PlayerRuntimeState.SetBonusStats` 를 부른다)
+5. 상한까지 사면 값 칸이 `MAX` 로 바뀌고 카드가 눌리지 않는다
+6. 소모품 카드를 누른다 → 인벤토리에 들어간다. 가방이 가득 차면
+   콘솔에 `가방이 가득 찼습니다` 가 뜨고 **골드는 빠지지 않는다**
+7. 재생을 멈췄다 다시 시작한다 → 강화 단계가 유지된다 (세이브에 `PlayerUpgrades` 로 남는다)
+
+---
+
+## 9. 이 문서 범위 밖
+
+- **`ShopOffer` 에셋의 실제 값** — 사용자가 직접 채운다
+- **인벤토리 · 설정 메뉴** — 하단의 `MenuBar`
 - **상단 HUD** — `PlayerHudView` 는 두 모드에 다 뜬다 ([`hud-layout.md`](hud-layout.md) 2-1절)
 - **정렬(Sorting)** — 마지막에 한 번에 ([`../TODO.md`](../TODO.md) "정렬 일괄 지정")

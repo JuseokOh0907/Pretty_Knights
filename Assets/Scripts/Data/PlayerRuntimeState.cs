@@ -19,6 +19,15 @@ namespace PrettyKnights.Data
 
         [NonSerialized] private PlayerStatsDefinition definition;
 
+        /// <summary>
+        /// 레벨 밖에서 더해진 스탯. 지금은 상점 강화가 유일한 출처다.
+        ///
+        /// <b>직렬화하지 않는다.</b> 강화 단계는 <see cref="PlayerUpgrades"/> 가 들고 있고
+        /// 여기 있는 것은 그것을 합산한 결과일 뿐이다 —
+        /// 둘 다 저장하면 어느 쪽이 진실인지 갈리고, 공식을 바꾸는 순간 어긋난다.
+        /// </summary>
+        [NonSerialized] private StatBlock bonusStats;
+
         /// <summary>레벨·경험치·HP 중 무엇이든 바뀌면 발생한다. UI 갱신용.</summary>
         public event Action<PlayerRuntimeState> Changed;
 
@@ -31,8 +40,8 @@ namespace PrettyKnights.Data
         public bool IsBound => definition != null;
         public bool IsDead => IsBound && currentHp <= 0f;
 
-        public StatBlock Stats => IsBound ? definition.StatsAtLevel(level) : StatBlock.Zero;
-        public float MaxHp => IsBound ? definition.MaxHpAtLevel(level) : 0f;
+        public StatBlock Stats => IsBound ? definition.StatsAtLevel(level) + bonusStats : StatBlock.Zero;
+        public float MaxHp => IsBound ? definition.MaxHpFor(Stats) : 0f;
         public int ExpToNextLevel => IsBound ? definition.RequiredExpToNext(level) : 0;
         public float HpRatio => MaxHp > 0f ? Mathf.Clamp01(currentHp / MaxHp) : 0f;
 
@@ -53,6 +62,25 @@ namespace PrettyKnights.Data
                 currentHp = MaxHp;
             else
                 currentHp = Mathf.Min(currentHp, MaxHp);
+
+            Changed?.Invoke(this);
+        }
+
+        /// <summary>
+        /// 강화로 더해진 스탯을 통째로 갈아 끼운다. 더하지 않고 <b>덮어쓴다</b> —
+        /// 부르는 쪽은 강화 단계 전부를 합산한 결과를 넘기므로,
+        /// 누적시키면 다시 계산할 때마다 두 배가 된다.
+        ///
+        /// 최대 HP 가 함께 오르지만 <b>현재 HP 를 따라 올리지는 않는다.</b>
+        /// 회복은 회복 수단이 하는 일이고, 강화가 곧 회복이면
+        /// 죽기 직전에 사는 것이 가장 이득인 이상한 규칙이 생긴다.
+        /// </summary>
+        public void SetBonusStats(StatBlock bonus)
+        {
+            bonusStats = bonus;
+
+            // 최대치가 줄어드는 방향(환불 등)에서 현재 HP 가 최대를 넘지 않게 한다.
+            if (IsBound) currentHp = Mathf.Min(currentHp, MaxHp);
 
             Changed?.Invoke(this);
         }
