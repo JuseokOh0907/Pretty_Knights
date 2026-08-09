@@ -41,6 +41,22 @@ namespace PrettyKnights.World
 
         private AreaAnchor anchor;
 
+        /// <summary>
+        /// 아이콘을 따로 안 주면 <b>그 아이템의 그림을 쓴다.</b>
+        /// 물약을 주울 때 물약이 뜨는 것이 가장 읽기 쉽고,
+        /// 줍기용 아이콘을 아이템 종류마다 또 만들 이유도 없다.
+        /// </summary>
+        public override Sprite PromptIcon
+        {
+            get
+            {
+                Sprite configured = base.PromptIcon;
+                if (configured != null) return configured;
+
+                return item != null ? item.Icon : null;
+            }
+        }
+
         public override string PromptLabel
         {
             get

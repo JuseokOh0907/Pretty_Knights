@@ -20,6 +20,11 @@ namespace PrettyKnights.World
         [SerializeField, Tooltip("사용 버튼에 표시할 말. 비우면 대상이 스스로 정한다")]
         private string promptLabel = string.Empty;
 
+        [SerializeField, Tooltip(
+            "사용 버튼에 띄울 그림. 버튼 하나를 포탈·아이템·상자가 나눠 쓰므로 " +
+            "이게 무엇을 하게 되는지를 말한다. 비우면 버튼의 기본 그림")]
+        private Sprite promptIcon;
+
         [SerializeField, Tooltip("끄면 겹쳐도 버튼이 뜨지 않는다. 보스를 잡아야 열리는 포탈 등에 쓴다")]
         private bool interactable = true;
 
@@ -27,6 +32,7 @@ namespace PrettyKnights.World
 
         public virtual bool CanInteract => interactable && isActiveAndEnabled;
         public virtual string PromptLabel => promptLabel;
+        public virtual Sprite PromptIcon => promptIcon;
         public Transform Anchor => transform;
 
         /// <summary>런타임에 열고 닫는다. 보스 처치 후 보상 포탈을 여는 식으로 쓴다.</summary>

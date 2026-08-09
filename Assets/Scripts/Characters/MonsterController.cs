@@ -68,6 +68,11 @@ namespace PrettyKnights.Characters
         public float CurrentHp { get; private set; }
         public bool IsDead => Current == State.Dead;
 
+        public float MaxHp => definition != null ? definition.MaxHp : 1f;
+
+        /// <summary>남은 체력 비율 0~1. 체력바가 이걸 읽는다.</summary>
+        public float HpRatio => MaxHp > 0f ? Mathf.Clamp01(CurrentHp / MaxHp) : 0f;
+
         /// <summary>스폰된 자리. 배회 반경의 중심이다.</summary>
         private Vector2 anchor;
 

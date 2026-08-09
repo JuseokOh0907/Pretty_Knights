@@ -31,10 +31,19 @@ namespace PrettyKnights.UI
         [Header("연결 (비우면 자동으로 찾는다)")]
         [SerializeField] private CanvasGroup group;
         [SerializeField] private Button button;
-        [SerializeField] private TMP_Text label;
+
+        [SerializeField, Tooltip(
+            "대상별 그림을 띄울 자리. 버튼 배경이 아니라 그 위의 자식 Image 여야 한다")]
+        private Image icon;
+
+        [SerializeField, Tooltip("글자도 함께 쓸 때만 연결한다. 비워도 된다")]
+        private TMP_Text label;
 
         [Header("표시")]
-        [SerializeField, Tooltip("대상이 라벨을 비워뒀을 때, 그리고 쓸 대상이 없을 때 쓸 문구")]
+        [SerializeField, Tooltip("대상이 아이콘을 안 줬을 때, 그리고 쓸 대상이 없을 때 쓸 그림")]
+        private Sprite fallbackIcon;
+
+        [SerializeField, Tooltip("라벨을 쓸 때만 의미가 있다")]
         private string fallbackLabel = "사용";
 
         [SerializeField, Range(0f, 1f), Tooltip(
@@ -48,6 +57,11 @@ namespace PrettyKnights.UI
             if (group == null) group = GetComponent<CanvasGroup>();
             if (button == null) button = GetComponentInChildren<Button>(includeInactive: true);
             if (label == null) label = GetComponentInChildren<TMP_Text>(includeInactive: true);
+
+            // 자기 배경(루트의 Image)을 집으면 대상 그림이 버튼 판을 덮어쓴다.
+            if (icon == null)
+                foreach (Image found in GetComponentsInChildren<Image>(includeInactive: true))
+                    if (found.gameObject != gameObject) { icon = found; break; }
 
             if (button != null) button.onClick.AddListener(OnClicked);
             else Debug.LogError($"[InteractButton] '{name}' 에서 Button 을 찾지 못했습니다. 터치로 사용할 수 없습니다.");
@@ -104,10 +118,19 @@ namespace PrettyKnights.UI
             bool usable = target != null;
             Show(usable);
 
+            // 대상이 없을 때도 기본 그림으로 되돌린다. 버튼이 계속 보이므로
+            // 그냥 두면 방금 떠나온 포탈의 그림이 화면에 남는다.
+            if (icon != null)
+            {
+                Sprite sprite = usable ? target.PromptIcon : null;
+                if (sprite == null) sprite = fallbackIcon;
+
+                icon.sprite = sprite;
+                icon.enabled = sprite != null;
+            }
+
             if (label == null) return;
 
-            // 대상이 없을 때도 라벨을 되돌린다. 버튼이 계속 보이므로
-            // 그냥 두면 방금 떠나온 포탈의 이름이 화면에 남는다.
             string text = usable ? target.PromptLabel : null;
             label.text = string.IsNullOrWhiteSpace(text) ? fallbackLabel : text;
         }
