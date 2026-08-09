@@ -128,7 +128,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PrettyKnights::PrettyKnights.Characters.MonsterController
   definition: {fileID: 11400000, guid: ec1a06b1562fa924bbcc55d5df042fe7, type: 2}
-  motor: {fileID: 0}
+  motor: {fileID: 5428733564893513151}
   animatorDriver: {fileID: 0}
   view: {fileID: 0}
   corpseDuration: 0.6
