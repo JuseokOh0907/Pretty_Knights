@@ -35,6 +35,14 @@ namespace PrettyKnights.EditorTools
             public readonly PropRole Role;
             public readonly float MaxHp;
             public readonly int Exp;
+
+            /// <summary>
+            /// 부수면 주는 골드. <b>세로 모드의 파밍이 여기서 나온다</b> (결정 009).
+            /// 대체로 경험치와 같은 값이되, 단단한 것일수록 조금 더 준다 —
+            /// 부수는 데 든 시간에 값이 매겨져야 한다.
+            /// </summary>
+            public readonly int Gold;
+
             public readonly int Share;
 
             /// <summary>실측값. 프리팹이 하나이므로 이 둘도 에셋에 들어간다.</summary>
@@ -42,38 +50,38 @@ namespace PrettyKnights.EditorTools
             public readonly float VisualY;
 
             public Row(string id, string name, string theme, PropRole role,
-                float maxHp, int exp, int share, float footprint, float visualY)
+                float maxHp, int exp, int gold, int share, float footprint, float visualY)
             {
                 Id = id; Name = name; Theme = theme; Role = role;
-                MaxHp = maxHp; Exp = exp; Share = share;
+                MaxHp = maxHp; Exp = exp; Gold = gold; Share = share;
                 Footprint = footprint; VisualY = visualY;
             }
         }
 
         // docs/design/map-objects.md §1 (역할) · §2 (실측)
-        //                id                          표시명            테마        역할                     HP   경험치 지분  접지폭 VisualY
+        //                id                          표시명            테마        역할                     HP   경험치  골드 지분  접지폭 VisualY
         private static readonly Row[] Rows =
         {
-            new Row("goblin_01_twisted_stump",     "뒤틀린 그루터기",   "Goblin",  PropRole.SubTotem,      120f,  40,  4,  1.75f, 0.828f),
-            new Row("goblin_02_moss_boulder",      "이끼 바위",         "Goblin",  PropRole.Destructible,   60f,   6,  0,  1.52f, 0.813f),
-            new Row("goblin_03_gold_vein_rock",    "금맥 바위",         "Goblin",  PropRole.Destructible,   60f,  12,  0,  1.28f, 0.641f),
-            new Row("goblin_04_mushroom_cluster",  "버섯 무리",         "Goblin",  PropRole.Destructible,   25f,   4,  0,  1.25f, 0.609f),
-            new Row("goblin_05_supply_pile",       "보급 더미",         "Goblin",  PropRole.Destructible,   35f,   8,  0,  1.48f, 0.609f),
-            new Row("goblin_06_scrap_totem",       "고철 토템",         "Goblin",  PropRole.MainTotem,     300f, 100,  4,  0.80f, 0.875f),
+            new Row("goblin_01_twisted_stump",     "뒤틀린 그루터기",   "Goblin",  PropRole.SubTotem,      120f,  40,  45,  4,  1.75f, 0.828f),
+            new Row("goblin_02_moss_boulder",      "이끼 바위",         "Goblin",  PropRole.Destructible,   60f,   6,   7,  0,  1.52f, 0.813f),
+            new Row("goblin_03_gold_vein_rock",    "금맥 바위",         "Goblin",  PropRole.Destructible,   60f,  12,  30,  0,  1.28f, 0.641f),
+            new Row("goblin_04_mushroom_cluster",  "버섯 무리",         "Goblin",  PropRole.Destructible,   25f,   4,   3,  0,  1.25f, 0.609f),
+            new Row("goblin_05_supply_pile",       "보급 더미",         "Goblin",  PropRole.Destructible,   35f,   8,  10,  0,  1.48f, 0.609f),
+            new Row("goblin_06_scrap_totem",       "고철 토템",         "Goblin",  PropRole.MainTotem,     300f, 100, 120,  4,  0.80f, 0.875f),
 
-            new Row("orc_01_scorched_stump",       "그을린 그루터기",   "Orc",     PropRole.SubTotem,      120f,  40,  4,  1.62f, 0.891f),
-            new Row("orc_02_iron_boulder",         "쇠사슬 바위",       "Orc",     PropRole.Destructible,   70f,   6,  0,  1.47f, 0.891f),
-            new Row("orc_03_weapon_rack",          "무기 거치대",       "Orc",     PropRole.Destructible,   40f,  10,  0,  1.59f, 0.891f),
-            new Row("orc_04_supply_pile",          "보급 더미",         "Orc",     PropRole.Destructible,   35f,   8,  0,  1.52f, 0.891f),
-            new Row("orc_05_war_totem",            "전쟁 토템",         "Orc",     PropRole.MainTotem,     300f, 100,  4,  0.84f, 0.891f),
-            new Row("orc_06_fire_pit",             "화덕",              "Orc",     PropRole.Destructible,   30f,   6,  0,  1.23f, 0.891f),
+            new Row("orc_01_scorched_stump",       "그을린 그루터기",   "Orc",     PropRole.SubTotem,      120f,  40,  45,  4,  1.62f, 0.891f),
+            new Row("orc_02_iron_boulder",         "쇠사슬 바위",       "Orc",     PropRole.Destructible,   70f,   6,   9,  0,  1.47f, 0.891f),
+            new Row("orc_03_weapon_rack",          "무기 거치대",       "Orc",     PropRole.Destructible,   40f,  10,  12,  0,  1.59f, 0.891f),
+            new Row("orc_04_supply_pile",          "보급 더미",         "Orc",     PropRole.Destructible,   35f,   8,  10,  0,  1.52f, 0.891f),
+            new Row("orc_05_war_totem",            "전쟁 토템",         "Orc",     PropRole.MainTotem,     300f, 100, 120,  4,  0.84f, 0.891f),
+            new Row("orc_06_fire_pit",             "화덕",              "Orc",     PropRole.Destructible,   30f,   6,   7,  0,  1.23f, 0.891f),
 
-            new Row("vampire_01_dead_tree",        "고사목",            "Vampire", PropRole.Destructible,   55f,   6,  0,  1.27f, 0.859f),
-            new Row("vampire_02_gravestone_cluster", "묘비 무리",       "Vampire", PropRole.Destructible,   65f,   8,  0,  1.55f, 0.766f),
-            new Row("vampire_03_sarcophagus",      "석관",              "Vampire", PropRole.SubTotem,      120f,  40,  4,  1.69f, 0.531f),
-            new Row("vampire_04_candle_cluster",   "촛대",              "Vampire", PropRole.Destructible,   20f,   4,  0,  0.48f, 0.594f),
-            new Row("vampire_05_thorned_roses",    "가시 장미",         "Vampire", PropRole.Destructible,   25f,   4,  0,  1.39f, 0.375f),
-            new Row("vampire_06_bloodstone_altar", "혈석 제단",         "Vampire", PropRole.MainTotem,     300f, 100,  4,  1.69f, 0.750f)
+            new Row("vampire_01_dead_tree",        "고사목",            "Vampire", PropRole.Destructible,   55f,   6,   7,  0,  1.27f, 0.859f),
+            new Row("vampire_02_gravestone_cluster", "묘비 무리",       "Vampire", PropRole.Destructible,   65f,   8,  10,  0,  1.55f, 0.766f),
+            new Row("vampire_03_sarcophagus",      "석관",              "Vampire", PropRole.SubTotem,      120f,  40,  45,  4,  1.69f, 0.531f),
+            new Row("vampire_04_candle_cluster",   "촛대",              "Vampire", PropRole.Destructible,   20f,   4,   3,  0,  0.48f, 0.594f),
+            new Row("vampire_05_thorned_roses",    "가시 장미",         "Vampire", PropRole.Destructible,   25f,   4,   3,  0,  1.39f, 0.375f),
+            new Row("vampire_06_bloodstone_altar", "혈석 제단",         "Vampire", PropRole.MainTotem,     300f, 100, 120,  4,  1.69f, 0.750f)
         };
 
         [MenuItem(MenuRoot + "5. 오브젝트 정의 점검 (변경 없음)", priority = 510)]
@@ -183,6 +191,7 @@ namespace PrettyKnights.EditorTools
             Set(so, "role", p => p.enumValueIndex = (int)row.Role);
             Set(so, "maxHp", p => p.floatValue = row.MaxHp);
             Set(so, "expReward", p => p.intValue = row.Exp);
+            Set(so, "goldReward", p => p.intValue = row.Gold);
             Set(so, "populationShare", p => p.intValue = row.Share);
 
             // 프리팹이 하나라 겉모습도 정의가 들고 있어야 한다.

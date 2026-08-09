@@ -53,6 +53,12 @@ namespace PrettyKnights.Data
         [Header("보상")]
         [SerializeField, Min(0)] private int expReward;
 
+        [SerializeField, Min(0), Tooltip(
+            "부수면 언제나 주는 골드. 세로 모드의 파밍이 여기서 나온다 — " +
+            "골드를 확률 드랍에만 맡기면 부숴도 아무 일 없는 순간이 생겨 " +
+            "파밍이 도는지 화면에서 읽히지 않는다")]
+        private int goldReward = 3;
+
         [SerializeField, Tooltip("확률 드랍. 비우면 경험치만 준다")]
         private DropTable dropTable;
 
@@ -87,6 +93,7 @@ namespace PrettyKnights.Data
         public float MaxHp => maxHp;
         public float Defense => defense;
         public int ExpReward => expReward;
+        public int GoldReward => goldReward;
         public DropTable Drops => dropTable;
 
         public int PopulationShare => populationShare;

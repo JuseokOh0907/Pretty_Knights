@@ -92,6 +92,7 @@ Ingame_Vertical
  │    │        Height Fraction               → 0.30
  │    │        Compensate Orthographic Size  → 켬          ★
  │    │        Full Screen Orthographic Size → 5           ★ 가로 씬과 같은 값
+ │    │        Zoom                          → 1.5         ★ 세로는 당겨 본다
  │    └─ [C] CameraFollow
  │             Target        → 비움 (ServiceRegistry 로 플레이어를 찾는다)
  │             Bounds Source → 비움 또는 아래 Arena 의 Floor 타일맵
@@ -134,11 +135,14 @@ Ingame_Vertical
 ```
 
 타일은 `Art/Maps/Base/Campsite/Tiles` 를 쓴다 — 거점 성격의 배경이라
-끝없이 사냥하는 화면에 맞는다.
+끝없이 파밍하는 화면에 맞는다.
 
-**넓이는 카메라가 보는 것보다 조금만 크면 된다.** 위 설정에서 화면에 들어오는 것은
-가로 **5.625유닛 · 세로 3유닛**(약 6 × 3칸)이다. `FloorPopulation` 이
-플레이어 주변 고리에 뿌리므로 **20 × 12칸 정도**면 스폰 고리가 안에 들어온다.
+**넓이는 카메라가 보는 것보다 조금만 크면 된다.** 위 설정(Zoom 1.5)에서
+화면에 들어오는 것은 가로 **3.75유닛 · 세로 2유닛**(약 4 × 2칸)이다.
+`ObstacleField` 가 플레이어 주변 **2.5~7유닛** 고리에 뿌리므로
+**20 × 20칸 정도**면 고리가 넉넉히 들어온다.
+
+`Guide` 로 사방을 막아 두면 자동 이동이 맵 밖으로 나가지 않는다.
 
 > 정확한 시야는 `StageViewport` 가 계산한다. `Height Fraction` 을 바꾸면
 > 세로 시야는 그대로고 **가로 시야만** 바뀐다는 점에 주의한다.
@@ -151,15 +155,23 @@ Ingame_Vertical
 뷰포트가 30%로 줄어도 5 를 그대로 두면 같은 세로 10유닛을 1/3 높이의 픽셀에 넣게 된다.
 
 ```
-전체 화면  1080 × 1920 · size 5     세로 10유닛 / 1920px  = 0.0052 유닛/px
-띠 (보정 없음)  1080 × 576 · size 5     세로 10유닛 /  576px  = 0.0174 유닛/px   ← 3.3배 작아짐
-띠 (보정 있음)  1080 × 576 · size 1.5   세로  3유닛 /  576px  = 0.0052 유닛/px   ← 같다
+전체 화면      1080 × 1920 · size 5     세로 10유닛 / 1920px  = 0.0052 유닛/px
+띠 (보정 없음)  1080 ×  576 · size 5     세로 10유닛 /  576px  = 0.0174 유닛/px  ← 3.3배 작아짐
+띠 (보정 있음)  1080 ×  576 · size 1.5   세로  3유닛 /  576px  = 0.0052 유닛/px  ← 가로와 같다
+띠 (+ Zoom 1.5) 1080 ×  576 · size 1.0   세로  2유닛 /  576px  = 0.0035 유닛/px  ← 1.5배 커진다
 ```
 
 찌그러지지는 않는다. **작아질 뿐이다** — 가로도 함께 3.3배 넓어지기 때문이다.
 `Compensate Orthographic Size` 를 켜면 `size = 5 × 0.30 = 1.5` 가 되어
 픽셀당 크기가 전체 화면과 같아지고, **가로로 보이는 범위(5.625유닛)까지 그대로**가 된다.
-세로 모드는 위아래만 잘린 셈이 된다.
+
+여기에 `Zoom 1.5` 를 곱하면 `size = 1.0` 이 되어 **모든 것이 1.5배로 커진다.**
+가로 시야는 5.625 ÷ 1.5 = **3.75유닛**(약 4칸)으로 좁아지고,
+캐릭터 폭 0.72유닛이 화면의 29%를 차지한다 (가로에서는 13%).
+
+> **캐릭터만 1.5배로 키우는 것은 카메라가 아니라 프리팹의 일이다.**
+> 세로 전용 `Player_Vertical` 프리팹의 `Visual` 스케일로 잡는다 —
+> 공용 `Player.prefab` 을 건드리면 가로까지 커진다.
 
 > `CameraFollow` 는 매 프레임 `orthographicSize` 와 `aspect` 를 다시 읽으므로
 > 보정된 값으로도 경계 가두기가 그대로 동작한다. 손볼 것이 없다.
@@ -181,10 +193,48 @@ Ingame_Vertical
 
 ---
 
-## 6. 이 문서 범위 밖
+## 6. 장애물이 계속 나오게 한다
 
-- **스폰과 자동 사냥** — `FloorPopulation`(토템 없이 인스펙터 값으로 채운다) ·
-  `AutoBattle`. [`monster-spawn-setup.md`](monster-spawn-setup.md) 와 함께 별도 문서로
-- **하단 조작판** — 스킬 4칸 · 메뉴 · 재화. `UIRoot` 의 `Portrait Only` 에 들어간다
+세로는 몬스터가 아니라 **부술 수 있는 장애물**을 파밍한다 (결정 009 §2).
+`Grid` 와 나란히 빈 게임오브젝트를 하나 두고 아래를 붙인다.
+
+```
+ ├─ Field  (GameObject)                       ← 뽑힌 장애물이 이 아래에 쌓인다
+ │    ├─ [C] Transform          (0, 0, 0)
+ │    ├─ [C] WalkableArea
+ │    │        Floor / Guide → 위 Grid 의 두 타일맵          ★
+ │    └─ [C] ObstacleField
+ │             Obstacle Prefab   → Assets/Prefabs/Prop.prefab   ★
+ │             Entries           → PropDefinition + 가중치       ★
+ │                                 ※ 토템(Main/Sub)은 넣지 않는다.
+ │                                   세로에는 지분 모델이 돌 곳이 없다
+ │             Target Count      → 8
+ │             Spawn Interval    → 0.6
+ │             Debris Duration   → 1.2
+ │             Min / Max Spawn Distance → 2.5 / 7
+ │             Despawn Distance  → 14
+ │             Min Separation    → 1.6
+ │             Area              → 비움 (같은 오브젝트의 WalkableArea 를 찾는다)
+```
+
+플레이어 프리팹(`Player_Vertical`)에는 `AutoBattle` 이 붙어 있어야 한다.
+장애물도 `IDamageable` 이므로 **대상 고르기·이동·때리기가 그대로 동작한다** —
+자동 사냥 코드에 고칠 것이 없었다.
+
+### 확인할 것
+
+1. 재생 → 플레이어 주변에 장애물이 하나씩 늘어 **8개**에서 멈춘다
+2. 자동으로 다가가 부순다 → 부서진 그림이 1.2초 남았다가 사라진다
+3. 부서진 자리가 아니라 **다른 곳**에서 새것이 나온다
+4. 콘솔에 `[보상] … · 골드 N` 이 찍히고 상단 재화 칸이 오른다
+5. `ObstacleField` 우클릭 → **장애물 상태** 로 개수를 본다
+6. 한참 두어도 `Field` 아래 자식이 8~10개를 넘지 않는다 (꺼진 몸을 다시 쓴다)
+
+---
+
+## 7. 이 문서 범위 밖
+
+- **세로 전용 플레이어 프리팹** — `Player_Vertical`. `Visual` 1.5배 · `AutoBattle` 부착
+- **상점** — 하단 조작판을 차지한다. 골드를 쓰는 곳은 세로에만 있다 (결정 009 §4)
 - **상단 HUD** — `PlayerHudView` 는 두 모드에 다 뜬다 ([`hud-layout.md`](hud-layout.md) 2-1절)
 - **정렬(Sorting)** — 마지막에 한 번에 ([`../TODO.md`](../TODO.md) "정렬 일괄 지정")

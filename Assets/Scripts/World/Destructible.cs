@@ -57,6 +57,10 @@ namespace PrettyKnights.World
         ///
         /// 배리언트 18개를 만들지 않는 대신 그 값들이 데이터로 옮겨왔다.
         /// 아트가 교체돼도 에셋만 고치면 되고 프리팹을 하나씩 열 필요가 없다.
+        ///
+        /// <b>부서졌던 몸을 다시 꺼내 쓸 수 있게 원래 상태로 되돌린다.</b>
+        /// 세로 모드는 장애물을 계속 부수고 다시 뽑으므로 (결정 009)
+        /// 콜라이더를 되살리지 않으면 두 번째부터는 <b>통과되는 유령</b>이 나온다.
         /// </summary>
         public void Bind(PropDefinition source)
         {
@@ -70,6 +74,10 @@ namespace PrettyKnights.World
 
             CurrentHp = definition.MaxHp;
             IsBroken = false;
+
+            // 부서질 때 껐던 것을 되돌린다. 처음 붙는 경우에는 이미 켜져 있어 아무 일도 안 한다.
+            foreach (Collider2D collider in colliders)
+                if (collider != null) collider.enabled = true;
 
             if (view != null)
             {
@@ -162,7 +170,8 @@ namespace PrettyKnights.World
         {
             if (definition == null) return;
 
-            RewardGrant.Grant(definition.DisplayName, definition.ExpReward, definition.Drops);
+            RewardGrant.Grant(
+                definition.DisplayName, definition.ExpReward, definition.Drops, definition.GoldReward);
         }
 
         [ContextMenu("부수기 (검증용)")]

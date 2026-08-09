@@ -54,6 +54,11 @@ namespace PrettyKnights.World
             "화면 전체를 쓸 때의 orthographicSize. 보정은 이 값을 기준으로 계산한다")]
         private float fullScreenOrthographicSize = 5f;
 
+        [SerializeField, Min(0.1f), Tooltip(
+            "세로 모드에서 얼마나 당겨 볼지. 1.5 면 캐릭터·타일·장애물이 모두 1.5배로 커지고 " +
+            "보이는 범위는 그만큼 좁아진다 (결정 009)")]
+        private float zoom = 1.5f;
+
         private Camera stageCamera;
 
         /// <summary>띠의 아래쪽 경계 (0=화면 바닥, 1=꼭대기). 하단 조작판의 높이와 같다.</summary>
@@ -84,8 +89,13 @@ namespace PrettyKnights.World
 
             // 픽셀당 월드 크기 = size × 2 ÷ 뷰포트 픽셀 높이.
             // 뷰포트가 h 배로 줄었으니 size 도 h 배로 줄여야 그 값이 그대로다.
-            // 1080 × 1920 · size 5 · h 0.30 → size 1.5, 가로 시야 5.625유닛 (전체 화면과 동일).
-            stageCamera.orthographicSize = fullScreenOrthographicSize * height;
+            // 여기에 zoom 으로 한 번 더 나눈다 — 나눌수록 같은 픽셀에 담기는 세계가
+            // 좁아지므로 그림이 커진다.
+            //
+            // 1080 × 1920 · size 5 · h 0.30 · zoom 1.5 → size 1.0
+            //   가로 시야 5.625 ÷ 1.5 = 3.75유닛 · 캐릭터 폭 0.72유닛이 화면의 19%
+            stageCamera.orthographicSize =
+                fullScreenOrthographicSize * height / Mathf.Max(0.1f, zoom);
         }
 
         /// <summary>
@@ -99,7 +109,7 @@ namespace PrettyKnights.World
             stageCamera.rect = new Rect(0f, 0f, 1f, 1f);
 
             if (compensateOrthographicSize && stageCamera.orthographic)
-                stageCamera.orthographicSize = fullScreenOrthographicSize;
+                stageCamera.orthographicSize = fullScreenOrthographicSize / Mathf.Max(0.1f, zoom);
         }
     }
 }
