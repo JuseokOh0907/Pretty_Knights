@@ -127,9 +127,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebed13cc20e38e942bd9af8e088e213b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PrettyKnights::PrettyKnights.Characters.MonsterController
-  definition: {fileID: 11400000, guid: 20318ff39725ecb47b3bf82470487e4e, type: 2}
+  definition: {fileID: 11400000, guid: ec1a06b1562fa924bbcc55d5df042fe7, type: 2}
   motor: {fileID: 0}
   animatorDriver: {fileID: 0}
+  view: {fileID: 0}
+  corpseDuration: 0.6
   wanderRadius: 3
   wanderIntervalMin: 1.5
   wanderIntervalMax: 3.5
