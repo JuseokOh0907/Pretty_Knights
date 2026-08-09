@@ -58,6 +58,9 @@ namespace PrettyKnights.Core
         /// <summary>포션 자동 사용 설정. 플레이어가 바꾸고 세이브에 남는다.</summary>
         public PotionSettings Potions { get; private set; }
 
+        /// <summary>재화. 지금은 골드 하나다.</summary>
+        public Wallet Purse { get; private set; }
+
         /// <summary>이번 실행이 신규 플레이인지 (세이브 파일이 없었는지).</summary>
         public bool IsNewGame { get; private set; }
 
@@ -209,9 +212,13 @@ namespace PrettyKnights.Core
             Progress = data.Progress;
             Bag = data.Inventory;
             Potions = data.Potions;
+            Purse = data.Wallet;
 
             // 세이브는 itemId 문자열만 들고 있다. 여기서 표를 물려야 에셋으로 풀린다.
             Bag.Bind(itemDatabase, inventorySlots);
+
+            // 파일이 손상돼 음수 골드가 들어와도 그 상태로 굴러가지 않게 한다.
+            Purse.Sanitize();
 
             // 슬롯이 하나였던 시절의 세이브를 모드별 슬롯으로 옮긴다.
             Location.MigrateLegacy();
@@ -240,6 +247,7 @@ namespace PrettyKnights.Core
             ServiceRegistry.Register(Progress);
             ServiceRegistry.Register(Bag);
             ServiceRegistry.Register(Potions);
+            ServiceRegistry.Register(Purse);
             ServiceRegistry.Register(Saves);
             ServiceRegistry.Register(Scenes);
 
@@ -262,6 +270,7 @@ namespace PrettyKnights.Core
                 $"  Lv {PlayerState.Level}  EXP {PlayerState.Exp}/{PlayerState.ExpToNextLevel}  " +
                 $"HP {PlayerState.CurrentHp:0.#}/{PlayerState.MaxHp:0.#}\n" +
                 $"  스탯 : {PlayerState.Stats}\n" +
+                $"  재화 : {Purse}\n" +
                 $"  위치 : {Location}\n" +
                 $"  진행 : {Progress}\n" +
                 $"  세이브 : {Saves.SavePath}  (존재 {Saves.Exists})";
@@ -273,7 +282,7 @@ namespace PrettyKnights.Core
             if (Saves == null || PlayerState == null || suppressAutoSave) return;
 
             CaptureLocation();
-            Saves.TrySave(SaveData.From(PlayerState, Location, Progress, Bag, Potions));
+            Saves.TrySave(SaveData.From(PlayerState, Location, Progress, Bag, Potions, Purse));
         }
 
         public void RequestMode(GameMode mode)

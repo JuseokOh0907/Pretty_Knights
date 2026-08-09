@@ -35,6 +35,12 @@ namespace PrettyKnights.Characters
         private InputAction moveAction;
         private InputAction sprintAction;
 
+        /// <summary>AI 가 대신 넣은 이동 방향. <see cref="InputEnabled"/> 가 false 일 때만 쓰인다.</summary>
+        private Vector2 externalMove;
+
+        /// <summary>그 방향을 넣은 프레임. 오래된 값으로 계속 걷지 않게 하려는 것.</summary>
+        private int externalMoveFrame = int.MinValue;
+
         /// <summary>이 몸의 이동을 담당하는 모터. 세이브 복원이 위치를 옮길 때 쓴다.</summary>
         public CharacterMotor Motor => motor;
 
@@ -102,13 +108,29 @@ namespace PrettyKnights.Characters
             if (motor != null) motor.Stop();
         }
 
+        /// <summary>
+        /// AI 가 이동을 대신 넣는다. <b>모터의 주인은 끝까지 이 컴포넌트 하나다.</b>
+        ///
+        /// 자동 사냥이 모터를 직접 몰면 주인이 둘이 되고, 실행 순서에 따라
+        /// <see cref="Update"/> 가 그 값을 0 으로 덮어쓰는 프레임이 생겨
+        /// <b>가다 서다를 반복</b>한다. 원인을 찾기 어려운 종류의 증상이다.
+        ///
+        /// <see cref="InputEnabled"/> 가 true 면 무시된다 — 손가락이 항상 이긴다.
+        /// </summary>
+        public void Drive(Vector2 direction)
+        {
+            externalMove = direction;
+            externalMoveFrame = Time.frameCount;
+        }
+
         private void Update()
         {
             if (motor == null) return;
 
-            Vector2 input = InputEnabled && moveAction != null
-                ? moveAction.ReadValue<Vector2>()
-                : Vector2.zero;
+            Vector2 input =
+                InputEnabled ? moveAction != null ? moveAction.ReadValue<Vector2>() : Vector2.zero :
+                // 한 프레임만 유효하다. 모는 쪽이 멈추면 그 자리에 선다.
+                externalMoveFrame >= Time.frameCount - 1 ? externalMove : Vector2.zero;
 
             // 상한은 항상 달리기 속도다. 실제 속도는 스틱을 얼마나 미느냐로 정해진다.
             // 살짝 밀면 걷고 끝까지 밀면 달린다 — 블렌드 트리의 Speed 경계가 그대로 상태를 가른다.

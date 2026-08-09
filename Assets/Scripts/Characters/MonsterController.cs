@@ -469,7 +469,8 @@ namespace PrettyKnights.Characters
         {
             if (definition == null) return;
 
-            RewardGrant.Grant(definition.DisplayName, definition.ExpReward, definition.Drops);
+            RewardGrant.Grant(
+                definition.DisplayName, definition.ExpReward, definition.Drops, definition.GoldReward);
         }
 
         private void OnDrawGizmosSelected()

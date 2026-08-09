@@ -38,36 +38,44 @@ namespace PrettyKnights.EditorTools
             public readonly float Knockback, HitStun;
             public readonly int Exp;
 
+            /// <summary>
+            /// 잡으면 주는 골드. <b>경험치에서 계산하지 않고 따로 적는다</b> —
+            /// 레벨 커브와 경제는 따로 조절해야 하는데, 배수로 묶으면
+            /// 한쪽을 고칠 때 다른 쪽이 함께 움직인다.
+            /// 보스는 비율이 더 높다. 한 번의 큰 사건이 보상으로도 커야 한다.
+            /// </summary>
+            public readonly int Gold;
+
             public Row(string id, string name, MonsterTier tier,
                 float vit, float atk, float def, float agi, float foc, float hpPerVit,
                 float moveSpeed, float detectRange, float attackRange, float attackCooldown,
-                float knockback, float hitStun, int exp)
+                float knockback, float hitStun, int exp, int gold)
             {
                 Id = id; Name = name; Tier = tier;
                 Vit = vit; Atk = atk; Def = def; Agi = agi; Foc = foc;
                 HpPerVit = hpPerVit;
                 MoveSpeed = moveSpeed; DetectRange = detectRange;
                 AttackRange = attackRange; AttackCooldown = attackCooldown;
-                Knockback = knockback; HitStun = hitStun; Exp = exp;
+                Knockback = knockback; HitStun = hitStun; Exp = exp; Gold = gold;
             }
 
             public float MaxHp => Vit * HpPerVit;
         }
 
         // docs/design/monster-definitions.xlsx · 시트 "몬스터 정의" 6~15행
-        //          id              표시명            등급               VIT  ATK  DEF  AGI  FOC HP/VIT  이동  감지  공격  쿨   넉백  경직  경험치
+        //          id              표시명            등급               VIT  ATK  DEF  AGI  FOC HP/VIT  이동  감지  공격  쿨   넉백  경직  경험치  골드
         private static readonly Row[] Rows =
         {
-            new Row("goblin_hob",     "Hobgoblin",      MonsterTier.Normal,  10,  10,   8,   6,   0,  10,  2.0f,  5f, 1.2f, 1.4f,  3f, 0.10f,  15),
-            new Row("goblin_shaman",  "Goblin Shaman",  MonsterTier.Elite,   15,  20,   5,   6,   0,   8,  1.5f, 15f, 3.0f, 1.2f,  3f, 0.18f,  35),
-            new Row("goblin_rider",   "Goblin Rider",   MonsterTier.Elite,   15,  15,  10,   6,   0,  12,  2.5f, 10f, 1.5f, 1.2f,  5f, 0.10f,  35),
-            new Row("goblin_king",    "Goblin King",    MonsterTier.Boss,    80,  25,  15,   6,   0,  15,  1.8f, 20f, 2.5f, 1.6f, 10f, 0.20f, 200),
-            new Row("orc_brute",      "Orc Brute",      MonsterTier.Normal,  20,  15,  10,   4,   0,  12,  1.5f,  6f, 1.8f, 1.8f,  6f, 0.15f,  30),
-            new Row("orc_warrior",    "Orc Warrior",    MonsterTier.Elite,   35,  30,  15,   4,   0,  15,  1.8f,  8f, 2.5f, 1.8f,  7f, 0.18f,  60),
-            new Row("orc_warlord",    "Orc Warlord",    MonsterTier.Boss,   180,  50,  30,   4,   0,  20,  2.0f, 22f, 6.0f, 2.2f, 12f, 0.25f, 500),
-            new Row("vampire_bat",    "Vampire Bat",    MonsterTier.Normal,  10,  10,   8,  12,   2,  10,  3.0f,  6f, 2.0f, 2.5f,  3f, 0.10f,  20),
-            new Row("vampire_noble",  "Vampire Noble",  MonsterTier.Elite,   15,  15,  15,   8,   8,  18,  2.0f, 10f, 8.0f, 2.5f,  4f, 0.15f,  70),
-            new Row("vampire_lord",   "Vampire Lord",   MonsterTier.Boss,   100,  25,  20,  10,  20,  20,  1.5f, 25f,10.0f, 2.5f,  5f, 0.25f, 500)
+            new Row("goblin_hob",     "Hobgoblin",      MonsterTier.Normal,  10,  10,   8,   6,   0,  10,  2.0f,  5f, 1.2f, 1.4f,  3f, 0.10f,  15,    6),
+            new Row("goblin_shaman",  "Goblin Shaman",  MonsterTier.Elite,   15,  20,   5,   6,   0,   8,  1.5f, 15f, 3.0f, 1.2f,  3f, 0.18f,  35,   14),
+            new Row("goblin_rider",   "Goblin Rider",   MonsterTier.Elite,   15,  15,  10,   6,   0,  12,  2.5f, 10f, 1.5f, 1.2f,  5f, 0.10f,  35,   14),
+            new Row("goblin_king",    "Goblin King",    MonsterTier.Boss,    80,  25,  15,   6,   0,  15,  1.8f, 20f, 2.5f, 1.6f, 10f, 0.20f, 200,  120),
+            new Row("orc_brute",      "Orc Brute",      MonsterTier.Normal,  20,  15,  10,   4,   0,  12,  1.5f,  6f, 1.8f, 1.8f,  6f, 0.15f,  30,   12),
+            new Row("orc_warrior",    "Orc Warrior",    MonsterTier.Elite,   35,  30,  15,   4,   0,  15,  1.8f,  8f, 2.5f, 1.8f,  7f, 0.18f,  60,   25),
+            new Row("orc_warlord",    "Orc Warlord",    MonsterTier.Boss,   180,  50,  30,   4,   0,  20,  2.0f, 22f, 6.0f, 2.2f, 12f, 0.25f, 500,  300),
+            new Row("vampire_bat",    "Vampire Bat",    MonsterTier.Normal,  10,  10,   8,  12,   2,  10,  3.0f,  6f, 2.0f, 2.5f,  3f, 0.10f,  20,    8),
+            new Row("vampire_noble",  "Vampire Noble",  MonsterTier.Elite,   15,  15,  15,   8,   8,  18,  2.0f, 10f, 8.0f, 2.5f,  4f, 0.15f,  70,   30),
+            new Row("vampire_lord",   "Vampire Lord",   MonsterTier.Boss,   100,  25,  20,  10,  20,  20,  1.5f, 25f,10.0f, 2.5f,  5f, 0.25f, 500,  300)
         };
 
         // ── 점검 ──────────────────────────────────────────────────────────
@@ -76,7 +84,7 @@ namespace PrettyKnights.EditorTools
         public static void Report()
         {
             var report = new StringBuilder($"[MonsterDefinition] 표 {Rows.Length}종\n");
-            report.AppendLine("  ID              등급    VIT  ATK  DEF   최대HP  이동  감지  공격범위  쿨   예고  경험치");
+            report.AppendLine("  ID              등급    VIT  ATK  DEF   최대HP  이동  감지  공격범위  쿨   예고  경험치   골드");
 
             foreach (Row row in Rows)
             {
@@ -84,7 +92,7 @@ namespace PrettyKnights.EditorTools
                     $"  {row.Id,-15} {row.Tier,-6} {row.Vit,4:0} {row.Atk,4:0} {row.Def,4:0} " +
                     $"{row.MaxHp,7:0} {row.MoveSpeed,5:0.0} {row.DetectRange,5:0} " +
                     $"{row.AttackRange,8:0.0} {row.AttackCooldown,4:0.0} " +
-                    $"{TelegraphFor(row.Tier),5:0.00} {row.Exp,7}");
+                    $"{TelegraphFor(row.Tier),5:0.00} {row.Exp,7} {row.Gold,6}");
             }
 
             report.AppendLine();
@@ -207,6 +215,7 @@ namespace PrettyKnights.EditorTools
             Set(so, "knockbackForce", p => p.floatValue = row.Knockback);
             Set(so, "hitStunDuration", p => p.floatValue = row.HitStun);
             Set(so, "expReward", p => p.intValue = row.Exp);
+            Set(so, "goldReward", p => p.intValue = row.Gold);
             Set(so, "telegraphDuration", p => p.floatValue = TelegraphFor(row.Tier));
 
             so.ApplyModifiedPropertiesWithoutUndo();

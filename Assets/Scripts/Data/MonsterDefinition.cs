@@ -62,6 +62,12 @@ namespace PrettyKnights.Data
         [SerializeField, Min(0), Tooltip("잡으면 언제나 주는 경험치")]
         private int expReward = 12;
 
+        [SerializeField, Min(0), Tooltip(
+            "잡으면 언제나 주는 골드. 경험치와 따로 두는 이유는 " +
+            "레벨 커브와 경제를 따로 조절해야 하기 때문이다 — " +
+            "경험치에 배수를 곱해 만들면 한쪽을 고칠 때 다른 쪽이 함께 움직인다")]
+        private int goldReward = 5;
+
         [SerializeField, Tooltip(
             "확률 드랍. 비우면 위 경험치만 준다. " +
             "오브젝트(PropDefinition)와 같은 표를 쓰므로 파밍의 결이 같아진다")]
@@ -100,6 +106,7 @@ namespace PrettyKnights.Data
         public float KnockbackForce => knockbackForce;
         public float HitStunDuration => hitStunDuration;
         public int ExpReward => expReward;
+        public int GoldReward => goldReward;
 
         /// <summary>확률 드랍. 없으면 <see cref="ExpReward"/> 만 준다.</summary>
         public DropTable Drops => dropTable;

@@ -31,8 +31,11 @@ namespace PrettyKnights.Data
 
         /// <summary>
         /// <paramref name="who"/> 를 잡아 얻은 것을 준다. 준 경험치 총합을 돌려준다.
+        ///
+        /// <paramref name="gold"/> 는 <b>표를 굴리지 않는 확정 지급</b>이다.
+        /// 잡을 때마다 0 이 나오면 파밍이 도는지 화면에서 읽히지 않는다.
         /// </summary>
-        public static int Grant(string who, int baseExp, DropTable table)
+        public static int Grant(string who, int baseExp, DropTable table, int gold = 0)
         {
             Hits.Clear();
 
@@ -41,9 +44,10 @@ namespace PrettyKnights.Data
 
             // 로그를 먼저 만든다. AddExp 가 Changed 이벤트를 쏘므로
             // 그 안에서 무언가가 또 보상을 주면 Hits 가 갈린다.
-            string message = LogDrops ? Describe(who, baseExp, total) : null;
+            string message = LogDrops ? Describe(who, baseExp, total, gold) : null;
 
             GrantItems();
+            GrantGold(gold);
 
             if (total > 0 && ServiceRegistry.TryGet(out PlayerRuntimeState state) && state != null)
                 state.AddExp(total);
@@ -51,6 +55,19 @@ namespace PrettyKnights.Data
             if (message != null) Debug.Log(message);
 
             return total;
+        }
+
+        /// <summary>
+        /// 골드를 넣는다. <b>지갑이 없어도 조용히 넘어간다</b> —
+        /// 게임플레이 씬을 Boot 없이 단독 실행한 경우가 그렇고,
+        /// 그때 보상 하나 때문에 예외가 나면 검증이 막힌다.
+        /// </summary>
+        private static void GrantGold(int gold)
+        {
+            if (gold <= 0) return;
+            if (!ServiceRegistry.TryGet(out Wallet purse) || purse == null) return;
+
+            purse.AddGold(gold);
         }
 
         /// <summary>
@@ -76,7 +93,7 @@ namespace PrettyKnights.Data
             }
         }
 
-        private static string Describe(string who, int baseExp, int total)
+        private static string Describe(string who, int baseExp, int total, int gold)
         {
             Line.Clear();
             Line.Append("[보상] ").Append(who).Append(" — 경험치 ").Append(baseExp);
@@ -84,7 +101,7 @@ namespace PrettyKnights.Data
             if (Hits.Count == 0)
             {
                 Line.Append(" (드랍 없음)");
-                return Line.ToString();
+                return AppendGold(gold);
             }
 
             Line.Append(" + ");
@@ -96,6 +113,13 @@ namespace PrettyKnights.Data
             }
 
             Line.Append(" = ").Append(total);
+            return AppendGold(gold);
+        }
+
+        private static string AppendGold(int gold)
+        {
+            if (gold > 0) Line.Append(" · 골드 ").Append(gold);
+
             return Line.ToString();
         }
     }

@@ -169,41 +169,11 @@ namespace PrettyKnights.Combat
             // 헛스윙이 조용하면 입력이 씹혔다고 느낀다.
             ShowSwing(origin, facing);
 
-            SkillShape.Evaluate(shape, shapeParams, origin, facing, filter, overlapped);
-
-            float attack = ResolveAttackPower();
-            struck.Clear();
-            struckAreas.Clear();
-
-            foreach (Collider2D collider in overlapped)
-            {
-                if (collider == null) continue;
-
-                // 타일맵처럼 한 콜라이더가 여러 칸을 대표하는 것은 범위를 통째로 넘긴다.
-                // 어느 칸을 맞았는지는 받는 쪽이 같은 범위 계산으로 고른다.
-                IAreaDamageable area = collider.GetComponentInParent<IAreaDamageable>();
-                if (area != null && !struckAreas.Contains(area))
-                {
-                    struckAreas.Add(area);
-                    area.ApplyAreaDamage(shape, shapeParams, origin, facing, attack);
-                }
-
-                // 콜라이더는 자식(Visual)에 있을 수도 있으므로 부모까지 올라가 찾는다.
-                IDamageable target = collider.GetComponentInParent<IDamageable>();
-
-                if (target == null || !target.IsAlive) continue;
-                if (target.Transform == transform) continue;      // 자기 자신
-                if (struck.Contains(target)) continue;            // 같은 몸의 콜라이더 둘
-
-                struck.Add(target);
-
-                float damage = CombatSettings.Damage(attack, target.Defense, targetIsPlayer: false);
-                target.ApplyDamage(damage, origin);
-
-                if (logHits)
-                    Debug.Log($"[PlayerAttack] {target.Transform.name} 에 {damage:0.#} " +
-                              $"(ATK {attack:0.#} vs DEF {target.Defense:0.#})");
-            }
+            // 때리는 일은 SkillCast 한 곳에 있다. 스킬도 같은 경로를 타므로
+            // 기본 공격에서 검증한 것이 스킬에 그대로 이어진다.
+            SkillCast.Strike(
+                transform, shape, shapeParams, origin, facing, ResolveAttackPower(),
+                filter, overlapped, struck, struckAreas, logHits);
 
             return true;
         }
@@ -232,13 +202,7 @@ namespace PrettyKnights.Combat
         }
 
         /// <summary>공격력은 런타임 상태에서 읽는다. 스킬로 오르는 값이 여기 반영된다.</summary>
-        private float ResolveAttackPower()
-        {
-            if (ServiceRegistry.TryGet(out PlayerRuntimeState state) && state != null && state.IsBound)
-                return state.Stats.Attack;
-
-            return 20f;
-        }
+        private static float ResolveAttackPower() => SkillCast.PlayerAttackPower();
 
         private Vector2 ResolveFacing()
         {
