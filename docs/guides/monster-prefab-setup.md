@@ -25,8 +25,7 @@ Monster  (GameObject)                   ← 루트가 발밑
    │     ├─ [C] Animator             임시 컨트롤러 (없어도 동작한다)
    │     └─ [C] DirectionalAnimatorDriver
    │
-   └─ HealthBar  (GameObject)        ← 추가 (2026-08-09). 아래 3절
-         └─ [C] MonsterHealthBar     **이것 하나만 붙이면 된다**
+   └─ HealthBar  (GameObject)        ← 아래 1-1절. 자식 4개를 손으로 만든다
 ```
 
 `DirectionalAnimatorDriver` 는 플레이어 전용이 아니다.
@@ -34,40 +33,97 @@ Monster  (GameObject)                   ← 루트가 발밑
 
 ---
 
-## 1-1. 체력바
+## 1-1. 체력바 (아트 연결판, 2026-08-09)
 
-`Monster` 루트 아래에 빈 게임오브젝트 `HealthBar` 를 만들고
-**`MonsterHealthBar` 컴포넌트 하나만** 붙인다. 그게 전부다.
+**아트가 들어왔으므로 자식 넷을 손으로 만든다.** 비워 두면 코드가 단색 사각형을
+대신 만들지만 그건 아트가 없던 때의 대체물이다.
+
+`Monster` 루트 아래에 빈 게임오브젝트 `HealthBar` (`Create Empty`) 를 만들고,
+그 아래에 다시 **빈 게임오브젝트 넷**을 만들어 각각 `SpriteRenderer` 를 붙인다.
+`HealthBar` 를 포함해 **게임오브젝트는 다섯 개**다.
+
+```
+HealthBar  (GameObject)
+   ├─ [C] Transform            (0, 0, 0)   ← Offset Y 를 코드가 덮어쓴다
+   ├─ [C] MonsterHealthBar
+   │
+   ├─ Track  (GameObject)      빈 홈. 늘어나지 않는다
+   │     ├─ [C] Transform          (0, 0, 0) / Scale (1, 1, 1)
+   │     └─ [C] SpriteRenderer     monster_health_track_bg   Order 90
+   │
+   ├─ Trail  (GameObject)      깎인 잔상. 늦게 따라온다
+   │     ├─ [C] Transform          (0, 0, 0) / Scale (1, 1, 1)
+   │     └─ [C] SpriteRenderer     monster_health_fill       Order 91
+   │
+   ├─ Fill   (GameObject)      남은 체력. 즉시 줄어든다
+   │     ├─ [C] Transform          (0, 0, 0) / Scale (1, 1, 1)
+   │     └─ [C] SpriteRenderer     monster_health_fill       Order 92
+   │
+   └─ Frame  (GameObject)      테두리. 절대 늘어나지 않는다
+         ├─ [C] Transform          (0, 0, 0) / Scale (1, 1, 1)
+         └─ [C] SpriteRenderer     monster_health_frame      Order 93
+```
+
+**자식의 그리기 순서를 손으로 준다.** 코드는 **자기가 만든** 렌더러에만
+`Sorting Order` 를 넣으므로, 손으로 만든 넷은 인스펙터에서 채워야 한다.
+잔상이 채움에 가리면 깎인 자리가 안 보이고, 테두리는 맨 위여야 홈을 덮는다.
 
 ```
 [C] MonsterHealthBar
-       Owner / Back / Fill  → 전부 비운다 (코드가 만든다)
-       Offset Y      → -0.3    루트가 접지점이므로 발밑
-       Width         → 0.9
-       Height        → 0.12
-       Back Color    → 어두운 회색 알파 0.85
-       Fill Color    → 붉은색
-       Low Ratio     → 0.3     이 아래면 색이 바뀐다
-       Low Color     → 주황
-       Hide When Full     → 켬
-       Linger After Full  → 1.5
+       Owner   → 비움 (부모에서 MonsterController 를 찾는다)
+       Frame   → Frame 의 SpriteRenderer
+       Track   → Track 의 SpriteRenderer
+       Trail   → Trail 의 SpriteRenderer
+       Fill    → Fill 의 SpriteRenderer
+       Offset Y            → -0.3   루트가 접지점이므로 발밑
+       Width / Height      → 무시된다 (아트가 있으면 스프라이트에서 읽는다)
+       Fill Color          → 흰색   ← 아트의 원래 색을 살린다
+       Low Ratio / Low Color → 0.3 / 주황
+       Track Color         → 무시된다 (코드가 만든 사각형 전용)
+       Trail Color         → 밝은 흰기 (알파 0.9)
+       Trail Delay / Speed → 0.25 / 1.2
+       Hide When Full      → 켬
+       Linger After Full   → 1.5
        Sorting Layer / Order → Default / 90
 ```
 
-**자식 오브젝트와 스프라이트를 코드가 만든다.** 아트가 없고 단색 사각형 둘이 전부라
-프리팹에 넣을 것이 없다. 1 × 1 흰 사각형 하나를 모든 몬스터가 나눠 쓰고 색만 입힌다.
-나중에 아트가 생기면 `Back` · `Fill` 칸에 넣어 덮어쓴다.
+> **`Fill Color` 를 흰색으로 두는 것이 중요하다.** 아트를 넣고도 붉은색을 남겨 두면
+> 스프라이트에 그 색이 한 번 더 곱해져 탁해진다.
+
+### 크기는 인스펙터가 아니라 아트가 정한다
+
+세 장의 PPU 를 **192** 로 맞춰 두었다 (`monster_health_frame` 이 192px → **정확히 1유닛**,
+캐릭터 폭 0.72유닛보다 약간 넓다). 채움은 146px → 0.76유닛.
+
+| 아트 | 픽셀 | PPU 192 기준 월드 크기 |
+|---|---|---|
+| `monster_health_frame` | 192 × 40 | 1.000 × 0.208 |
+| `monster_health_track_bg` | 146 × 13 | 0.760 × 0.068 |
+| `monster_health_fill` | 146 × 13 | 0.760 × 0.068 |
+
+`Width` / `Height` 는 **코드가 사각형을 만들 때만** 쓰인다. 아트가 들어오면
+`fill.sprite.bounds` 에서 폭을 읽으므로 인스펙터 숫자를 다시 맞출 일이 없다 —
+손으로 맞춘 값은 아트를 갈아 끼울 때 반드시 어긋난다.
+
+> 홈이 테두리 한가운데가 아니라면 `Track` · `Trail` · `Fill` 세 자식의
+> **로컬 Y 만** 같은 값으로 밀어 맞춘다. X 는 건드리지 않는다 —
+> 코드가 왼쪽 끝 고정으로 늘리려고 X 를 계산해 쓴다.
 
 ### 왜 Canvas 가 아닌가
 
 한 층에 **16마리까지** 나온다. 마리마다 월드 스페이스 Canvas 를 두면
-그만큼 배치가 쪼개져 모바일에서 비용이 커진다. `SpriteRenderer` 두 장이면
+그만큼 배치가 쪼개져 모바일에서 비용이 커진다. `SpriteRenderer` 몇 장이면
 다른 스프라이트와 함께 묶여 그려진다.
 
 ### 가득이면 숨는다
 
 꽉 찬 바 16개가 늘 떠 있으면 화면이 시끄럽고, 무엇보다 **맞은 놈이 어느 놈인지**
 안 보인다. 회복이 눈에 보이도록 가득 찬 뒤 1.5초는 더 보여준다.
+
+### 채움은 즉시 줄고 잔상이 늦게 쫓아온다
+
+그 사이의 밝은 띠가 곧 **"이번에 얼마나 깎였는가"** 다.
+부드럽게 줄이면 정확하지만 얼마나 맞았는지는 못 읽는다.
 
 > `Sorting Order 90` 은 임시값이다. 정렬 일괄 지정 때 확정한다
 > ([`../TODO.md`](../TODO.md) "정렬 일괄 지정").
@@ -93,11 +149,20 @@ Monster  (GameObject)                   ← 루트가 발밑
 
 `Assets/Prefabs/Monsters/Monster_Temp.prefab` 으로 저장한다.
 
-## 4. MonsterDefinition 에셋 만들기
+## 4. MonsterDefinition 에셋
 
-`Assets/Data/Monsters/` 에서 **우클릭 → Create → Pretty Knights → Monster Definition**
+**10종이 이미 `Assets/Data/Monsters/` 에 있다.**
+`Pretty Knights > Data > 1. MonsterDefinition 생성/갱신` 이 만든 것이다.
 
-이름은 `Goblin_Grunt` 정도로. 기본값으로도 동작한다.
+> ⚠ **그 도구를 다시 돌리면 손으로 맞춘 `Telegraph Duration` 이 등급 기본값으로 덮인다.**
+> 밸런싱 값은 인스펙터가 아니라 `MonsterDefinitionBuilder` 의 표에서 고친다
+> ([`../pitfalls.md`](../pitfalls.md)).
+
+> **프리팹의 `MonsterController.definition` 은 신경 쓰지 않아도 된다.**
+> 스포너가 `Spawn(definition, point)` 로 덮어쓴다. 프리팹은 하나가 맞다.
+
+새로 하나 만들어 볼 때만: `Assets/Data/Monsters/` 에서
+**우클릭 → Create → Pretty Knights → Monster Definition**. 기본값으로도 동작한다.
 
 | 항목 | 기본값 | 의미 |
 |---|---|---|
@@ -142,14 +207,13 @@ Monster  (GameObject)                   ← 루트가 발밑
 | | 상태 |
 |---|---|
 | **경로 탐색** | 없다. 대상 방향으로 곧장 향하는 단순 조향이라 **오브젝트나 벽 모서리에 걸린다.** 결정 005 대로 방 단위 그리드 A\* 로 교체 예정 |
-| 스포너 · 리스폰 | 없다. 지금은 씬에 직접 놓는다. 상한·쿨타임·보주 연동은 다음 작업 |
-| 피격 판정 | 플레이어가 몬스터를 때릴 수단이 없다. `TakeDamage(float)` 는 열려 있으니 스킬 판정이 붙으면 연결된다 |
+| 스포너 · 리스폰 | `FloorPopulation` 이 9개 층에 붙어 있다. **`MonsterSpawner` 는 아직 0개** — 보스 자리처럼 지점을 지정해야 하는 스폰이 남았다 ([`monster-spawn-setup.md`](monster-spawn-setup.md)) |
+| 피격 판정 | 된다. `PlayerAttack` 이 반원으로 훑어 `IDamageable` 을 때린다 |
 | 몬스터 아트 | 없다. 임시 비주얼 |
 
 ## 7. 죽는 것까지 확인하려면
 
-플레이어 공격이 없으므로 인스펙터에서 직접 확인한다.
-재생 중 `MonsterController` 의 `Current Hp` 는 읽기 전용으로 표시되지 않으므로,
-당장은 **`Exp Reward` 가 지급되는지**를 다른 경로로 보긴 어렵다.
+**때려서 확인한다.** `PlayerAttack` 이 붙어 있으므로 공격 버튼으로 직접 깎을 수 있고,
+체력바가 줄어드는 것이 그대로 보인다. 죽으면 `RewardGrant` 가 경험치와 드랍을 준다.
 
-스킬 판정이 붙기 전까지는 **배회·추격·공격 세 가지만** 검증 대상으로 삼는다.
+절차는 [`verify-spawn-drop.md`](verify-spawn-drop.md) 에 있다.
