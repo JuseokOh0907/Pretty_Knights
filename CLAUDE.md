@@ -96,24 +96,27 @@ Assets/Scripts/
 │                FloorScatterProfile · DropTable · CombatSettings
 │                ItemDefinition · ItemDatabase · Inventory · PotionSettings
 │                RewardGrant ← 경험치·드랍이 지나는 한 경로
-│                SkillEffectDefinition
+│                SkillEffectDefinition · PlayerSkillDefinition
+│                Wallet(골드) · ShopOffer(SO) · PlayerUpgrades · Shop ← 세로 전용
 ├── Save/        SaveData · SaveService · WorldLocation · WorldProgress
 ├── Characters/  CharacterMotor · PlayerController · PlayerHitReaction
 │                DirectionalAnimatorDriver · MonsterController · MonsterHealthBar
-│                EightDirection
-├── Combat/      SkillShape(무상태) · PlayerAttack · IDamageable · IAreaDamageable
+│                EightDirection · AutoBattle ← 세로 전용 자동 이동·기본공격
+├── Combat/      SkillShape(무상태) · PlayerAttack · SkillCast · IDamageable · IAreaDamageable
 │                PixelSpriteBaker ← 도트 규칙(64px·Point)이 여기 한 곳에만 있다
 │                SkillIndicator · SkillIndicatorPool · SkillIndicatorRasterizer
 │                SkillImpact · SkillImpactPool · SkillImpactRasterizer · SkillEffectFrame
-│                ISkillBar ← 스킬 버튼이 바라보는 창구. **구현체가 아직 없다**
+│                ISkillBar · PlayerSkillBar(구현체, 씬 배치 남음)
 ├── World/       CameraFollow · WalkableArea · MonsterSpawner · FloorPopulation
 │                AreaAnchor · ArrivalPoint · AreaRegistry · AreaTransition · Portal
 │                IInteractable · InteractableBehaviour · InteractionHub · ItemPickup
 │                FloorProps · PropScatterer · Destructible · DestructibleTilemap
 │                SpawnTotem · NoSpawnZone
+│                StageViewport · ObstacleField ← 세로 전용
 └── UI/          UIRoot · ModeSwitchButton · ScreenFader · PlayerHudView
                  InteractButton · AttackButton · SkillButton · EscapeButton
                  InventoryPanel · InventorySlotView · PotionSettingsView · PotionWarningLabel
+                 CurrencyView · ShopView · ShopSlotView ← 세로 전용
 ```
 
 **씬에 있는 것을 찾을 때는 `ServiceRegistry`.** 몸(`PlayerController`)·카메라·구역은
@@ -347,7 +350,8 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
   절차 [`docs/guides/monster-spawn-setup.md`](docs/guides/monster-spawn-setup.md),
   검증 [`docs/guides/verify-spawn-drop.md`](docs/guides/verify-spawn-drop.md)
 - **`Monster_Temp` 에 `MonsterHealthBar` 가 안 붙어 있다** (씬·프리팹 통틀어 0개).
-  같이 `monster_health_*` 3장을 **PPU 192** 로 바꿔야 한다 (지금 100 — §4 참조)
+  아트(`monster_health_*` 3장, PPU 192)는 준비됐다 — 프리팹에 자식 넷을 손으로 붙이는
+  것만 남았다. 절차 [`docs/guides/monster-prefab-setup.md`](docs/guides/monster-prefab-setup.md) 1-1절
 - **`PotionSettingsView` 가 씬에 0개** — 포션 임계값 조절 UI
 - **플레이어 정보판(`PlayerHudView`)은 코드까지 됐고 씬 배치가 남았다** —
   [`docs/guides/hud-layout.md`](docs/guides/hud-layout.md) 2-1절.
@@ -358,9 +362,29 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
 - **검격 아트가 없다.** `PlayerAttack.Attack Effect` 가 비어 있어 임시로 판정 범위(부채꼴)가
   그려지고 있다. 아트가 들어오면 `Show Range When No Art` 를 끈다 —
   [`docs/guides/skill-effect-art.md`](docs/guides/skill-effect-art.md)
-- **`ISkillBar` 구현체가 없다.** `Player.prefab` 에 붙여 `ServiceRegistry` 에 등록하기 전까지
-  스킬 버튼 4개는 잠김으로 그려진다. 붙으면 HUD 는 그대로 두고 동작한다
+- **`ISkillBar` 구현체는 생겼지만(`PlayerSkillBar`) 씬 배치가 안 됐다.**
+  `Player.prefab` 루트에 붙여야 스킬 버튼 4개의 잠김이 풀린다.
+  4칸에 배울 `PlayerSkillDefinition` 을 연결하는 것도 함께 남았다 —
+  스킬 3종(전방 베기 · 관통 직선 · 광역 폭발)의 에셋 자체가 아직 없다
 - **몬스터 아트가 없다.** `MonsterDefinition` 10종은 있고 임시 프리팹 `Monster_Temp` 뿐이다
+
+**세로 모드 — 코드는 다 있고 씬(`Ingame_Vertical`)이 비어 있다** (`Global Light 2D` 하나뿐)
+
+결정 근거는 [`docs/decisions/009-vertical-mode.md`](docs/decisions/009-vertical-mode.md),
+조립 절차는 [`docs/guides/vertical-stage-setup.md`](docs/guides/vertical-stage-setup.md) 하나로 묶여 있다.
+
+- 몬스터가 아니라 **부술 수 있는 장애물**을 파밍한다. `ObstacleField` 가
+  `FloorPopulation` 처럼 플레이어 주변에 계속 다시 뽑는다. 토템·층 이동 없음
+- **전투 화면은 상단 25% 띠**(480px)뿐이다. `StageViewport` 가 뷰포트를 줄이고
+  `orthographicSize` 로 캐릭터 크기를 가로 모드와 맞춘 뒤 **1.5배 더 당긴다**
+- 화면을 지우는 카메라가 한 대 더 필요하다 — 뷰포트 밖은 지워지지 않고
+  `player_hud_frame` 의 구멍(동그라미·체력 홈)으로 직전 프레임이 비친다
+- 이동·기본공격은 `AutoBattle` 이 대신한다. **세로에는 스킬 버튼이 없다** —
+  그 자리를 `ShopView`(하단 1440px)가 대신 채운다
+- `Shop` · `ShopOffer`(SO) · `PlayerUpgrades` · `Wallet`(골드) 코드는 전부 있고
+  **`ShopOffer` 에셋의 실제 값(가격·효과량)은 아직 안 채워졌다**
+- `Player_Vertical` 전용 프리팹(공용 `Player.prefab` 복제 + `Visual` 1.5배 + `AutoBattle`)이
+  아직 없다
 
 **전 구역 배선 절차는 [`docs/guides/all-maps-setup.md`](docs/guides/all-maps-setup.md) 하나로 묶여 있다.**
 

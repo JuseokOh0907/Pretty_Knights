@@ -11,16 +11,32 @@
 
 > **전 구역이 배선되고 순환이 닫혔다** (2026-08-09). 구역 13개가 모두 등록되고,
 > 던전 입구에서 세 테마로 나가 보상방으로 돌아온다.
-> 아래 네 가지가 **화면에 몬스터를 세우고 진행을 만드는** 나머지다.
+> **세로 모드도 코드는 다 나왔고 씬 조립이 남았다** (아래 ⓪) — 지금 작업 중이던 것.
 
-### ① 몬스터를 실제로 세운다 ← **작업 중이던 것**
+### ⓪ 세로 모드 씬 조립 ← **작업 중이던 것**
+
+`Ingame_Vertical` 은 `Global Light 2D` 하나뿐인 빈 씬이다.
+결정 근거 [`decisions/009-vertical-mode.md`](decisions/009-vertical-mode.md),
+조립 절차는 [`guides/vertical-stage-setup.md`](guides/vertical-stage-setup.md) 하나로 묶여 있다.
+
+- [ ] **카메라 둘 · `StageViewport`** — 전투 화면을 상단 25% 띠(480px)로.
+      화면을 지우기만 하는 배경 카메라가 한 대 더 필요하다 (뷰포트 밖은 안 지워진다)
+- [ ] **사냥터 `Grid`** — Campsite 타일 20×20칸 + `Guide` 벽
+- [ ] **`ObstacleField`** — `WalkableArea` 와 나란히. 몬스터가 아니라 **장애물**을 파밍한다
+- [ ] **`Player_Vertical` 프리팹** — `Player.prefab` 복제 + `Visual` **Scale 1.5** + `AutoBattle` 부착.
+      원본은 건드리지 않는다
+- [ ] **`ShopView` 하단 배치** — 스킬 자리를 대신 채운다. 카드 6개(2열×3행), `CurrencyBar`
+- [ ] **`ShopOffer` 에셋에 실제 값 채우기** (가격 · 효과량) — 사용자가 직접
+- [ ] `PlayerHudView` 도 여기서 함께 배치하면 두 모드가 한 번에 끝난다 (아래 ② 참조)
+
+### ① 가로 — 몬스터를 실제로 세운다
 
 씬에 `FloorPopulation` 은 **9개 층 전부**에 붙었다. `MonsterSpawner` 는 **0개**다.
 
 - [ ] 보스 자리처럼 **지점을 지정해야 하는 스폰**에 `MonsterSpawner` 배치 (3F 3개 층)
-- [ ] `Monster_Temp` 프리팹에 **`MonsterHealthBar` 부착** (프리팹·씬 통틀어 0개)
-- [ ] `monster_health_fill` · `monster_health_frame` · `monster_health_track_bg` 를
-      **PPU 192** 로 (지금 100). 월드 `SpriteRenderer` 라 PPU 가 실제 크기를 정한다
+- [ ] `Monster_Temp` 프리팹에 **`MonsterHealthBar` 부착** (프리팹·씬 통틀어 0개).
+      아트(PPU 192)는 이미 준비됐다 — 자식 넷을 손으로 붙이는 것만 남았다
+      ([`guides/monster-prefab-setup.md`](guides/monster-prefab-setup.md) 1-1절)
 
 절차는 [`guides/monster-spawn-setup.md`](guides/monster-spawn-setup.md),
 검증은 [`guides/verify-spawn-drop.md`](guides/verify-spawn-drop.md).
@@ -35,11 +51,15 @@
       **36×36 고정 + `Preserve Aspect`** 로 해결한다
 - [x] **플레이어 HP HUD** — `PlayerHudView` 작성 완료 (체력 · 레벨 · ATK/DEF/AGI).
       아트가 **구멍 뚫린 액자**라 체력 홈(401 × 39)이 `player_health_fill` 과 크기가 같다
-- [ ] **`PlayerHudView` 를 Boot 씬에 배치** — [`guides/hud-layout.md`](guides/hud-layout.md) 2-1절
+- [ ] **`PlayerHudView` 를 Boot 씬에 배치** — [`guides/hud-layout.md`](guides/hud-layout.md) 2-1절.
+      **세로 전용 패널에 넣지 않는다** — 두 모드에 다 뜬다
 - [ ] 보스 HP 바 — `boss_health_*` 3장 미연결. 전용 뷰가 아직 없다
 - [ ] 눌림 상태 아트 미연결 — `attack_button_pressed` · `skill_slot_pressed` · `start_button_*`
 - [x] `InteractButton` 의 `Icon` 에 자식 Image 연결 — 포탈/줍기가 그림으로 갈린다 (글자는 없앰)
 - [x] `ItemDefinition` 4종 아이콘 연결
+- [x] `ISkillBar` 구현체 — `PlayerSkillBar` 작성 완료. **`Player.prefab` 배치는 남았다**
+- [ ] **`PlayerSkillBar` 를 `Player.prefab` 에 부착** — 붙어야 스킬 버튼 4개의 잠김이 풀린다.
+      슬롯에 넣을 `PlayerSkillDefinition` 에셋(전방 베기 등)이 아직 하나도 없다
 
 ### ③ 검격 아트
 
