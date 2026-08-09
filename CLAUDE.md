@@ -445,13 +445,17 @@ Pretty Knights > Areas > 0. 포탈 링크 점검 · 1. AreaDefinition 번호 목
 
 `docs/decisions/OPEN_DECISIONS.md` 참조. 총 9건이며, 결정 시 해당 문서를 갱신하고 이 절의 링크를 유지합니다.
 
-그중 **코드 작성을 실제로 막고 있는 3건**은 다음과 같습니다. 첫 구현 착수 전에 사용자와 먼저 정리하십시오.
+그중 **코드 작성을 실제로 막고 있는 2건**은 다음과 같습니다.
 
 | # | 항목 | 무엇이 막히는가 |
 |---|---|---|
 | 2 | 카메라·타일 투영·충돌·가림 규칙 | 타일맵 그리드 설정과 Y-소팅 구현 |
-| 8 | 세로/가로 기준 해상도 및 전환 동작 | 씬·캔버스 구조 |
 | 3 | 스탯 목록과 공식 | 캐릭터 데이터 모델 |
+
+**#8(세로/가로 기준 해상도)은 2026-08-09 에 확정되었습니다** —
+세로 1080×1920, 화면을 **HUD 0.14 / 전투 0.30 / 조작판 0.56** 세 띠로 나눕니다.
+근거는 [`docs/decisions/009-vertical-mode.md`](docs/decisions/009-vertical-mode.md),
+배치 절차는 [`docs/guides/vertical-stage-setup.md`](docs/guides/vertical-stage-setup.md).
 
 ---
 
