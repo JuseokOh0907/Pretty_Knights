@@ -290,7 +290,7 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
 
 ## 7. 현재 진행 상태
 
-> 마지막 갱신 2026-08-08. 이 절이 실제와 어긋나면 먼저 고치고 작업할 것.
+> 마지막 갱신 2026-08-09. 이 절이 실제와 어긋나면 먼저 고치고 작업할 것.
 > 할 일 목록은 [`docs/TODO.md`](docs/TODO.md) 를 본다.
 
 **동작하는 것** — 실행해서 확인된 것만 적는다
@@ -298,63 +298,82 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
 - **플레이어** — `Player.prefab` (루트: Rigidbody2D · CapsuleCollider2D · CharacterMotor ·
   PlayerController · PlayerHitReaction · **PlayerAttack** / 자식 `Visual`).
   단일 `Knight.controller` 에 Idle/Walk/Run 블렌드 트리. 8방향 이동, 손을 떼도 방향 유지
-- **Boot 씬** — `GameRoot`(+ AreaTransition · InteractionHub · SkillIndicatorPool) 와
-  `UIRoot`(Canvas · EventSystem · ModeSwitchButton · Controls · InteractButton ·
-  AttackButton · FadeOverlay). 두 루트 모두 DontDestroyOnLoad
+- **Boot 씬** — `GameRoot`(+ AreaTransition · InteractionHub · SkillIndicatorPool ·
+  **SkillImpactPool** · **AutoPotion**) 와 `UIRoot`(Canvas · EventSystem · ModeSwitchButton ·
+  Controls · InteractButton · AttackButton · **SkillButton 4** · **EscapeButton** ·
+  **InventoryPanel** · **PotionWarningLabel** · FadeOverlay). 두 루트 모두 DontDestroyOnLoad.
+  HUD 는 위/아래 두 줄로 재배치됨 ([`docs/guides/hud-layout.md`](docs/guides/hud-layout.md))
 - **세이브** — 레벨·경험치·HP · 마지막 위치와 방향 · **areaId** ·
-  **부순 오브젝트/벽 · 테마 클리어 횟수**(`WorldProgress`). 원자적 쓰기
-- **구역 전환** — 포탈은 **트리거 안 + 사용 키**로 발동하는 **단방향**.
+  **부순 오브젝트/벽 · 테마 클리어 횟수**(`WorldProgress`). 원자적 쓰기.
+  **모드마다 좌표를 따로 든다** (한 슬롯에 담았다가 가로 좌표가 지워지던 것을 고침)
+- **구역 전환 — 순환이 닫혔다.** 구역 **13개가 전부 등록**되고
+  던전 입구에서 세 테마로 나가 보상방을 거쳐 돌아온다.
+  포탈은 **트리거 안 + 사용 키**로 발동하는 **단방향**이고,
   페이드 · 구역 교체 · 카메라 경계 · 도착 보정 · 저장을 `AreaTransition` 이 순서대로 한다.
-  **Goblin 3개 층 + 보상방 왕복 확인 완료**
+  되돌아오는 길은 `EscapeButton` → `AreaTransition.RequestEscape()`
 - **전투** — `SkillShape`(무상태 범위 계산) · `PlayerAttack` · `IDamageable` ·
-  `IAreaDamageable`. 몬스터는 **예고 → 판정 → 경직** 3단계
-- **인디케이터** — 판정 도형을 픽셀 격자에 찍어 8방향으로 구워 캐시
+  `IAreaDamageable`. 기본 공격은 **반원(180°)**. 몬스터는 **예고 → 판정 → 경직** 3단계.
+  보상은 `RewardGrant` 한 경로로 통합했고 드랍 표 6종이 등급·역할로 연결되어 있다
+- **아이템·인벤토리** — `ItemDefinition`(4종) · `ItemDatabase` · `Inventory`(격자 30칸) ·
+  `ItemPickup` · **포션 자동 사용**(`AutoPotion` · `PotionSettings`).
+  아이콘 4종 전부 연결됨. 절차는 [`docs/guides/inventory-setup.md`](docs/guides/inventory-setup.md)
+- **인디케이터·임팩트** — 판정 도형을 픽셀 격자에 찍어 8방향으로 구워 캐시.
+  임팩트는 진행도 래스터화 (`decisions/008`)
+- **히든 방** — 층마다 Breakable 타일맵 + `DestructibleTilemap`(6) · `NoSpawnZone`(6).
+  봉인은 **칸 단위로 풀리고** 세이브에 남는다
 - **모드 전환 · 조작 · 피격 반응 · 카메라** — 이전과 같음
 
-**만들어졌지만 아직 씬에 다 붙지 않은 것**
+**씬 배선 현황** (2026-08-09 실측)
 
-씬에는 구역이 **13개**(Goblin 3층+보상방 · Orc 4 · Vampire 4 · 던전 입구) 있고
-`AreaAnchor` · `WalkableArea` 는 13개 전부에 붙어 있다. **아래는 Goblin·던전 입구만 된 상태다.**
+| | `Ingame_Horizontal` |
+|---|---|
+| 구역 (`AreaAnchor` · `WalkableArea`) | **13 / 13**, `definition` 빈 것 **0** |
+| `FloorProps` | **9 / 9** |
+| `ArrivalPoint` | 14 |
+| `DestructibleTilemap` | 6 |
+| `NoSpawnZone` | 6 |
+| `FloorPopulation` | **9** (9개 층 전부) |
+| `MonsterSpawner` | **0** ← 남은 것 |
 
-| | 되어 있는 곳 | 남은 곳 |
-|---|---|---|
-| `AreaAnchor.definition` | 5 (Goblin 4 · 던전 입구) | **8 (Orc 4 · Vampire 4)** — 비면 `AreaRegistry` 가 등록조차 안 한다 |
-| `FloorProps` | 3 (Goblin 1~3F) | 6 |
-| `FloorScatterProfile` | 3 (Goblin) | 6 |
-| `DestructibleTilemap` | 2 | 나머지 히든 방 |
-| 던전 입구 → 각 테마 포탈 | 0 | **3** — 순환이 닫히지 않은 지점 |
+**아직 안 된 것**
 
-- **타격 이펙트** — `SkillImpactPool` 을 Boot 씬 `GameRoot` 에 붙여야 한다
-  ([`docs/guides/run-setup.md`](docs/guides/run-setup.md) 2절). 없어도 판정은 그대로 되고 그림만 안 뜬다
-- **HUD 재배치** — `SkillButton`(4슬롯) · `EscapeButton` 이 만들어졌고
-  `InteractButton` 은 쓸 대상이 없어도 흐려질 뿐 사라지지 않는다.
-  **Boot 씬 배치가 남았다** — [`docs/guides/hud-layout.md`](docs/guides/hud-layout.md).
-  스킬 버튼은 `ISkillBar` 구현체가 없어 지금은 전부 잠김으로 그려진다
-- `MonsterSpawner` · `FloorPopulation` — 스폰. 씬에 **하나도 안 붙어서 몬스터가 안 나온다**.
-  절차는 [`docs/guides/monster-spawn-setup.md`](docs/guides/monster-spawn-setup.md).
-  `MonsterDefinition` 10종은 생성되어 있고 **몬스터 아트가 없다** (임시 프리팹 `Monster_Temp`)
-- `NoSpawnZone` — 씬에 **0개**. 히든 방 안에 몬스터가 뿌려지면 갇힌 채 인구 상한을 차지한다
-- **오브젝트 자동 배치 일습** — `PropDefinition`(18종 생성 완료) · `DropTable` ·
-  `FloorScatterProfile` · `PropScatterer`(계산) · `FloorProps`(런타임 생성) ·
-  `Destructible` · `SpawnTotem` · `NoSpawnZone` · `Prop.prefab`.
-  절차는 [`docs/guides/prop-scatter-setup.md`](docs/guides/prop-scatter-setup.md)
-- **부술 수 있는 벽** — `DestructibleTilemap`. 층마다 붙이고
-  `WalkableArea.Breakable` 에 연결해야 한다
+- **`MonsterSpawner` 가 0개다.** 지금은 층 단위 `FloorPopulation` 만 9개 층에 붙어 있다.
+  보스 자리처럼 **지점을 지정해야 하는 스폰**은 아직 없다.
+  절차 [`docs/guides/monster-spawn-setup.md`](docs/guides/monster-spawn-setup.md),
+  검증 [`docs/guides/verify-spawn-drop.md`](docs/guides/verify-spawn-drop.md)
+- **`Monster_Temp` 에 `MonsterHealthBar` 가 안 붙어 있다** (씬·프리팹 통틀어 0개).
+  같이 `monster_health_*` 3장을 **PPU 192** 로 바꿔야 한다 (지금 100 — §4 참조)
+- **`PotionSettingsView` 가 씬에 0개** — 포션 임계값 조절 UI
+- **플레이어 HP HUD 가 통째로 없다.** 아트(`player_hud_frame` · `player_health_*` ·
+  `boss_health_*`)는 전부 들어와 있고 연결만 안 됐다.
+  그 외 미연결 아트: `attack_button_pressed` · `skill_slot_pressed` · `start_button_*`
+- **검격 아트가 없다.** `PlayerAttack.Attack Effect` 가 비어 있어 임시로 판정 범위(부채꼴)가
+  그려지고 있다. 아트가 들어오면 `Show Range When No Art` 를 끈다 —
+  [`docs/guides/skill-effect-art.md`](docs/guides/skill-effect-art.md)
+- **`ISkillBar` 구현체가 없다.** `Player.prefab` 에 붙여 `ServiceRegistry` 에 등록하기 전까지
+  스킬 버튼 4개는 잠김으로 그려진다. 붙으면 HUD 는 그대로 두고 동작한다
+- **몬스터 아트가 없다.** `MonsterDefinition` 10종은 있고 임시 프리팹 `Monster_Temp` 뿐이다
 
 **전 구역 배선 절차는 [`docs/guides/all-maps-setup.md`](docs/guides/all-maps-setup.md) 하나로 묶여 있다.**
 
-**에디터 도구** — `Assets/Editor/` 9종. 전부 "점검(변경 없음)" 메뉴가 따로 있다
+**에디터 도구** — `Assets/Editor/` 12종. 전부 "점검(변경 없음)" 메뉴가 따로 있다
 
 ```
 Pretty Knights > Areas > 0. 포탈 링크 점검 · 1. AreaDefinition 번호 목록
                           2. 구역 정의 점검 · 3. AreaDefinition·배치 프로필 생성/갱신
-                > Data  > 몬스터 정의 점검 · MonsterDefinition 생성/갱신
+                > Data  > 0. 몬스터 정의 점검 · 1. MonsterDefinition 생성/갱신
                           2. 드랍 표 점검 · 3. 드랍 표 생성/연결
-                > Props > 개수 계산 · 미리보기 · 미리보기 지우기
-                          연결성 검사 · 막는 것 치우기
-                          오브젝트 정의 점검 · PropDefinition 생성/갱신
+                          4. 아이템 목록 점검 · 5. 아이템 목록 갱신
+                > Props > 0. 개수 계산 · 1. 미리보기 · 2. 미리보기 지우기
+                          3. 연결성 검사 · 4. 막는 것 치우기
+                          5. 오브젝트 정의 점검 · 6. PropDefinition 생성/갱신
                 > Tiles · Characters (기존)
 ```
+
+> ⚠ **`Data > 1. MonsterDefinition 생성/갱신` 을 다시 돌리면 손으로 맞춘
+> `Telegraph Duration` 이 등급 기본값으로 덮인다.** 밸런싱 값을 지키려면
+> 도구 안의 표를 함께 고친다. 다른 생성 도구도 같은 성질이 있다 —
+> `Areas > 3` 만 기존 배치 프로필의 개수·시드·간격을 보존한다.
 
 `Areas > 3` 은 **씬을 열어 둔 채로** 실행한다. 배치 개수를 표에 박지 않고
 바닥 칸 수로 계산하기 때문이다 — 층마다 넓이가 1,950~20,035칸으로 10배 넘게 차이 난다.
@@ -367,15 +386,23 @@ Pretty Knights > Areas > 0. 포탈 링크 점검 · 1. AreaDefinition 번호 목
 - **맵** — 3테마 × (3층 + 보상방) + 던전 입구. `Ingame_Horizontal` 한 씬에 전부.
   1F·2F 에 히든 방 벽 타일맵(`HiddenRewards`)이 있다
 - **오브젝트** — 18종 전부 PPU 64 · Pivot Center · 2×2칸
-- **데이터(SO)** — `Assets/Data/` 아래 `Monsters` 10 · `Props` 18 ·
-  `Areas` 5(101·102·103·190·3) · `Scatter` 3(Goblin) · `CombatSettings` · `PlayerStatsDefinition`
+- **UI 아트** — HUD · 인벤토리 · 아이템 아이콘. **`joystick_knob` 만 PPU 144** 이고 나머지는 100
+- **데이터(SO)** — `Assets/Data/` 아래 `Monsters` 10 · `Props` 18 · **`Areas` 13** ·
+  **`Scatter` 9** · **`Drops` 6** · **`Item` 4** · `ItemDatabase` ·
+  `CombatSettings` · `PlayerStatsDefinition`
 - **프리팹** — `Player` · `Prop` · `Monster_Temp` · 포탈 3색(`Blue`/`Red`/`Gold`)
 
 ### 남은 잡무 / 기술 부채
 
 - **정렬(Sorting)을 하나도 안 잡았다** — 바닥·벽·인디케이터·캐릭터가 전부 Default/0 이고
   Y-소팅도 꺼져 있다. **마지막에 한 번에 잡기로 했고** 현재 상태와 임시값을
-  `docs/TODO.md` "정렬 일괄 지정" 에 전부 모아 두었다
+  `docs/TODO.md` "정렬 일괄 지정" 에 전부 모아 두었다.
+  코드에 박힌 임시값이 늘었다 — 인디케이터 50 · **몬스터 체력바 90** · 타격 이펙트 100
+- **`joystick_knob` 만 PPU 144 다.** 지금은 크기를 직접 지정해 문제없지만
+  `Set Native Size` 를 누르면 100 기준으로 줄어든다
+- **`Map/Goblin/Rewards/Guide` 에 방 밖으로 뻗은 타일이 있다** (셀 x −572 · y 472).
+  실수로 칠한 것으로 보이며 지워도 될 것 같다.
+  카메라 경계가 `Floor` 기준이라 아직 증상은 없다
 - **오브젝트 접지선이 테마마다 다르다** — Goblin·Vampire 는 캔버스 중앙 정렬,
   Orc 만 바닥 정렬(하단 여백 7px). `PropDefinition.visualOffsetY` 로 흡수하고 있으며
   8/8 아트 교체 때 하단 여백 7px 로 통일하면 사라진다

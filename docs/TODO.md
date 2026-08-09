@@ -1,6 +1,6 @@
 # 할 일
 
-> 마지막 갱신 2026-08-08.
+> 마지막 갱신 2026-08-09.
 > **실행까지 가는 배치 순서는 [`docs/guides/run-setup.md`](guides/run-setup.md) 하나로 묶었다.**
 > 현재 무엇이 동작하는지는 [`CLAUDE.md` §7](../CLAUDE.md) 을 본다.
 > 왜 그렇게 정했는지는 `docs/decisions/` 를 본다.
@@ -9,45 +9,68 @@
 
 ## 바로 다음에 할 일
 
-> **Goblin 테마 한 바퀴가 돈다** (2026-08-08). 1F → 2F → 3F → 보상방 → 던전 입구.
-> 에셋(몬스터 10 · 오브젝트 18 · 구역 5 · 배치 프로필 3)과 `Prop.prefab` 은 전부 생성되어 있다.
-> 아래 네 가지가 **순환을 닫고 진행을 만드는** 나머지다.
+> **전 구역이 배선되고 순환이 닫혔다** (2026-08-09). 구역 13개가 모두 등록되고,
+> 던전 입구에서 세 테마로 나가 보상방으로 돌아온다.
+> 아래 네 가지가 **화면에 몬스터를 세우고 진행을 만드는** 나머지다.
 
-### ①② 전 구역 배선 — **절차는 [`guides/all-maps-setup.md`](guides/all-maps-setup.md) 하나로 묶었다**
+### ① 몬스터를 실제로 세운다 ← **작업 중이던 것**
 
-Goblin 만 되어 있다. 나머지 6개 층 + 보상방 2개, 그리고 던전 입구의 포탈 3개가 남았다.
-지금 씬의 `AreaAnchor` 13개 중 **8개가 `definition` 이 비어 있다** (Orc 4 · Vampire 4).
-재생하면 `[AreaRegistry] AreaDefinition 이 비어 등록되지 않은 구역이 8개` 경고가 뜬다.
+씬에 `FloorPopulation` 은 **9개 층 전부**에 붙었다. `MonsterSpawner` 는 **0개**다.
 
-**에셋은 도구가 만든다** — `Pretty Knights > Areas > 3. AreaDefinition · 배치 프로필 생성/갱신`.
-씬을 열어 둔 채 실행해야 한다. 배치 개수를 바닥 칸 수로 계산하기 때문이다.
+- [ ] 보스 자리처럼 **지점을 지정해야 하는 스폰**에 `MonsterSpawner` 배치 (3F 3개 층)
+- [ ] `Monster_Temp` 프리팹에 **`MonsterHealthBar` 부착** (프리팹·씬 통틀어 0개)
+- [ ] `monster_health_fill` · `monster_health_frame` · `monster_health_track_bg` 를
+      **PPU 192** 로 (지금 100). 월드 `SpriteRenderer` 라 PPU 가 실제 크기를 정한다
 
-- [x] 생성 도구 — 구역 13개 + 배치 프로필 9개. 다음 층·탈출·프로필 링크를 전부 건다.
-      **기존 프로필의 개수·시드·간격은 건드리지 않는다** (받아들인 배치가 다시 뽑히면 안 된다)
-- [ ] 도구 실행 → `Assets/Data/Areas/` 13개 · `Assets/Data/Scatter/` 9개
-- [ ] 씬의 `AreaAnchor` 8개에 정의 연결 ← **손으로**
-- [ ] Orc·Vampire 6개 층에 `FloorProps` 부착 + `Arrivals` 만들기
-- [ ] Orc·Vampire 보상방 2개 — `WalkableArea` 의 Floor/Guide 가 **둘 다 비어 있다**
-- [ ] 히든 방 벽 — Orc·Vampire 의 `HiddenRewards` 에 콜라이더 3종 + `DestructibleTilemap`
-- [ ] **던전 입구에 포탈 3개** → #101 / #201 / #301, 도착 지점 `from_entrance`.
-      이게 없어 순환이 닫히지 않는다
-- [ ] 던전 입구에 `from_escape` 도착 지점 (`AreaDefinition.EscapeTo` 는 도구가 #3 으로 채운다)
+절차는 [`guides/monster-spawn-setup.md`](guides/monster-spawn-setup.md),
+검증은 [`guides/verify-spawn-drop.md`](guides/verify-spawn-drop.md).
 
-> **층을 잇는 포탈은 씬에 두지 않는다.** 메인 토템이 뽑힌 자리에 `FloorProps` 가
-> 꺼진 포탈을 함께 만들고 토템을 부수면 켜진다. 손으로 두는 포탈은
-> **던전 입구 3개 + 보상방 3개, 총 6개뿐이다.**
+> **프리팹의 `MonsterController.definition` 은 신경 쓰지 않아도 된다.**
+> 스포너가 `Spawn(definition, point)` 로 덮어쓴다. 프리팹은 하나가 맞다.
 
-### ③ 보스 처치 → Gold 포탈
+### ② UI 마무리
+
+- [ ] **`PotionSettingsView` 배치** (씬에 0개) — 포션 임계값 조절 UI.
+      슬라이더 핸들이 타원으로 늘어나던 것은 `Handle` 앵커를 `(0, 0.5)` 로 묶고
+      **36×36 고정 + `Preserve Aspect`** 로 해결한다
+- [ ] **플레이어 HP HUD** — 통째로 없다. 아트(`player_hud_frame` · `player_health_fill` ·
+      `player_health_track_bg`)는 전부 들어와 있다
+- [ ] 보스 HP 바 — `boss_health_*` 3장 미연결
+- [ ] 눌림 상태 아트 미연결 — `attack_button_pressed` · `skill_slot_pressed` · `start_button_*`
+- [x] `InteractButton` 의 `Icon` 에 자식 Image 연결 — 포탈/줍기가 그림으로 갈린다 (글자는 없앰)
+- [x] `ItemDefinition` 4종 아이콘 연결
+
+### ③ 검격 아트
+
+`PlayerAttack.Attack Effect` 가 비어 있어 임시로 판정 범위가 그려지고 있다 (그 부채꼴이다).
+PixelLab 명령서대로 뽑으면 끝난다 — [`guides/skill-effect-art.md`](guides/skill-effect-art.md).
+아트가 들어오면 `Show Range When No Art` 를 끈다.
+
+### ④ 보스 처치 → Gold 포탈 · 데미지 숫자
 
 보스 처치 판정이 없어 **3F 에서 보상방으로 갈 정상 경로가 없다.**
 지금은 `AreaTransition` 우클릭 → 디버그 이동으로만 들어간다.
 `SpawnTotem` 이 메인 토템에서 하는 일과 같은 흐름이라 구조는 그대로 쓴다
 (유일한 차이: 포탈을 미리 두지 않고 **시체 자리에 생성**한다).
 
-### ④ 데미지 숫자
-
-부술 수 있는 벽의 **발견성이 여기 걸려 있다** — 때렸을 때 숫자가 뜨는 것이
+데미지 숫자에는 부술 수 있는 벽의 **발견성이 걸려 있다** — 때렸을 때 숫자가 뜨는 것이
 "이 벽은 부술 수 있다" 는 유일한 신호다. VFX 3요소의 "반응" 이기도 하다.
+
+### 끝난 것 — 전 구역 배선
+
+절차서는 [`guides/all-maps-setup.md`](guides/all-maps-setup.md) 에 남겨 둔다.
+
+- [x] 생성 도구 — 구역 13개 + 배치 프로필 9개
+- [x] 도구 실행 → `Assets/Data/Areas/` 13개 · `Assets/Data/Scatter/` 9개 · `Drops/` 6개
+- [x] 씬의 `AreaAnchor` 13개 전부 `definition` 연결 (빈 것 0)
+- [x] 9개 층에 `FloorProps` 부착 · `ArrivalPoint` 14개
+- [x] 히든 방 벽 — `DestructibleTilemap` 6개 · `NoSpawnZone` 6개
+- [x] **던전 입구에 포탈 3개** → #101 / #201 / #301
+- [x] 던전 입구 도착 지점 (`AreaDefinition.EscapeTo` 는 도구가 #3 으로 채운다)
+
+> **층을 잇는 포탈은 씬에 두지 않는다.** 메인 토템이 뽑힌 자리에 `FloorProps` 가
+> 꺼진 포탈을 함께 만들고 토템을 부수면 켜진다. 손으로 두는 포탈은
+> **던전 입구 3개 + 보상방 3개, 총 6개뿐이다.**
 
 ---
 
@@ -66,6 +89,9 @@ Goblin 만 되어 있다. 나머지 6개 층 + 보상방 2개, 그리고 던전 
 
 - **서브 토템 층당 개수와 기본/추가 점유량** — 지금 프로필의 값은 임시다
 - **층당 오브젝트 밀도** — 바닥 100~150칸당 1개로 시작했다
+- **예고 시간** — 지금 값(Normal 0.30 / Elite 0.45 / Boss 0.70)은 **짧아서 못 피한다**는
+  판단이 나왔다. 레벨 디자인에서 조정 예정.
+  고칠 때는 인스펙터가 아니라 `MonsterDefinitionBuilder` 의 표를 고친다
 - **정렬** — 마지막에 한 번에 잡기로 했다 (아래 "정렬 일괄 지정")
 
 ## 남아 있는 제약
@@ -96,15 +122,18 @@ Goblin 만 되어 있다. 나머지 6개 층 + 보상방 2개, 그리고 던전 
 층 루트에 `AreaAnchor` 와 나란히 붙이므로 한 번에 처리한다.
 
 **절차는 [`guides/monster-spawn-setup.md`](guides/monster-spawn-setup.md) 에 있다.**
-씬에 `MonsterSpawner`·`FloorPopulation` 이 **하나도 없어서** 몬스터가 안 나온다 (2026-08-09 확인).
+
+> **표와 달리 9개 층 전부를 `FloorPopulation` 으로 갔다** (2026-08-09).
+> 층 단위 인구 관리가 토템 지분 모델과 그대로 맞물리기 때문이다.
+> `MonsterSpawner` 는 **지점을 지정해야 하는 스폰**(보스 자리)에만 남는다.
 
 - [x] 13개 구역에 `WalkableArea` 부착 (Floor / Guide 타일맵 연결)
 - [x] 가이드 작성
-- [ ] 2F 3개에 `FloorPopulation` 부착
-- [ ] 1F·3F 에 `MonsterSpawner` 배치
+- [x] 9개 층에 `FloorPopulation` 부착
+- [ ] 3F 보스 자리에 `MonsterSpawner` 배치
 - [x] `NoSpawnZone` 에 **봉인 해제** — 들어가면 몬스터 차단만 풀리고 세이브에 남는다.
       직사각형이 아닌 방은 **타일맵 마스크** 또는 **같은 `Room Id` 의 사각형 여러 개**
-- [ ] 히든 방마다 `NoSpawnZone` 배치 — 지금 씬에 0개라 히든 방 안에 스폰될 수 있다
+- [x] 히든 방마다 `NoSpawnZone` 배치 (6개)
 
 ### 2. 카메라 경계를 층마다 바꾼다 — 코드 완료
 
@@ -125,11 +154,11 @@ Goblin 만 되어 있다. 나머지 6개 층 + 보상방 2개, 그리고 던전 
 - [x] `WorldLocation` 에 `areaId` 추가 + `GameRoot` 복원 시 구역 먼저 켜기
 - [x] `ScreenFader` · `InteractButton`
 - [x] 에디터 점검 — `Pretty Knights > Areas > 0. 포탈 링크 점검 (변경 없음)`
-- [ ] **`Assets/Data/Areas/` 에 `AreaDefinition` 3개 생성** (101 · 102 · 103)
-- [ ] **Boot 씬** — `AreaTransition` · `InteractionHub` · `InteractButton` · `FadeOverlay` 배치
-- [ ] **Ingame_Horizontal** — `Map` 에 `AreaRegistry`, Goblin 3개 층에 `AreaAnchor` + `WalkableArea`,
+- [x] **`Assets/Data/Areas/` 에 `AreaDefinition` 13개 생성**
+- [x] **Boot 씬** — `AreaTransition` · `InteractionHub` · `InteractButton` · `FadeOverlay` 배치
+- [x] **Ingame_Horizontal** — `Map` 에 `AreaRegistry`, 13개 구역에 `AreaAnchor` + `WalkableArea`,
       `ArrivalPoint` · `Portal` 배치
-- [ ] Orc · Vampire 로 복제 (Goblin 검증 후)
+- [x] Orc · Vampire 로 복제 — **순환이 닫혔다**
 
 > 포탈은 **단방향**이다. 되돌아오는 길은 탈출뿐이며
 > `AreaTransition.RequestEscape()` 를 `EscapeButton` 이 부른다 (2026-08-09).
@@ -180,21 +209,21 @@ Goblin 만 되어 있다. 나머지 6개 층 + 보상방 2개, 그리고 던전 
 - [x] 에디터는 미리보기만 — `0. 개수 계산 / 1. 미리보기 만들기 / 2. 미리보기 지우기`.
       계산이 `PropScatterer` 한 곳이라 미리보기와 실제가 같다
 - [x] 메인 토템 자리에 **꺼진 포탈**을 함께 만든다. 목적지는 `AreaDefinition.NextArea`
-- [ ] 층마다 `FloorProps` 부착 (`AreaAnchor` 와 나란히)
+- [x] 층마다 `FloorProps` 부착 (`AreaAnchor` 와 나란히) — 9 / 9
 - [x] **연결성 검사** `Pretty Knights > Props > 3. 검사 / 4. 막는 것 치우기`
       가중 탐색으로 최소 비용 경로가 지나는 자동 배치분이 곧 치울 목록이 된다.
       손으로 놓은 것은 통행 불가로 두어 자동으로 치우지 않는다
 - [x] **`PropDefinition` 생성 도구** `Pretty Knights > Props > 5. 점검 / 6. 생성`
       18종의 역할·HP·경험치·지분. 접지폭과 `Visual` Y 는 프리팹에 넣는 값이라
       에셋이 아니라 로그에만 찍는다
-- [ ] 도구 실행해 `Assets/Data/Props/` 에 18종 생성
+- [x] 도구 실행해 `Assets/Data/Props/` 에 18종 생성
 - [x] **프리팹은 하나** — 배리언트 18개를 만들지 않는다.
       스프라이트·콜라이더 크기·`Visual` Y 는 `Destructible.Bind` 가 정의에서 읽는다
-- [ ] `Prop.prefab` 하나 만들기
+- [x] `Prop.prefab` 하나 만들기
       (루트: `CapsuleCollider2D` · `Destructible` / 자식 `Visual`: `SpriteRenderer`)
       → 층별 `FloorScatterProfile` 의 `Prop Prefab` 에 연결
-- [ ] 층별 `FloorScatterProfile` 작성 (9개 층) → `AreaDefinition` 에 연결
-- [ ] `AreaDefinition.nextArea` 연결 (101→102, 102→103)
+- [x] 층별 `FloorScatterProfile` 작성 (9개 층) → `AreaDefinition` 에 연결
+- [x] `AreaDefinition.nextArea` 연결
 - [x] **파괴 상태 세이브** — `WorldProgress`
       - 오브젝트: `{areaId, index, mainTotem}` — 시드가 같으면 생성 순서도 같다
       - 부술 수 있는 벽: `{areaId, cellX, cellY}` — 손으로 그린 것이라 순서가 없다
@@ -253,8 +282,8 @@ Goblin1F
       몬스터·오브젝트·벽을 전부 처리한다
 - [x] **`WalkableArea` 에 breakable 레이어 추가** — 부수기 전까지는 벽이다
 - [x] 손상 표시 — `SetTileFlags(TileFlags.None)` 후 `SetColor`
-- [ ] 층마다 Breakable 타일맵에 `DestructibleTilemap` 부착 + `WalkableArea` 의 `Breakable` 연결
-- [ ] **파괴 칸 세이브** — 아래 "파괴 상태 저장" 과 함께
+- [x] 층마다 Breakable 타일맵에 `DestructibleTilemap` 부착 + `WalkableArea` 의 `Breakable` 연결 (6개)
+- [x] **파괴 칸 세이브** — `WorldProgress` 에 `{areaId, cellX, cellY}`
 - [ ] 벽 파괴 애니메이션 (추후)
 
 > **벽 강도를 방마다 다르게 하고 싶어지면** 타일 에셋 종류로 가르면 된다.
@@ -272,8 +301,9 @@ Goblin1F
 `SpawnTotem` 이 메인 토템에서 하는 일과 **완전히 같은 흐름**이라 별도 구조가 필요 없다.
 
 - [ ] 보스 처치 판정 → 시체 자리에 **Gold** 포탈 (유일한 런타임 생성 포탈)
-- [ ] `AreaDefinition` #190/#290/#390 (보상방) + `isRewardRoom` 플래그
-- [ ] 보상방에 아이템 + 던전 입구(#3)로 가는 **Blue** 포탈 배치
+- [x] `AreaDefinition` #190/#290/#390 (보상방) + `isRewardRoom` 플래그
+- [x] 보상방에서 던전 입구(#3)로 가는 **Blue** 포탈 배치
+- [ ] 보상방에 아이템 배치
 
 **포탈 3종의 용도** (결정 006 §3-1)
 
@@ -308,9 +338,10 @@ Goblin·Orc 의 트인 보스방(`1 : 18`)에서는 드러나지 않다가 거�
       생성 도구가 등급별 기본값을 넣는다 (Normal 0.30 / Elite 0.45 / Boss 0.70)
 - [x] `MonsterController` 를 **예고 → 판정 → 경직** 3단계로.
       원점·방향을 예고 시작 시점에 얼린다 — 범위가 따라오면 피할 방법이 없다
-- [ ] **Boot 씬에 `SkillIndicatorPool` 배치**
+- [x] **Boot 씬에 `SkillIndicatorPool` 배치**
       ([`run-setup.md`](guides/run-setup.md) 2절)
-- [ ] `Pretty Knights > Data > 1. MonsterDefinition 생성/갱신` 재실행 — 예고 시간이 들어간다
+- [x] `Pretty Knights > Data > 1. MonsterDefinition 생성/갱신` 실행 — 예고 시간이 들어갔다.
+      **다시 돌리면 손으로 맞춘 값이 등급 기본값으로 덮인다** ([`pitfalls.md`](pitfalls.md))
 - [ ] 플레이어 공격에도 인디케이터를 붙일지 (애니메이션으로 갈 예정이라 보류)
 
 ### 5. 스킬 판정 시스템 (2026-08-05 순서 조정)
@@ -370,7 +401,8 @@ Unity 게임플레이는 메인 스레드 단일이라 "동시" 는 같은 프�
       VFX 3요소의 "반응" 이고, **부술 수 있는 벽의 발견성도 이것이 해결한다** (3-2 참조)
 - [x] **임팩트(4~8프레임)** — `SkillImpactRasterizer` · `SkillImpact` · `SkillImpactPool`.
       메시가 아니라 **진행도로 굽는 도트 애니메이션** ([`decisions/008-impact-vfx.md`](decisions/008-impact-vfx.md)).
-      **Boot 씬에 `SkillImpactPool` 배치가 남았다** ([`guides/run-setup.md`](guides/run-setup.md) 2절)
+      Boot 씬 배치 완료. **검격만은 아트로 전환했다** (결정 008 §8) —
+      `PlayerAttack.Attack Effect` 가 비어 있어 지금은 판정 범위가 그려진다
 - [ ] VFX 3요소 나머지 — 플래시 · 사운드 · 햅틱
 
 ---
@@ -388,6 +420,7 @@ Unity 게임플레이는 메인 스레드 단일이라 "동시" 는 같은 프�
 | `1FGuide` `2FGuide` `3FGuide` `Guide` | Default | **0** |
 | `1FHiddenRewards` `2FHiddenRewards` (히든방 벽) | Default | **0** |
 | 인디케이터 (`SkillIndicatorPool`) | Default | **50** ← 코드에 박힌 임시값 |
+| 몬스터 체력바 (`MonsterHealthBar`) | Default | **90** ← 임시값 |
 | 타격 이펙트 (`SkillImpactPool`) | Default | **100** ← 임시값. 캐릭터 위여야 한다 |
 
 **바닥과 벽이 같은 레이어·같은 Order 다.** 그리기 순서가 계층 순서에 의존하므로
@@ -439,8 +472,9 @@ B 가 더 싸지만 8/8 아트 교체가 선행 조건이다. 그때까지는 A 
 | **히든방 벽 (Breakable)** | `Floor` | **11** ← `Guide` 보다 1 높게. 같으면 프레임마다 뒤집혀 깜빡인다 |
 | 지면 인디케이터 | `Floor` | 20 |
 | 플레이어 · 몬스터 · 오브젝트 · 포탈 | `Entities` | **0 고정** (Y-소팅이 여기서 순서를 정한다) |
-| 임팩트 이펙트 | `Effects` | 0 |
-| 데미지 숫자 | `Effects` | 10 |
+| 몬스터 체력바 | `Effects` | 0 |
+| 임팩트 이펙트 | `Effects` | 10 |
+| 데미지 숫자 | `Effects` | 20 |
 
 > **`Entities` 안은 Order 를 전부 0 으로 두어야 한다.** Y-소팅은 Layer 와 Order 가
 > 같을 때만 적용된다. 하나라도 다르면 그것만 항상 앞이나 뒤로 간다.
@@ -486,5 +520,7 @@ B 가 더 싸지만 8/8 아트 교체가 선행 조건이다. 그때까지는 A 
 - Goblin 오브젝트 6장만 PPU 128 (배치 시점에 64로)
 - 방향별 Animator Controller 24개 제거 (승인 후)
 - `Gamble_Yuusha.slnx` 잔재
+- [ ] `joystick_knob.png` 만 PPU 144 다 (나머지 UI 아트는 100).
+      지금은 크기를 직접 지정해 문제없지만 `Set Native Size` 를 누르면 100 기준으로 줄어든다
 - [ ] `Map/Goblin/Rewards/Guide` 에 방 밖으로 멀리 뻗은 타일이 있다 (셀 x −572 · y 472 까지).
       실수로 칠한 것으로 보이며 지워도 될 것 같다. **카메라 경계가 `Floor` 기준이라 아직 증상은 없다**
