@@ -1,7 +1,8 @@
-# HUD 배치 가이드 — 스킬 버튼과 하단 조작 줄
+# HUD 배치 가이드 — 정보판 · 스킬 버튼 · 하단 조작 줄
 
 > **Boot 씬의 `UIRoot/Canvas` 를 다시 잰다.** 스킬 버튼 4개와 탈출 버튼이 들어오면서
 > 흩어져 있던 버튼들을 **위 줄(메뉴)** 과 **아래 줄(조작)** 두 덩어리로 정리한다.
+> 좌상단 **플레이어 정보판**은 2-1절에 따로 있다.
 >
 > 표기 — `[C]` 는 컴포넌트, 들여쓰기는 부모-자식.
 > `★` 는 **반드시 손으로 채워야** 하는 칸. 표시 없는 칸은 비우면 자동으로 찾는다.
@@ -195,6 +196,119 @@ UIRoot  (GameObject)
 필요 없는 `Image` 는 지운다(`TopBar` `SkillBar` 는 컨테이너라 그림이 없다).
 `Label` 은 `UI > Text - TextMeshPro`. **레거시 `UI > Text` 를 쓰지 않는다** — 이 프로젝트는
 TMP 로 통일되어 있고, 섞으면 폰트 에셋과 자동 크기 동작이 갈린다.
+
+---
+
+## 2-1. 플레이어 정보판 (좌상단) — 2026-08-09 추가
+
+`player_hud_frame` 은 **구멍이 뚫린 액자**다. 동그란 자리와 체력 홈이
+알파 0 으로 비어 있어 **뒤에 깔린 것이 그 구멍으로 보인다.**
+
+실측 (아트 768 × 320 기준, 좌상단 원점)
+
+| 구멍 | 아트 픽셀 | 크기 |
+|---|---|---|
+| 초상 자리 (동그라미) | x 48~212 · y 78~241 | 165 × 164 |
+| 체력 홈 | x 302~702 · y 88~126 | **401 × 39** |
+| 검·방패·날개 칸 (구멍 아님, 파란 판) | y 175~237 | 높이 63 |
+
+**체력 홈이 `player_health_fill` 과 정확히 같은 401 × 39 다.** 우연이 아니라
+그렇게 그려진 것이므로, 바를 홈 자리에 그대로 얹으면 맞는다.
+
+### 왜 액자가 자식이 아니라 형제인가
+
+Canvas 에서 **자식은 언제나 부모 위에 그려진다.** 액자를 부모로 삼으면
+체력바가 액자 위로 올라와 테두리를 덮는다. 그래서 `PlayerHud` 는 그림 없는 빈 컨테이너로 두고,
+**`Frame` 을 맨 마지막 자식**으로 둔다 — Overlay 캔버스는 형제 순서가 곧 그리기 순서라
+마지막이 맨 위다. 바가 1px 어긋나도 테두리가 덮어준다.
+
+### 크기를 픽셀이 아니라 앵커로 준다
+
+정보판 전체 크기를 나중에 바꿔도 안쪽 칸이 따라오도록 **자식은 전부 정규화 앵커**로 잡는다
+(`Anchor Min` / `Anchor Max`, 오프셋은 0). 픽셀로 박아 두면 정보판 크기를 건드릴 때마다
+안쪽 여섯 개를 다시 재야 한다.
+
+앵커 값은 `아트 픽셀 ÷ 768`(가로), `1 − 아트 픽셀 ÷ 320`(세로) 이다.
+세로가 뒤집히는 것은 **아트는 위에서, 유니티는 아래에서** 재기 때문이다.
+
+### 계층 — `PlayerHud` 아래 게임오브젝트는 **아홉 개**다
+
+```
+ │    ├─ PlayerHud  (GameObject)                  ← 새로 만든다. Canvas 직속
+ │    │    ├─ [C] RectTransform
+ │    │    │        Anchor (0,1)~(0,1) · Pivot (0,1)
+ │    │    │        Pos (30, -30)      Size (480, 200)     ← 아트의 0.625배
+ │    │    ├─ [C] PlayerHudView
+ │    │    │        Health Fill   → Fill 의 Image          ★
+ │    │    │        Health Trail  → Trail 의 Image
+ │    │    │        Health Label  → HpText 의 TextMeshProUGUI
+ │    │    │        Exp Fill / Exp Label → 비움 (아트에 경험치 홈이 없다)
+ │    │    │        Level Label   → LevelText              ★
+ │    │    │        Attack / Defense / Agility Label → 세 칸의 TextMeshProUGUI
+ │    │    │        Trail Delay / Speed → 0.25 / 0.9
+ │    │    │        Health Color  → 흰색   ← 아트 색을 살린다
+ │    │    │        Low Ratio / Low Color → 0.3 / 주황
+ │    │    │
+ │    │    ├─ Track  (GameObject)                 빈 홈
+ │    │    │    ├─ [C] RectTransform  Anchor (0.3932, 0.6031)~(0.9154, 0.7250) · 오프셋 0
+ │    │    │    └─ [C] Image          player_health_track_bg · Raycast Target **끔**
+ │    │    │
+ │    │    ├─ Trail  (GameObject)                 깎인 잔상
+ │    │    │    ├─ [C] RectTransform  Track 과 **같은 앵커**
+ │    │    │    └─ [C] Image          player_health_fill · Raycast Target 끔
+ │    │    │             Image Type   → Filled · Horizontal · Origin Left   ★
+ │    │    │             Color        → 밝은 흰기 (알파 0.9)
+ │    │    │
+ │    │    ├─ Fill  (GameObject)                  남은 체력. ★ Trail 보다 아래
+ │    │    │    ├─ [C] RectTransform  Track 과 **같은 앵커**
+ │    │    │    └─ [C] Image          player_health_fill · Raycast Target 끔
+ │    │    │             Image Type   → Filled · Horizontal · Origin Left   ★
+ │    │    │
+ │    │    ├─ HpText  (GameObject)                "120 / 200"
+ │    │    │    ├─ [C] RectTransform  Track 과 같은 앵커 · 오프셋 0
+ │    │    │    └─ [C] TextMeshProUGUI  가운데 정렬 · Auto Size · Raycast Target 끔
+ │    │    │
+ │    │    ├─ LevelText  (GameObject)             동그란 자리
+ │    │    │    ├─ [C] RectTransform  Anchor (0.0625, 0.2438)~(0.2773, 0.7563) · 오프셋 0
+ │    │    │    └─ [C] TextMeshProUGUI  가운데 정렬 · Auto Size · Raycast Target 끔
+ │    │    │
+ │    │    ├─ AtkText  (GameObject)               검 칸
+ │    │    │    ├─ [C] RectTransform  Anchor (0.3411, 0.2563)~(0.5365, 0.4531)
+ │    │    │    │        Right 오프셋만 −10 (아이콘과 안 겹치게 오른쪽으로 민다)
+ │    │    │    └─ [C] TextMeshProUGUI  **오른쪽 정렬** · Auto Size · Raycast Target 끔
+ │    │    │
+ │    │    ├─ DefText  (GameObject)   Anchor (0.5690, 0.2563)~(0.7526, 0.4531)   방패 칸
+ │    │    ├─ AgiText  (GameObject)   Anchor (0.7813, 0.2563)~(0.9661, 0.4531)   날개 칸
+ │    │    │
+ │    │    └─ Frame  (GameObject)                 ★ 반드시 **맨 마지막 자식**
+ │    │         ├─ [C] RectTransform  Stretch 전체 · 여백 0
+ │    │         └─ [C] Image          player_hud_frame · Raycast Target **끔**
+```
+
+**만드는 메뉴 경로** — `PlayerHud` 는 `UI > Image` 로 만들고 `Image` 를 지운다(컨테이너).
+`Track`·`Trail`·`Fill`·`Frame` 은 `UI > Image`, 글자 넷은 `UI > Text - TextMeshPro`.
+
+> **아홉 개 전부 `Raycast Target` 을 끈다.** 정보판은 읽기만 하는 것인데,
+> 켜 두면 좌상단 480 × 200 이 통째로 터치를 삼킨다.
+> 알파 0 이어도 레이캐스트는 막힌다는 것을 이미 한 번 밟았다 ([`../pitfalls.md`](../pitfalls.md)).
+
+### `UIRoot` 의 `Landscape Only` 에 **넣지 않는다**
+
+세로 자동 사냥에서도 HP 는 봐야 한다. 두 모드가 같은 캐릭터를 공유하므로
+(기획서 §15-6) 정보판은 양쪽에 다 떠 있는 것이 맞다.
+
+### 확인할 것
+
+1. Boot 씬 재생 → 좌상단에 액자가 뜨고 **레벨 1**, 체력이 가득
+2. `GameRoot` 우클릭 → **피해 10** → 채움이 즉시 줄고 **잔상이 늦게 따라온다**
+3. 체력이 30% 아래로 내려가면 색이 주황으로 바뀐다
+4. 포션을 마시면 채움이 늘고 **잔상은 기다리지 않고 곧장 따라붙는다**
+5. `GameRoot` 우클릭 → **경험치 +100** 으로 레벨을 올리면
+   동그라미 숫자와 검·방패·날개 숫자가 함께 바뀐다
+6. 세로 모드로 전환해도 **정보판은 남아 있다**
+
+> 숫자가 "0 / 0" 으로 뜨면 `PlayerStatsDefinition` 이 `GameRoot` 에 안 붙은 것이다.
+> 뷰는 정의가 붙기 전에는 아무것도 그리지 않는다.
 
 ---
 

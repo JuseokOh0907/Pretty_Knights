@@ -90,25 +90,30 @@ Assets/
 ```
 Assets/Scripts/
 ├── PrettyKnights.asmdef   어셈블리 하나 (Unity.InputSystem 참조)
-├── Core/        GameRoot · SceneFlow · ServiceRegistry · GameMode
+├── Core/        GameRoot · SceneFlow · ServiceRegistry · GameMode · AutoPotion
 ├── Data/        StatBlock · PlayerStatsDefinition · PlayerRuntimeState
 │                MonsterDefinition · AreaDefinition · PropDefinition
 │                FloorScatterProfile · DropTable · CombatSettings
+│                ItemDefinition · ItemDatabase · Inventory · PotionSettings
+│                RewardGrant ← 경험치·드랍이 지나는 한 경로
+│                SkillEffectDefinition
 ├── Save/        SaveData · SaveService · WorldLocation · WorldProgress
 ├── Characters/  CharacterMotor · PlayerController · PlayerHitReaction
-│                DirectionalAnimatorDriver · MonsterController · EightDirection
+│                DirectionalAnimatorDriver · MonsterController · MonsterHealthBar
+│                EightDirection
 ├── Combat/      SkillShape(무상태) · PlayerAttack · IDamageable · IAreaDamageable
 │                PixelSpriteBaker ← 도트 규칙(64px·Point)이 여기 한 곳에만 있다
 │                SkillIndicator · SkillIndicatorPool · SkillIndicatorRasterizer
-│                SkillImpact · SkillImpactPool · SkillImpactRasterizer
+│                SkillImpact · SkillImpactPool · SkillImpactRasterizer · SkillEffectFrame
 │                ISkillBar ← 스킬 버튼이 바라보는 창구. **구현체가 아직 없다**
 ├── World/       CameraFollow · WalkableArea · MonsterSpawner · FloorPopulation
 │                AreaAnchor · ArrivalPoint · AreaRegistry · AreaTransition · Portal
-│                IInteractable · InteractableBehaviour · InteractionHub
+│                IInteractable · InteractableBehaviour · InteractionHub · ItemPickup
 │                FloorProps · PropScatterer · Destructible · DestructibleTilemap
 │                SpawnTotem · NoSpawnZone
-└── UI/          UIRoot · ModeSwitchButton · ScreenFader
+└── UI/          UIRoot · ModeSwitchButton · ScreenFader · PlayerHudView
                  InteractButton · AttackButton · SkillButton · EscapeButton
+                 InventoryPanel · InventorySlotView · PotionSettingsView · PotionWarningLabel
 ```
 
 **씬에 있는 것을 찾을 때는 `ServiceRegistry`.** 몸(`PlayerController`)·카메라·구역은
@@ -344,8 +349,11 @@ Unity 에디터 안에서 조립하는 작업은 자동 생성하지 않고 **`d
 - **`Monster_Temp` 에 `MonsterHealthBar` 가 안 붙어 있다** (씬·프리팹 통틀어 0개).
   같이 `monster_health_*` 3장을 **PPU 192** 로 바꿔야 한다 (지금 100 — §4 참조)
 - **`PotionSettingsView` 가 씬에 0개** — 포션 임계값 조절 UI
-- **플레이어 HP HUD 가 통째로 없다.** 아트(`player_hud_frame` · `player_health_*` ·
-  `boss_health_*`)는 전부 들어와 있고 연결만 안 됐다.
+- **플레이어 정보판(`PlayerHudView`)은 코드까지 됐고 씬 배치가 남았다** —
+  [`docs/guides/hud-layout.md`](docs/guides/hud-layout.md) 2-1절.
+  `player_hud_frame` 은 **구멍 뚫린 액자**이고 체력 홈이 `player_health_fill` 과
+  똑같이 401 × 39 라 그대로 얹으면 맞는다.
+  보스 바(`boss_health_*`)는 전용 뷰가 아직 없다.
   그 외 미연결 아트: `attack_button_pressed` · `skill_slot_pressed` · `start_button_*`
 - **검격 아트가 없다.** `PlayerAttack.Attack Effect` 가 비어 있어 임시로 판정 범위(부채꼴)가
   그려지고 있다. 아트가 들어오면 `Show Range When No Art` 를 끈다 —

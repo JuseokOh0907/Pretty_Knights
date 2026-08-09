@@ -33,9 +33,10 @@
 - [ ] **`PotionSettingsView` 배치** (씬에 0개) — 포션 임계값 조절 UI.
       슬라이더 핸들이 타원으로 늘어나던 것은 `Handle` 앵커를 `(0, 0.5)` 로 묶고
       **36×36 고정 + `Preserve Aspect`** 로 해결한다
-- [ ] **플레이어 HP HUD** — 통째로 없다. 아트(`player_hud_frame` · `player_health_fill` ·
-      `player_health_track_bg`)는 전부 들어와 있다
-- [ ] 보스 HP 바 — `boss_health_*` 3장 미연결
+- [x] **플레이어 HP HUD** — `PlayerHudView` 작성 완료 (체력 · 레벨 · ATK/DEF/AGI).
+      아트가 **구멍 뚫린 액자**라 체력 홈(401 × 39)이 `player_health_fill` 과 크기가 같다
+- [ ] **`PlayerHudView` 를 Boot 씬에 배치** — [`guides/hud-layout.md`](guides/hud-layout.md) 2-1절
+- [ ] 보스 HP 바 — `boss_health_*` 3장 미연결. 전용 뷰가 아직 없다
 - [ ] 눌림 상태 아트 미연결 — `attack_button_pressed` · `skill_slot_pressed` · `start_button_*`
 - [x] `InteractButton` 의 `Icon` 에 자식 Image 연결 — 포탈/줍기가 그림으로 갈린다 (글자는 없앰)
 - [x] `ItemDefinition` 4종 아이콘 연결
